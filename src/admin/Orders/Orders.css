@@ -1,0 +1,150 @@
+.admin-orders{
+
+    padding:40px;
+
+}
+
+
+
+.admin-orders h1{
+
+    margin-bottom:30px;
+
+    color:#1d4ed8;
+
+}
+
+
+
+.admin-orders table{
+
+    width:100%;
+
+    background:white;
+
+    border-collapse:collapse;
+
+    border-radius:10px;
+
+    overflow:hidden;
+
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+
+}
+
+
+
+.admin-orders th{
+
+    background:#1d4ed8;
+
+    color:white;
+
+    padding:15px;
+
+    text-align:left;
+
+}
+
+
+
+.admin-orders td{
+
+    padding:15px;
+
+    border-bottom:1px solid #ddd;
+
+}
+
+
+
+.admin-orders tr:hover{
+
+    background:#f8fafc;
+
+}
+
+
+
+.admin-orders select{
+
+    padding:8px 12px;
+
+    border-radius:6px;
+
+    border:1px solid #ccc;
+
+    cursor:pointer;
+
+}
+.paid{
+
+    color:green;
+
+    font-weight:bold;
+
+}
+
+
+.pending{
+
+    color:orange;
+
+    font-weight:bold;
+
+}
+
+
+.processing{
+
+    color:blue;
+
+    font-weight:bold;
+
+}
+
+
+.delivered{
+
+    color:green;
+
+    font-weight:bold;
+
+}
+.delete-order-btn {
+
+    margin-left: 10px;
+
+    padding: 8px 14px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: #dc2626;
+
+    color: white;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s ease;
+
+}
+
+
+.delete-order-btn:hover {
+
+    background: #b91c1c;
+
+}
+
+
+.delete-order-btn:active {
+
+    transform: scale(0.97);
+
+}

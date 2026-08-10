@@ -1,0 +1,84 @@
+.settings-admin{
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:12px;
+
+    max-width:600px;
+
+}
+
+
+
+.settings-admin h1{
+
+    margin-bottom:30px;
+
+    color:#111827;
+
+}
+
+
+
+.settings-admin form{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+
+
+.settings-admin label{
+
+    margin-top:15px;
+
+    margin-bottom:5px;
+
+    font-weight:bold;
+
+}
+
+
+
+.settings-admin input,
+.settings-admin textarea{
+
+    padding:12px;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+}
+
+
+
+.settings-admin textarea{
+
+    height:100px;
+
+}
+
+
+
+.settings-admin button{
+
+    margin-top:25px;
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+}

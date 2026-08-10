@@ -1,0 +1,34 @@
+.chart-box{
+
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+    min-height:420px;
+
+}
+
+.chart-box h2{
+
+    margin-bottom:20px;
+
+    color:#111827;
+
+}
+
+.charts-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
+
+    gap:25px;
+
+    margin-top:40px;
+
+}
+.chart-box canvas{
+
+    max-height:320px;
+
+}

@@ -1,0 +1,49 @@
+.dashboard-title{
+
+    font-size:32px;
+
+    margin-bottom:30px;
+
+    color:#111827;
+
+}
+
+.dashboard-cards{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+
+    gap:25px;
+
+}
+
+.dashboard-welcome{
+
+    margin-top:50px;
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:12px;
+
+    box-shadow:0 5px 15px rgba(0,0,0,.08);
+
+}
+
+.dashboard-welcome h2{
+
+    color:#2563eb;
+
+    margin-bottom:15px;
+
+}
+
+.dashboard-welcome p{
+
+    color:#6b7280;
+
+    line-height:1.8;
+
+}

@@ -1,0 +1,301 @@
+.sidebar{
+
+    width:260px;
+
+    height:100vh;
+
+    background:#111827;
+
+    color:white;
+
+    padding:20px;
+
+    position:fixed;
+
+    left:0;
+
+    top:0;
+
+    transition:0.3s;
+
+
+    /* Scroll */
+    overflow-y:auto;
+
+}
+.sidebar::-webkit-scrollbar{
+
+    width:6px;
+
+}
+
+
+
+.sidebar::-webkit-scrollbar-track{
+
+    background:#111827;
+
+}
+
+
+
+.sidebar::-webkit-scrollbar-thumb{
+
+    background:#2563eb;
+
+    border-radius:10px;
+
+}
+
+
+
+.sidebar::-webkit-scrollbar-thumb:hover{
+
+    background:#1d4ed8;
+
+}
+
+
+.sidebar.collapsed{
+
+    width:80px;
+
+}
+
+
+
+
+
+.logo{
+
+    text-align:center;
+
+    margin-bottom:25px;
+
+    color:white;
+
+    font-size:24px;
+
+}
+
+
+
+
+
+
+/* Admin profile */
+
+.sidebar-profile{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:15px;
+
+    margin-bottom:20px;
+
+    text-decoration:none;
+
+    border-bottom:1px solid #374151;
+
+}
+
+
+
+
+
+.sidebar-profile img,
+.sidebar-no-image{
+
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+}
+
+
+
+.sidebar-no-image{
+
+    background:#2563eb;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    color:white;
+
+    font-weight:bold;
+
+    font-size:20px;
+
+}
+
+
+
+
+
+.sidebar-profile span{
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:600;
+
+}
+
+
+
+
+
+
+
+.sidebar ul{
+
+    list-style:none;
+
+    padding:0;
+
+    margin:0;
+
+}
+
+
+
+
+
+.sidebar li{
+
+    margin:10px 0;
+
+}
+
+
+
+
+
+.sidebar li a{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    padding:12px;
+
+    color:#d1d5db;
+
+    text-decoration:none;
+
+    border-radius:8px;
+
+    font-size:16px;
+
+}
+
+
+
+
+
+.sidebar li a:hover,
+.sidebar li a.active{
+
+    background:#2563eb;
+
+    color:white;
+
+}
+
+
+
+
+
+
+
+.sidebar li svg{
+
+    font-size:20px;
+
+}
+
+
+
+
+
+.logout button{
+
+
+    width:100%;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:15px;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#2563eb;
+
+    color:white;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+
+
+.logout button:hover{
+
+    background:#1d4ed8;
+
+}
+
+
+
+
+
+
+
+/* collapsed mode */
+
+.sidebar.collapsed .sidebar-profile span,
+.sidebar.collapsed li span,
+.sidebar.collapsed .logo{
+
+    display:none;
+
+}
+
+
+.sidebar.collapsed{
+
+    width:80px;
+
+}
+
+
+
+.sidebar.collapsed .sidebar-profile{
+
+    justify-content:center;
+
+}

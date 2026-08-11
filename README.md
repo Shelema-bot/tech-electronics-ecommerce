@@ -2,7 +2,7 @@
 
 A modern full-stack e-commerce platform for browsing, purchasing, and managing technology and electronic products.
 
-The project is built using the MERN stack and provides separate experiences for customers and administrators.
+The platform is built with the **MERN stack** and provides separate experiences for customers and administrators.
 
 ---
 
@@ -32,9 +32,7 @@ The project is built using the MERN stack and provides separate experiences for 
 - Admin authentication
 - Admin dashboard
 - Product management
-- Add products
-- Edit products
-- Delete products
+- Add, edit, and delete products
 - Product image upload
 - Category management
 - Inventory management
@@ -54,11 +52,11 @@ The platform currently supports:
 - 🎧 Smart Accessories
 - 🎮 Gaming
 - 🌐 Network
-- ⌚ Smart Watches
+- ⌚ Smart Watch
 
 ---
 
-## 🧑‍💻 Technologies Used
+## 🛠️ Technologies Used
 
 ### Frontend
 
@@ -72,6 +70,7 @@ The platform currently supports:
 - Context API
 - Framer Motion
 - React Icons
+- Chart.js
 
 ### Backend
 
@@ -95,27 +94,143 @@ The platform currently supports:
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```text
-frontend/
+E-commerce web/
 │
-├── public/
+├── backend/
+│   ├── config/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── services/
+│   ├── uploads/
+│   └── server.js
 │
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── context/
-│   ├── hooks/
-│   ├── pages/
-│   ├── api/
-│   ├── App.jsx
-│   └── main.jsx
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   └── vite.config.js
 │
+├── postman/
 ├── .gitignore
-├── index.html
-├── package.json
-├── package-lock.json
-├── README.md
-└── vite.config.js
+└── README.md
+```
+
+---
+
+## ⚙️ Installation
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Shelema-bot/tech-electronics-ecommerce.git
+cd tech-electronics-ecommerce
+```
+
+### 2. Install frontend dependencies
+
+```bash
+cd frontend
+npm install
+```
+
+### 3. Install backend dependencies
+
+Open another terminal and run:
+
+```bash
+cd backend
+npm install
+```
+
+### 4. Configure environment variables
+
+Create the required `.env` files for the backend and frontend according to the project configuration.
+
+Do not commit `.env` files to GitHub.
+
+### 5. Start the frontend
+
+Inside the `frontend` directory:
+
+```bash
+npm run dev
+```
+
+### 6. Start the backend
+
+Inside the `backend` directory:
+
+```bash
+npm run dev
+```
+
+---
+
+## 🔐 Authentication
+
+The application uses **JWT-based authentication**.
+
+There are two main user roles:
+
+- **Customer**
+- **Admin**
+
+Protected routes require a valid authentication token.
+
+---
+
+## 💳 Payment
+
+The platform includes payment integration using the **Chapa Payment API**.
+
+Customers can proceed through the order and payment workflow from the e-commerce interface.
+
+---
+
+## 📦 API Testing
+
+The project includes Postman collections/files for testing backend API endpoints.
+
+The `postman/` directory contains the API testing resources used during development.
+
+---
+
+## 📱 Responsive Design
+
+The frontend is designed to work across:
+
+- Desktop
+- Tablet
+- Mobile devices
+
+---
+
+## 👨‍💻 Development
+
+This project was developed as a full-stack web application using modern JavaScript technologies and follows a separated frontend/backend architecture.
+
+---
+
+## 📄 License
+
+This project is developed for educational and portfolio purposes.
+
+```
+
 ```

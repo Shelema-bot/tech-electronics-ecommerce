@@ -1,0 +1,350 @@
+.admin-contacts {
+    padding: 30px;
+    background: #f5f7fb;
+    min-height: 100vh;
+}
+
+
+/* ============================= */
+/* HEADER */
+/* ============================= */
+
+.contacts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    gap: 20px;
+}
+
+.contacts-header h1 {
+    margin: 0;
+    color: #111827;
+    font-size: 30px;
+}
+
+.contacts-header p {
+    margin-top: 8px;
+    margin-bottom: 0;
+    color: #6b7280;
+}
+
+
+/* ============================= */
+/* MESSAGE COUNT */
+/* ============================= */
+
+.message-count {
+    min-width: 100px;
+    padding: 15px 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.06);
+    color: #2563eb;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.message-count span {
+    display: block;
+    margin-top: 4px;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* ============================= */
+/* TABLE CONTAINER */
+/* ============================= */
+
+.contact-table-container {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+    overflow-x: auto;
+}
+
+
+/* ============================= */
+/* TABLE */
+/* ============================= */
+
+.contact-table {
+    width: 100%;
+    min-width: 1000px;
+    border-collapse: collapse;
+}
+
+.contact-table th {
+    padding: 16px;
+    background: #f8fafc;
+    color: #374151;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.contact-table td {
+    padding: 16px;
+    color: #4b5563;
+    vertical-align: middle;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.contact-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+
+/* ============================= */
+/* CUSTOMER */
+/* ============================= */
+
+.customer-name {
+    color: #111827;
+    font-weight: 600;
+}
+
+.customer-email {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+
+/* ============================= */
+/* MESSAGE */
+/* ============================= */
+
+.message-text {
+    max-width: 250px;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+
+/* ============================= */
+/* STATUS */
+/* ============================= */
+
+.message-status {
+    border: none;
+    outline: none;
+    padding: 8px 12px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+/* New */
+
+.message-status.new {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+
+/* Read */
+
+.message-status.read {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+
+/* Replied */
+
+.message-status.replied {
+    background: #dcfce7;
+    color: #166534;
+}
+
+
+/* ============================= */
+/* DELETE BUTTON */
+/* ============================= */
+
+.delete-message-btn {
+    border: none;
+    outline: none;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 9px 15px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.delete-message-btn:hover {
+    background: #b91c1c;
+}
+
+
+/* ============================= */
+/* EMPTY MESSAGE */
+/* ============================= */
+
+.no-contact-messages {
+    background: #ffffff;
+    padding: 70px 30px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.no-contact-messages h2 {
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.no-contact-messages p {
+    margin: 0;
+    color: #6b7280;
+}
+
+
+/* ============================= */
+/* LOADING */
+/* ============================= */
+
+.contact-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    color: #6b7280;
+}
+
+
+/* ============================= */
+/* RESPONSIVE */
+/* ============================= */
+
+@media (max-width: 768px) {
+
+    .admin-contacts {
+        padding: 20px;
+    }
+
+    .contacts-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .contacts-header h1 {
+        font-size: 26px;
+    }
+
+    .message-count {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .contact-table-container {
+        overflow-x: auto;
+    }
+
+}
+.reply-message-btn{
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    padding:8px 14px;
+
+    border-radius:6px;
+
+    cursor:pointer;
+
+    margin-right:8px;
+
+}
+
+
+.reply-box{
+
+    margin-top:30px;
+
+    background:white;
+
+    padding:25px;
+
+    border-radius:12px;
+
+    box-shadow:
+    0 5px 15px
+    rgba(0,0,0,0.08);
+
+}
+
+
+.reply-box textarea{
+
+    width:100%;
+
+    min-height:120px;
+
+    padding:12px;
+
+    margin:15px 0;
+
+    border-radius:8px;
+
+    border:1px solid #ddd;
+
+    resize:none;
+
+}
+
+
+.reply-actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+
+.send-reply-btn{
+
+    background:#16a34a;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 18px;
+
+    border-radius:7px;
+
+    cursor:pointer;
+
+}
+
+
+.cancel-reply-btn{
+
+    background:#6b7280;
+
+    color:white;
+
+    border:none;
+
+    padding:10px 18px;
+
+    border-radius:7px;
+
+    cursor:pointer;
+
+}

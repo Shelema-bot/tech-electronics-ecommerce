@@ -1,0 +1,247 @@
+.profile{
+
+    width:400px;
+
+    margin:50px auto;
+
+    background:white;
+
+    padding:30px;
+
+    border-radius:15px;
+
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+
+    text-align:center;
+
+}
+
+
+
+.profile h1{
+
+    color:#111827;
+
+    margin-bottom:25px;
+
+}
+
+
+
+.profile-image{
+
+    width:150px;
+
+    height:150px;
+
+    border-radius:50%;
+
+    object-fit:cover;
+
+    border:4px solid #2563eb;
+
+    margin-bottom:20px;
+
+}
+
+
+
+.no-image{
+
+    width:150px;
+
+    height:150px;
+
+    border-radius:50%;
+
+    background:#e5e7eb;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    margin:0 auto 20px;
+
+    color:#6b7280;
+
+    font-size:18px;
+
+}
+
+
+
+.profile h2{
+
+    color:#1f2937;
+
+    margin-bottom:10px;
+
+}
+
+
+
+.profile p{
+
+    color:#4b5563;
+
+    font-size:16px;
+
+    margin:8px 0;
+
+}
+
+
+
+@media(max-width:500px){
+
+
+    .profile{
+
+        width:90%;
+
+    }
+
+
+}
+.profile form{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+
+
+.profile label{
+
+    text-align:left;
+
+    color:#374151;
+
+    font-weight:600;
+
+}
+
+
+
+.profile input,
+.profile textarea{
+
+    padding:12px;
+
+    border:1px solid #d1d5db;
+
+    border-radius:8px;
+
+    font-size:15px;
+
+}
+
+
+
+.profile textarea{
+
+    height:90px;
+
+    resize:none;
+
+}
+
+
+
+.profile input:disabled{
+
+    background:#f3f4f6;
+
+}
+
+
+
+.profile button{
+
+    margin-top:15px;
+
+    padding:12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#2563eb;
+
+    color:white;
+
+    font-size:16px;
+
+    cursor:pointer;
+
+}
+
+
+
+.profile button:hover{
+
+    background:#1d4ed8;
+
+}
+.profile input,
+.profile textarea{
+
+    width:100%;
+
+    padding:12px;
+
+    margin:10px 0;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+    font-size:16px;
+
+}
+
+
+.profile textarea{
+
+    height:100px;
+
+    resize:none;
+
+}
+
+
+
+.profile button{
+
+    width:100%;
+
+    padding:12px;
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+    margin-top:15px;
+
+}
+
+
+.profile button:hover{
+
+    background:#1d4ed8;
+
+}

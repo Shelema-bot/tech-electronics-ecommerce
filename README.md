@@ -1,16 +1,121 @@
-# React + Vite
+# 🛒 Tech & Electronics E-Commerce Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A modern full-stack e-commerce platform for browsing, purchasing, and managing technology and electronic products.
 
-Currently, two official plugins are available:
+The project is built using the MERN stack and provides separate experiences for customers and administrators.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## 🚀 Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 👤 Customer Features
 
-## Expanding the Oxlint configuration
+- User registration and login
+- JWT-based authentication
+- User profile management
+- Profile image upload
+- Browse electronic products
+- Product search
+- Product categories
+- Product details
+- Product image gallery
+- Shopping cart
+- Wishlist
+- Quantity management
+- Order placement
+- Order history
+- Payment integration
+- Responsive design
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+### 🛠️ Admin Features
+
+- Admin authentication
+- Admin dashboard
+- Product management
+- Add products
+- Edit products
+- Delete products
+- Product image upload
+- Category management
+- Inventory management
+- Order management
+- Customer management
+- Sales information
+- Admin profile settings
+
+---
+
+## 🛍️ Product Categories
+
+The platform currently supports:
+
+- 💻 Laptops
+- 📱 Smartphones
+- 🎧 Smart Accessories
+- 🎮 Gaming
+- 🌐 Network
+- ⌚ Smart Watches
+
+---
+
+## 🧑‍💻 Technologies Used
+
+### Frontend
+
+- React.js
+- Vite
+- JavaScript
+- HTML5
+- CSS3
+- React Router
+- Axios
+- Context API
+- Framer Motion
+- React Icons
+
+### Backend
+
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT Authentication
+- Multer
+- Cloudinary
+- Chapa Payment API
+
+### Development Tools
+
+- Visual Studio Code
+- Git
+- GitHub
+- Postman
+- MongoDB
+- GitHub Desktop
+
+---
+
+## 📂 Project Structure
+
+```text
+frontend/
+│
+├── public/
+│
+├── src/
+│   ├── assets/
+│   ├── components/
+│   ├── context/
+│   ├── hooks/
+│   ├── pages/
+│   ├── api/
+│   ├── App.jsx
+│   └── main.jsx
+│
+├── .gitignore
+├── index.html
+├── package.json
+├── package-lock.json
+├── README.md
+└── vite.config.js
+```

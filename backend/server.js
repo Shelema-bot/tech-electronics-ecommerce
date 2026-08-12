@@ -1,4 +1,7 @@
 // server.js
+import dns from "dns";
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -44,6 +47,7 @@ console.log(
 const app = express();
 
 // Middleware
+// Middleware
 app.use(
   cors({
     origin: [
@@ -54,7 +58,9 @@ app.use(
   })
 );
 
-app.options("*", cors());
+app.use(express.json());
+
+
 
 app.use(express.json());
 

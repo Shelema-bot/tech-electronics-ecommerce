@@ -44,7 +44,18 @@ console.log(
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://tech-electronics-ecommerce-frontend.onrender.com",
+      "http://localhost:5173",
+    ],
+    credentials: true,
+  })
+);
+
+app.options("*", cors());
+
 app.use(express.json());
 
 // =========================

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "https://tech-electronics-backend.onrender.com/api"
 });
 
 // Send JWT token automatically

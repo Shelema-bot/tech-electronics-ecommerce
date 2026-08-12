@@ -47,7 +47,6 @@ console.log(
 const app = express();
 
 // Middleware
-// Middleware
 app.use(
   cors({
     origin: [
@@ -59,7 +58,6 @@ app.use(
 );
 
 app.use(express.json());
-
 
 
 app.use(express.json());

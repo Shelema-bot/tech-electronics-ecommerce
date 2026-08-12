@@ -1,5 +1,7 @@
 // server.js
+import dns from "dns";
 
+dns.setServers(["8.8.8.8", "1.1.1.1"]);
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -27,7 +29,10 @@ dotenv.config();
 // Check environment variables
 console.log("JWT SECRET:", process.env.JWT_SECRET ? "Loaded ✅" : "Missing ❌");
 console.log("Mongo URI:", process.env.MONGO_URI ? "Loaded ✅" : "Missing ❌");
-console.log("Chapa Key:", process.env.CHAPA_SECRET_KEY);
+console.log(
+  "Chapa Key:",
+  process.env.CHAPA_SECRET_KEY ? "Loaded ✅" : "Missing ❌"
+);
 
 // Initialize app
 const app = express();
@@ -95,7 +100,6 @@ app.use((err, req, res, next) => {
 // Server Port
 const PORT = process.env.PORT || 5000;
 
-// Start Server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`🚀 Server running on port ${PORT}`);
 });

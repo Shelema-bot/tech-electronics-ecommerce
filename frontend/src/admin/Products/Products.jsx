@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import "./Products.css";
-
 import AdminLayout from "../components/AdminLayout";
 import API from "../../api/axios";
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../../utils/imageUrl";
 
 
 function Products(){
@@ -635,7 +635,7 @@ product.images?.length>0 ?
 
 <img
 
-src={`http://localhost:5000/${product.images[0]}`}
+src={getImageUrl(product.images[0])}
 
 className="product-thumb"
 

@@ -1,6 +1,7 @@
 import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { Link } from "react-router-dom";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./Wishlist.css";
 
 
@@ -79,7 +80,7 @@ function Wishlist() {
                                         product.images.length > 0 ? (
 
                                             <img
-                                                src={`http://localhost:5000/${product.images[0]}`}
+                                                src={getImageUrl(product.images[0])}
                                                 alt={product.name}
                                             />
 

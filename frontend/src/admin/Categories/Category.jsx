@@ -359,7 +359,7 @@ function Category() {
 
             )}
 
-        </div>
+        </AdminLayout>
 
     );
 

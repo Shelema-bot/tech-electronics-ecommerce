@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./Profile.css";
 
 
@@ -224,25 +225,11 @@ My Profile
 <img
 
 src={
-
-preview
-
-?
-
-preview
-
-:
-
-user.profileImage
-
-?
-
-`http://localhost:5000/${user.profileImage}`
-
-:
-
-"/default-user.png"
-
+  preview
+    ? preview
+    : user.profileImage
+    ? getImageUrl(user.profileImage)
+    : "/default-user.png"
 }
 
 className="profile-image"

@@ -1,68 +1,81 @@
-.reports-admin{
+/* ================================
+   REPORTS PAGE
+================================ */
 
-    background:white;
-
-    padding:30px;
-
-    border-radius:12px;
-
+.reports-page {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
-
-
-.reports-admin h1{
-
-    margin-bottom:30px;
-
-    color:#111827;
-
+.reports-header {
+  margin-bottom: 28px;
 }
 
-
-
-.reports-cards{
-
-    display:grid;
-
-    grid-template-columns:
-    repeat(auto-fit,minmax(220px,1fr));
-
-    gap:25px;
-
+.reports-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
 }
 
-
-
-.report-card{
-
-    background:#f8fafc;
-
-    padding:25px;
-
-    border-radius:12px;
-
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-
+.reports-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
 }
 
-
-
-.report-card h3{
-
-    color:#6b7280;
-
-    margin-bottom:15px;
-
+.reports-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  font-size: 15px;
+  color: #64748b;
 }
 
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
 
+.report-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 28px 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+  border: 1px solid #f1f5f9;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
 
-.report-card p{
+.report-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
 
-    font-size:28px;
+.report-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
 
-    font-weight:bold;
+.report-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+  line-height: 1;
+}
 
-    color:#2563eb;
+.report-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
+@media (max-width: 600px) {
+  .reports-page { padding: 20px 16px; }
+  .reports-grid { grid-template-columns: 1fr 1fr; }
 }

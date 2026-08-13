@@ -30,10 +30,10 @@ export const initializeChapaPayment = async ({
         tx_ref,
 
         callback_url:
-"http://localhost:5000/api/payments/verify?tx_ref="+tx_ref,
+`${process.env.BACKEND_URL || "https://tech-electronics-backend.onrender.com"}/api/payments/verify?tx_ref=`+tx_ref,
 
         return_url:
-"http://localhost:5173/payment-success?tx_ref="+tx_ref,
+`${process.env.FRONTEND_URL || "https://tech-electronics-ecommerce-frontend.onrender.com"}/payment-success?tx_ref=`+tx_ref,
         customization: {
           title: "Tech Store",
           description:

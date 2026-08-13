@@ -1,18 +1,11 @@
 import React, { useEffect, useState } from "react";
 import "./Navbar.css";
-
 import { Link, useNavigate } from "react-router-dom";
-
-import {
-    FaShoppingCart,
-    FaUserCircle,
-    FaSearch,
-    FaHeart
-} from "react-icons/fa";
+import { FaShoppingCart, FaUserCircle, FaSearch, FaHeart } from "react-icons/fa";
 import logo from "../../assets/LOGO.jpg";
-
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { getImageUrl } from "../../utils/imageUrl";
 
 
 const Navbar = () => {
@@ -409,9 +402,7 @@ user.profileImage ?
 
 <img
 
-src={
-`http://localhost:5000/${user.profileImage}`
-}
+src={getImageUrl(user.profileImage)}
 
 className="nav-profile-image"
 

@@ -1,247 +1,127 @@
-.profile{
+/* ================================
+   PROFILE PAGE
+================================ */
 
-    width:400px;
-
-    margin:50px auto;
-
-    background:white;
-
-    padding:30px;
-
-    border-radius:15px;
-
-    box-shadow:0 5px 20px rgba(0,0,0,0.1);
-
-    text-align:center;
-
+.profile {
+  max-width: 560px;
+  margin: 48px auto;
+  padding: 0 20px 80px;
 }
 
-
-
-.profile h1{
-
-    color:#111827;
-
-    margin-bottom:25px;
-
+.profile h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 28px;
 }
 
-
-
-.profile-image{
-
-    width:150px;
-
-    height:150px;
-
-    border-radius:50%;
-
-    object-fit:cover;
-
-    border:4px solid #2563eb;
-
-    margin-bottom:20px;
-
+/* Avatar */
+.profile-avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-
-
-.no-image{
-
-    width:150px;
-
-    height:150px;
-
-    border-radius:50%;
-
-    background:#e5e7eb;
-
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-    margin:0 auto 20px;
-
-    color:#6b7280;
-
-    font-size:18px;
-
+.profile-image {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #2563eb;
+  flex-shrink: 0;
 }
 
-
-
-.profile h2{
-
-    color:#1f2937;
-
-    margin-bottom:10px;
-
+.no-image {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
-
-
-.profile p{
-
-    color:#4b5563;
-
-    font-size:16px;
-
-    margin:8px 0;
-
+/* Form card */
+.profile-form-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
-
-
-@media(max-width:500px){
-
-
-    .profile{
-
-        width:90%;
-
-    }
-
-
-}
-.profile form{
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:12px;
-
+.profile form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-
-
-.profile label{
-
-    text-align:left;
-
-    color:#374151;
-
-    font-weight:600;
-
+.profile label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
 }
-
-
 
 .profile input,
-.profile textarea{
-
-    padding:12px;
-
-    border:1px solid #d1d5db;
-
-    border-radius:8px;
-
-    font-size:15px;
-
+.profile textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  font-family: inherit;
 }
 
-
-
-.profile textarea{
-
-    height:90px;
-
-    resize:none;
-
+.profile input:focus,
+.profile textarea:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 
-
-
-.profile input:disabled{
-
-    background:#f3f4f6;
-
+.profile textarea {
+  height: 90px;
+  resize: none;
 }
 
-
-
-.profile button{
-
-    margin-top:15px;
-
-    padding:12px;
-
-    border:none;
-
-    border-radius:8px;
-
-    background:#2563eb;
-
-    color:white;
-
-    font-size:16px;
-
-    cursor:pointer;
-
+.profile input:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
-
-
-.profile button:hover{
-
-    background:#1d4ed8;
-
-}
-.profile input,
-.profile textarea{
-
-    width:100%;
-
-    padding:12px;
-
-    margin:10px 0;
-
-    border:1px solid #ddd;
-
-    border-radius:8px;
-
-    font-size:16px;
-
+.profile button[type="submit"] {
+  padding: 12px;
+  border: none;
+  border-radius: 9px;
+  background: #2563eb;
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 4px;
 }
 
+.profile button[type="submit"]:hover { background: #1d4ed8; }
 
-.profile textarea{
-
-    height:100px;
-
-    resize:none;
-
-}
-
-
-
-.profile button{
-
-    width:100%;
-
-    padding:12px;
-
-    background:#2563eb;
-
-    color:white;
-
-    border:none;
-
-    border-radius:8px;
-
-    cursor:pointer;
-
-    font-size:16px;
-
-    margin-top:15px;
-
-}
-
-
-.profile button:hover{
-
-    background:#1d4ed8;
-
+@media (max-width: 500px) {
+  .profile { margin: 24px auto; }
 }

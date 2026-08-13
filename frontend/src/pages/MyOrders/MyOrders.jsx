@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../../api/axios";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./MyOrders.css";
 
 
@@ -468,11 +469,7 @@ const deleteOrder = async (orderId) => {
 
                             <img
 
-                            src={
-
-                            `http://localhost:5000/${item.image.replace("\\","/")}`
-
-                            }
+                            src={getImageUrl(item.image)}
 
                             alt={item.name}
 

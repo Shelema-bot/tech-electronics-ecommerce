@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./Cart.css";
 
 
@@ -134,15 +135,7 @@ function Cart(){
 
                             <img
 
-                            src={
-
-                            `http://localhost:5000/${
-
-                            item.images[0].replace("\\","/")
-
-                            }`
-
-                            }
+                            src={getImageUrl(item.images[0])}
 
                             alt={item.name}
 

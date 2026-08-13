@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./ProductDetails.css";
 
 function ProductDetails() {
@@ -375,7 +376,7 @@ const handleBuyNow = () => {
 
                             <img
                                 src={
-                                    `http://localhost:5000/${product.images[selectedImage]}`
+                                    `${getImageUrl(product.images[selectedImage])}`
                                 }
                                 alt={product.name}
                                 className="main-image"
@@ -405,7 +406,7 @@ const handleBuyNow = () => {
                                     <img
                                         key={index}
                                         src={
-                                            `http://localhost:5000/${image}`
+                                            `${getImageUrl(image)}`
                                         }
                                         alt={`${product.name} ${index + 1}`}
                                         className={
@@ -665,7 +666,7 @@ const handleBuyNow = () => {
                                         src={
                                             item.images &&
                                             item.images.length > 0
-                                                ? `http://localhost:5000/${item.images[0]}`
+                                        ? `${getImageUrl(item.images[0])}`
                                                 : "/no-image.png"
                                         }
                                         alt={item.name}

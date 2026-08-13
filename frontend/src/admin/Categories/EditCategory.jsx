@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./AddCategory.css";
 
 
@@ -440,7 +441,7 @@ oldImage &&
 <img
 
 
-src={`http://localhost:5000/${oldImage}`}
+src={getImageUrl(oldImage)}
 
 
 alt={name}

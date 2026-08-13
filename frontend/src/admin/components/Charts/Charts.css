@@ -1,34 +1,36 @@
-.chart-box{
+/* ================================
+   CHARTS
+================================ */
 
-    background:white;
-    padding:25px;
-    border-radius:12px;
-    box-shadow:0 5px 15px rgba(0,0,0,.08);
-    min-height:420px;
-
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
-.chart-box h2{
-
-    margin-bottom:20px;
-
-    color:#111827;
-
+.chart-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  min-height: 320px;
 }
 
-.charts-grid{
-
-    display:grid;
-
-    grid-template-columns:repeat(auto-fit,minmax(350px,1fr));
-
-    gap:25px;
-
-    margin-top:40px;
-
+.chart-box h2 {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
-.chart-box canvas{
 
-    max-height:320px;
+.chart-box canvas {
+  max-height: 280px;
+}
 
+@media (max-width: 600px) {
+  .charts-grid { grid-template-columns: 1fr; }
 }

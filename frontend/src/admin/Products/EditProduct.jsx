@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./AddProduct.css";
 
 
@@ -525,7 +526,7 @@ img
 
 :
 
-`http://localhost:5000/${img}`
+getImageUrl(img)
 
 }
 

@@ -1,110 +1,315 @@
-.customers-page{
+/* ================================
+   CUSTOMERS PAGE
+================================ */
 
-    padding:30px;
-
+.customers-page {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
-
-.customers-page h2{
-
-    margin-bottom:25px;
-    color:#111827;
-
+/* Header */
+.customers-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
 }
 
-
-
-table{
-
-    width:100%;
-    border-collapse:collapse;
-    background:white;
-
+.customers-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
 }
 
-
-
-th{
-
-    background:#1f2937;
-    color:white;
-    padding:12px;
-
+.customers-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
 }
 
-
-
-td{
-
-    padding:12px;
-    border-bottom:1px solid #ddd;
-
+/* Stats */
+.customers-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
-
-
-button{
-
-    background:#dc2626;
-    color:white;
-    border:none;
-    padding:8px 15px;
-    border-radius:5px;
-    cursor:pointer;
-
+.cstat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-
-
-button:hover{
-
-    background:#b91c1c;
-
-}
-.active-btn{
-
-    background:#16a34a;
-
-    color:white;
-
-    border:none;
-
-    padding:8px 14px;
-
-    border-radius:6px;
-
+.cstat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e40af;
 }
 
-
-
-.inactive-btn{
-
-    background:#dc2626;
-
-    color:white;
-
-    border:none;
-
-    padding:8px 14px;
-
-    border-radius:6px;
-
+.cstat-label {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
 }
 
+/* Toolbar */
+.customers-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+}
 
+.customers-search {
+  flex: 1;
+  max-width: 380px;
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #ffffff;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s;
+}
 
-.delete-btn{
+.customers-search:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
 
-    background:#ef4444;
+.customers-count {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
 
-    color:white;
+/* Table Wrapper */
+.customers-table-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
 
-    border:none;
+/* Table */
+.customers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-    padding:8px 14px;
+.customers-table thead tr {
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
 
-    border-radius:6px;
+.customers-table th {
+  padding: 13px 18px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 
-    cursor:pointer;
+.customers-table tbody tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background 0.15s;
+}
 
+.customers-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.customers-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.customers-table td {
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #334155;
+  vertical-align: middle;
+}
+
+/* User cell */
+.customer-user-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.customer-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.customer-address {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.customer-email {
+  color: #475569;
+  font-size: 13px;
+}
+
+.customer-phone {
+  color: #475569;
+  font-size: 13px;
+}
+
+/* Role Select */
+.role-select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  background: #f8fafc;
+  color: #334155;
+  transition: border-color 0.2s;
+}
+
+.role-select:focus {
+  border-color: #3b82f6;
+}
+
+.role-select.admin {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+
+.role-select.customer {
+  background: #f0fdf4;
+  color: #15803d;
+  border-color: #bbf7d0;
+}
+
+/* Status Button */
+.status-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.status-btn:hover {
+  opacity: 0.85;
+}
+
+.status-btn.active {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.status-btn.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Delete Button */
+.delete-btn {
+  padding: 7px 16px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.delete-btn:hover {
+  background: #e11d48;
+  color: #ffffff;
+  border-color: #e11d48;
+}
+
+/* Empty / Loading */
+.customers-empty {
+  text-align: center;
+  padding: 48px;
+  color: #94a3b8;
+  font-size: 15px;
+}
+
+.customers-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .customers-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .customers-page {
+    padding: 20px 16px;
+  }
+
+  .customers-table th:nth-child(3),
+  .customers-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .customers-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .customers-table th:nth-child(4),
+  .customers-table td:nth-child(4) {
+    display: none;
+  }
 }

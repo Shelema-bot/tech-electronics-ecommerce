@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import API from "../api/axios";
 import { useCart } from "../context/CartContext";
-import "./ProductList.css";
 import { useWishlist } from "../context/WishlistContext";
+import { getImageUrl } from "../utils/imageUrl";
+import "./ProductList.css";
 function ProductList() {
 
     const [products, setProducts] = useState([]);
@@ -134,7 +135,7 @@ function ProductList() {
                                         product.images.length > 0 ? (
 
                                             <img
-                                                src={`http://localhost:5000/${product.images[0]}`}
+                                                src={getImageUrl(product.images[0])}
                                                 alt={product.name}
                                                 className="product-image"
                                             />

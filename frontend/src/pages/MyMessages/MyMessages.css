@@ -1,38 +1,81 @@
-.my-messages{
+/* ================================
+   MY MESSAGES
+================================ */
 
-padding:30px;
-
+.my-messages {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+  min-height: 60vh;
 }
 
-
-.message-card{
-
-background:white;
-
-padding:20px;
-
-margin-bottom:20px;
-
-border-radius:12px;
-
-box-shadow:
-0 5px 15px
-rgba(0,0,0,.08);
-
+.my-messages h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 28px;
 }
 
+.my-messages h2 {
+  font-size: 16px;
+  color: #64748b;
+  text-align: center;
+  margin: 60px 0;
+}
 
+.message-card {
+  background: white;
+  padding: 24px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
 
-.admin-reply{
+.message-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 10px;
+}
 
-margin-top:20px;
+.message-card > p {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
 
-background:#f0fdf4;
+.message-card .status-line {
+  font-size: 13px;
+  color: #64748b;
+}
 
-padding:15px;
+.message-card .status-line strong {
+  text-transform: capitalize;
+  color: #2563eb;
+}
 
-border-left:5px solid #16a34a;
+.admin-reply {
+  margin-top: 16px;
+  background: #f0fdf4;
+  padding: 16px;
+  border-left: 4px solid #16a34a;
+  border-radius: 0 8px 8px 0;
+}
 
-border-radius:8px;
+.admin-reply h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #15803d;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
 
+.admin-reply p {
+  font-size: 14px;
+  color: #166534;
+  margin: 0;
+  line-height: 1.6;
 }

@@ -2,10 +2,10 @@
 import dns from "dns";
 
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import path from "path";
 
 import connectDB from "./config/db.js";
 
@@ -27,7 +27,10 @@ import contactRoutes from "./routes/contactRoutes.js";
 
 dotenv.config();
 
-// Check environment variables
+// =========================
+// CHECK ENVIRONMENT VARIABLES
+// =========================
+
 console.log(
   "JWT SECRET:",
   process.env.JWT_SECRET ? "Loaded ✅" : "Missing ❌"
@@ -43,22 +46,45 @@ console.log(
   process.env.CHAPA_SECRET_KEY ? "Loaded ✅" : "Missing ❌"
 );
 
-// Initialize app
+// =========================
+// INITIALIZE APP
+// =========================
+
 const app = express();
 
-// Middleware
+// =========================
+// CORS
+// =========================
+
+const allowedOrigins = [
+  "https://tech-electronics-ecommerce-frontend-git-main-tech-electronics.vercel.app",
+  "https://tech-electronics-ecommerce-frontend.onrender.com",
+  "http://localhost:5173",
+];
+
 app.use(
   cors({
-    origin: [
-      "https://tech-electronics-ecommerce-frontend.onrender.com",
-      "http://localhost:5173",
-    ],
+    origin: function (origin, callback) {
+      // Allow requests without an origin
+      // such as Postman or server-to-server requests
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("❌ CORS blocked origin:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
   })
 );
 
-app.use(express.json());
-
+// =========================
+// BODY PARSER
+// =========================
 
 app.use(express.json());
 
@@ -82,7 +108,9 @@ app.use("/api/reviews", reviewRoutes);
 
 app.use("/api/contact", contactRoutes);
 
-// ---------- ADMIN ROUTES ----------
+// =========================
+// ADMIN ROUTES
+// =========================
 
 app.use("/api/admin", adminRoutes);
 
@@ -98,15 +126,24 @@ app.use("/api/admin/payments", adminPaymentRoutes);
 
 app.use("/api/admin/reports", adminReportRoutes);
 
-// Static uploads
+// =========================
+// STATIC UPLOADS
+// =========================
+
 app.use("/uploads", express.static("uploads"));
 
-// Default route
+// =========================
+// DEFAULT ROUTE
+// =========================
+
 app.get("/", (req, res) => {
   res.send("E-Commerce API is running 🚀");
 });
 
-// Error handling
+// =========================
+// ERROR HANDLING
+// =========================
+
 app.use((err, req, res, next) => {
   console.error(err.stack);
 
@@ -116,8 +153,15 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Server Port
+// =========================
+// SERVER PORT
+// =========================
+
 const PORT = process.env.PORT || 5000;
+
+// =========================
+// START SERVER
+// =========================
 
 const startServer = async () => {
   try {

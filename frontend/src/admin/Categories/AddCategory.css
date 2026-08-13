@@ -1,63 +1,83 @@
-.add-category{
+/* ================================
+   ADD / EDIT CATEGORY
+================================ */
 
-    padding:40px;
-
+.add-category {
+  padding: 28px 32px;
+  min-height: 100vh;
+  background: #f8fafc;
 }
 
-
-
-.add-category form{
-
-    width:350px;
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:20px;
-
+.add-category h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 28px;
 }
 
-
-
-.add-category input{
-
-    padding:12px;
-
-    border:1px solid #ccc;
-
-    border-radius:6px;
-
+.add-category form {
+  max-width: 500px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 32px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-
-
-.add-category button{
-
-    background:#2563eb;
-
-    color:white;
-
-    border:none;
-
-    padding:12px;
-
-    border-radius:6px;
-
-    cursor:pointer;
-
-}
-.category-preview{
-
-    width:200px;
-
-    height:150px;
-
-    object-fit:cover;
-
-    border-radius:10px;
-
-    margin:15px 0;
-
+.add-category input[type="text"],
+.add-category input[type="file"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+.add-category input[type="text"]:focus {
+  border-color: #2563eb;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.add-category input[type="file"] {
+  padding: 10px;
+  cursor: pointer;
+  background: #f1f5f9;
+}
+
+.add-category button[type="submit"] {
+  padding: 12px 28px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 9px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  align-self: flex-start;
+}
+
+.add-category button[type="submit"]:hover { background: #1d4ed8; }
+.add-category button:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.category-preview {
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+
+@media (max-width: 600px) {
+  .add-category { padding: 20px 16px; }
+  .add-category form { padding: 20px; }
+}

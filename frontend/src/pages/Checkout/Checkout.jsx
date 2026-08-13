@@ -99,7 +99,11 @@ function Checkout() {
         "CHECKOUT ERROR:",
         error.response?.data || error.message
       );
-      alert(error.response?.data?.message || "Checkout failed");
+      alert(
+        error.response?.data?.message ||
+        error.response?.data?.details?.message ||
+        "Checkout failed. Please try again."
+      );
     } finally {
       setLoading(false);
     }

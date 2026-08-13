@@ -80,11 +80,17 @@ export const initializePayment = async (req, res) => {
       error.response?.data || error.message
     );
 
+    // Chapa returns error details in error.response.data
+    const chapaError = error.response?.data;
+    const errorMsg =
+      chapaError?.message ||
+      chapaError?.error ||
+      "Payment initialization failed. Please check your details and try again.";
+
     return res.status(500).json({
       success: false,
-      message:
-        error.response?.data?.message ||
-        "Payment initialization failed. Please try again.",
+      message: errorMsg,
+      details: chapaError,
     });
   }
 };

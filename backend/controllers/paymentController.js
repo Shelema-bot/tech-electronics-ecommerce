@@ -82,15 +82,19 @@ export const initializePayment = async (req, res) => {
 
     // Chapa returns error details in error.response.data
     const chapaError = error.response?.data;
-    const errorMsg =
-      chapaError?.message ||
-      chapaError?.error ||
-      "Payment initialization failed. Please check your details and try again.";
+    let errorMsg = "Payment initialization failed. Please check your details and try again.";
+
+    if (typeof chapaError?.message === "string") {
+      errorMsg = chapaError.message;
+    } else if (chapaError?.message && typeof chapaError.message === "object") {
+      // Chapa sometimes returns message as { field: ["error"] }
+      const firstKey = Object.keys(chapaError.message)[0];
+      errorMsg = `${firstKey}: ${chapaError.message[firstKey]?.[0] || "invalid"}`;
+    }
 
     return res.status(500).json({
       success: false,
       message: errorMsg,
-      details: chapaError,
     });
   }
 };

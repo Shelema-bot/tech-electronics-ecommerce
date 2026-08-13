@@ -95,15 +95,20 @@ function Checkout() {
         alert("Payment link was not generated");
       }
     } catch (error) {
-      console.log(
-        "CHECKOUT ERROR:",
-        error.response?.data || error.message
-      );
-      alert(
-        error.response?.data?.message ||
-        error.response?.data?.details?.message ||
-        "Checkout failed. Please try again."
-      );
+      console.log("CHECKOUT ERROR:", error.response?.data || error.message);
+
+      const errData = error.response?.data;
+      let msg = "Checkout failed. Please try again.";
+
+      if (typeof errData?.message === "string") {
+        msg = errData.message;
+      } else if (typeof errData?.details?.message === "string") {
+        msg = errData.details.message;
+      } else if (typeof error.message === "string") {
+        msg = error.message;
+      }
+
+      alert(msg);
     } finally {
       setLoading(false);
     }

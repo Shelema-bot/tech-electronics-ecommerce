@@ -37,8 +37,8 @@ export const initializeChapaPayment = async ({
         callback_url: `${BACKEND_URL}/api/payments/verify?tx_ref=${tx_ref}`,
         return_url: `${FRONTEND_URL}/payment-success?tx_ref=${tx_ref}`,
         customization: {
-          title: "Tech & Electronic Store",
-          description: "Secure payment for your order",
+          title: "Tech Store",
+          description: "Secure payment",
         },
       },
       {

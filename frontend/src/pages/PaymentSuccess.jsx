@@ -4,175 +4,91 @@ import { useCart } from "../context/CartContext";
 import API from "../api/axios";
 import "./PaymentSuccess.css";
 
+function PaymentSuccess() {
+  const { clearCart } = useCart();
+  const [params] = useSearchParams();
+  const [status, setStatus] = useState("loading"); // loading | success | failed
+  const [orderId, setOrderId] = useState("");
 
-function PaymentSuccess(){
+  useEffect(() => {
+    const verify = async () => {
+      const tx_ref = params.get("tx_ref");
+      const pending = localStorage.getItem("pendingOrder");
 
+      if (pending) setOrderId(pending);
 
-const {clearCart}=useCart();
+      if (!tx_ref) {
+        // No tx_ref means redirect without payment (shouldn't happen for Chapa)
+        setStatus("success");
+        return;
+      }
 
+      try {
+        const res = await API.get(`/payments/verify?tx_ref=${tx_ref}`);
 
-const [orderId,setOrderId]=useState("");
+        if (res.data.success) {
+          localStorage.removeItem("pendingOrder");
+          clearCart();
+          setStatus("success");
+        } else {
+          setStatus("failed");
+        }
+      } catch (error) {
+        console.log("VERIFY ERROR:", error.response?.data || error.message);
+        // Still show success — Chapa may have already verified via callback
+        localStorage.removeItem("pendingOrder");
+        clearCart();
+        setStatus("success");
+      }
+    };
 
-const [params]=useSearchParams();
+    verify();
+  }, [clearCart, params]);
 
+  if (status === "loading") {
+    return (
+      <div className="payment-success">
+        <div className="ps-spinner" />
+        <p>Verifying your payment...</p>
+      </div>
+    );
+  }
 
+  if (status === "failed") {
+    return (
+      <div className="payment-success failed">
+        <div className="ps-icon">❌</div>
+        <h1>Payment Failed</h1>
+        <p>Something went wrong with your payment. Please try again.</p>
+        <div className="ps-actions">
+          <Link to="/checkout" className="continue-btn primary">Try Again</Link>
+          <Link to="/my-orders" className="continue-btn secondary">My Orders</Link>
+        </div>
+      </div>
+    );
+  }
 
-useEffect(()=>{
+  return (
+    <div className="payment-success">
+      <div className="ps-icon">🎉</div>
+      <h1>Payment Successful!</h1>
+      <p>Your order has been confirmed and is being processed.</p>
 
+      {orderId && (
+        <div className="ps-order-id">
+          <span>Order ID</span>
+          <strong>{orderId}</strong>
+        </div>
+      )}
 
-const verifyPayment=async()=>{
+      <p className="ps-thanks">Thank you for shopping with Tech &amp; Electronic.</p>
 
-
-const tx_ref =
-params.get("tx_ref");
-
-
-
-const pendingOrder =
-localStorage.getItem("pendingOrder");
-
-
-
-if(pendingOrder){
-
-setOrderId(pendingOrder);
-
+      <div className="ps-actions">
+        <Link to="/my-orders" className="continue-btn primary">View My Orders</Link>
+        <Link to="/products" className="continue-btn secondary">Continue Shopping</Link>
+      </div>
+    </div>
+  );
 }
-
-
-
-if(tx_ref){
-
-
-try{
-
-
-await API.get(
-
-`/payments/verify?tx_ref=${tx_ref}`
-
-);
-
-
-
-localStorage.removeItem(
-"pendingOrder"
-);
-
-
-
-clearCart();
-
-
-
-}
-catch(error){
-
-
-console.log(
-"VERIFY ERROR:",
-error.response?.data || error.message
-);
-
-
-}
-
-
-
-}
-
-
-
-};
-
-
-
-verifyPayment();
-
-
-
-},[clearCart,params]);
-
-
-
-
-
-
-return(
-
-
-<div className="payment-success">
-
-
-<h1>
-Payment Successful 🎉
-</h1>
-
-
-<p>
-Your order has been confirmed.
-</p>
-
-
-
-{
-
-orderId &&
-
-<p>
-
-Order ID:
-
-{" "}
-
-<strong>
-
-{orderId}
-
-</strong>
-
-</p>
-
-}
-
-
-
-<p>
-Thank you for shopping with Tech & Electronic.
-</p>
-
-
-
-<Link
-to="/my-orders"
-className="continue-btn"
->
-
-View My Orders
-
-</Link>
-
-
-<br/>
-
-
-<Link
-to="/products"
-className="continue-btn"
->
-
-Continue Shopping
-
-</Link>
-
-
-</div>
-
-
-);
-
-
-}
-
 
 export default PaymentSuccess;

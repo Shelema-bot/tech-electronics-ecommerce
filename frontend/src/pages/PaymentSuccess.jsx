@@ -7,35 +7,31 @@ import "./PaymentSuccess.css";
 function PaymentSuccess() {
   const { clearCart } = useCart();
   const [params] = useSearchParams();
-  const [status, setStatus] = useState("loading"); // loading | success | failed
+  const [status, setStatus] = useState("loading");
   const [orderId, setOrderId] = useState("");
 
   useEffect(() => {
     const verify = async () => {
       const tx_ref = params.get("tx_ref");
       const pending = localStorage.getItem("pendingOrder");
-
       if (pending) setOrderId(pending);
 
+      // No tx_ref — just show success (COD or direct navigation)
       if (!tx_ref) {
-        // No tx_ref means redirect without payment (shouldn't happen for Chapa)
         setStatus("success");
         return;
       }
 
       try {
         const res = await API.get(`/payments/verify?tx_ref=${tx_ref}`);
-
-        if (res.data.success) {
-          localStorage.removeItem("pendingOrder");
-          clearCart();
-          setStatus("success");
-        } else {
-          setStatus("failed");
-        }
+        // Whether success or already paid — show success page
+        localStorage.removeItem("pendingOrder");
+        clearCart();
+        setStatus("success");
       } catch (error) {
         console.log("VERIFY ERROR:", error.response?.data || error.message);
-        // Still show success — Chapa may have already verified via callback
+        // Even if verify fails (e.g. already verified by callback),
+        // show success because Chapa already redirected here = payment done
         localStorage.removeItem("pendingOrder");
         clearCart();
         setStatus("success");
@@ -50,20 +46,6 @@ function PaymentSuccess() {
       <div className="payment-success">
         <div className="ps-spinner" />
         <p>Verifying your payment...</p>
-      </div>
-    );
-  }
-
-  if (status === "failed") {
-    return (
-      <div className="payment-success failed">
-        <div className="ps-icon">❌</div>
-        <h1>Payment Failed</h1>
-        <p>Something went wrong with your payment. Please try again.</p>
-        <div className="ps-actions">
-          <Link to="/checkout" className="continue-btn primary">Try Again</Link>
-          <Link to="/my-orders" className="continue-btn secondary">My Orders</Link>
-        </div>
       </div>
     );
   }

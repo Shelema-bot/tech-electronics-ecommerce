@@ -43,7 +43,8 @@ function ProductDetails() {
                 const response =
                     await API.get(`/products/${id}`);
 
-                setProduct(response.data);
+                const data = response.data.product || response.data;
+                setProduct(data);
 
             } catch (error) {
 

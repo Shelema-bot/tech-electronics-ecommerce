@@ -1,9 +1,8 @@
-// Category.jsx
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import API from "../../api/axios";
+import AdminLayout from "../components/AdminLayout";
 
 import "./Category.css";
 
@@ -184,34 +183,20 @@ function Category() {
     };
 
 
-    // --------------------------------------
     // Loading
-    // --------------------------------------
-
     if (loading) {
-
         return (
-
-            <div className="loading-page">
-
-                <h2>
-                    Loading categories...
-                </h2>
-
-            </div>
-
+            <AdminLayout>
+                <div className="loading-page">
+                    <h2>Loading categories...</h2>
+                </div>
+            </AdminLayout>
         );
-
     }
 
-
-    // --------------------------------------
     // Main UI
-    // --------------------------------------
-
     return (
-
-        <div className="admin-category">
+        <AdminLayout>
 
 
             {/* =================================

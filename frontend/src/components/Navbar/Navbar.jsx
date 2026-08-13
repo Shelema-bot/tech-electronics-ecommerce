@@ -281,7 +281,7 @@ Team
 
 <li>
 
-<Link to="/Contact">
+<Link to="/contact">
 Contact page
 </Link>
 

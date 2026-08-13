@@ -28,7 +28,7 @@ function ProductList() {
 
                 const response = await API.get("/products");
 
-                setProducts(response.data);
+                setProducts(response.data.products || response.data);
 
             } catch (error) {
 

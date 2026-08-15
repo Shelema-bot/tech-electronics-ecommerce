@@ -167,6 +167,8 @@
 
 .contact-screenshot-note span { font-size: 20px; flex-shrink: 0; }
 .contact-screenshot-note p { font-size: 13px; color: #92400e; margin: 0; line-height: 1.5; }
+
+.my-messages-btn {
   display: inline-block;
   margin-bottom: 20px;
   padding: 9px 18px;

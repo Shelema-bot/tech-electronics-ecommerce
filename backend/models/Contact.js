@@ -45,6 +45,10 @@ const contactSchema = new mongoose.Schema({
         default:""
     },
 
+    screenshot:{
+        type:String,
+        default:""
+    },
 
     repliedAt:{
         type:Date

@@ -2,7 +2,7 @@ import Contact from "../models/Contact.js";
 
 
 // =================================
-// SEND CONTACT MESSAGE
+// SEND CONTACT MESSAGE (with optional screenshot)
 // =================================
 // POST /api/contact
 // Public
@@ -28,13 +28,16 @@ export const sendContactMessage = async (req, res) => {
 
         }
 
+        // Screenshot uploaded via Cloudinary (optional)
+        const screenshotUrl = req.file ? req.file.path : "";
 
         const contact = await Contact.create({
 
             name,
             email,
             subject,
-            message
+            message,
+            screenshot: screenshotUrl
 
         });
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import API from "../api/axios";
@@ -9,29 +9,30 @@ function PaymentSuccess() {
   const [params] = useSearchParams();
   const [status, setStatus] = useState("loading");
   const [orderId, setOrderId] = useState("");
+  const [txRef, setTxRef] = useState("");
+  const verified = useRef(false);
 
   useEffect(() => {
-    const verify = async () => {
-      const tx_ref = params.get("tx_ref");
-      const pending = localStorage.getItem("pendingOrder");
-      if (pending) setOrderId(pending);
+    if (verified.current) return;
+    verified.current = true;
 
-      // No tx_ref — just show success (COD or direct navigation)
-      if (!tx_ref) {
+    const verify = async () => {
+      const tx = params.get("tx_ref");
+      const pending = localStorage.getItem("pendingOrder");
+
+      if (pending) setOrderId(pending);
+      if (tx) setTxRef(tx);
+
+      if (!tx) {
         setStatus("success");
         return;
       }
 
       try {
-        const res = await API.get(`/payments/verify?tx_ref=${tx_ref}`);
-        // Whether success or already paid — show success page
-        localStorage.removeItem("pendingOrder");
-        clearCart();
-        setStatus("success");
-      } catch (error) {
-        console.log("VERIFY ERROR:", error.response?.data || error.message);
-        // Even if verify fails (e.g. already verified by callback),
-        // show success because Chapa already redirected here = payment done
+        await API.get(`/payments/verify?tx_ref=${tx}`);
+      } catch (e) {
+        console.log("verify:", e.message);
+      } finally {
         localStorage.removeItem("pendingOrder");
         clearCart();
         setStatus("success");
@@ -39,7 +40,7 @@ function PaymentSuccess() {
     };
 
     verify();
-  }, [clearCart, params]);
+  }, []); // empty deps — run once only
 
   if (status === "loading") {
     return (
@@ -52,22 +53,30 @@ function PaymentSuccess() {
 
   return (
     <div className="payment-success">
-      <div className="ps-icon">🎉</div>
-      <h1>Payment Successful!</h1>
-      <p>Your order has been confirmed and is being processed.</p>
+      <div className="ps-icon success-bounce">🎉</div>
+      <h1 className="ps-title">Payment Successful!</h1>
+      <p className="ps-subtitle">Your order has been confirmed and is being processed.</p>
 
-      {orderId && (
-        <div className="ps-order-id">
-          <span>Order ID</span>
-          <strong>{orderId}</strong>
+      {txRef && (
+        <div className="ps-detail-box">
+          <div className="ps-detail-row">
+            <span>Transaction Ref</span>
+            <strong>{txRef}</strong>
+          </div>
+          {orderId && (
+            <div className="ps-detail-row">
+              <span>Order ID</span>
+              <strong>{orderId}</strong>
+            </div>
+          )}
         </div>
       )}
 
-      <p className="ps-thanks">Thank you for shopping with Tech &amp; Electronic.</p>
+      <p className="ps-thanks">Thank you for shopping with <b>Tech &amp; Electronic</b>.</p>
 
       <div className="ps-actions">
-        <Link to="/my-orders" className="continue-btn primary">View My Orders</Link>
-        <Link to="/products" className="continue-btn secondary">Continue Shopping</Link>
+        <Link to="/my-orders" className="ps-btn primary">📦 View My Orders</Link>
+        <Link to="/products" className="ps-btn secondary">🛍️ Continue Shopping</Link>
       </div>
     </div>
   );

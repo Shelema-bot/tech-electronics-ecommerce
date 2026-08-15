@@ -1,6 +1,6 @@
 import Order from "../models/Order.js";
-
-
+import User from "../models/User.js";
+import { sendOrderConfirmation, notifyAdminNewOrder } from "../utils/sendEmail.js";
 
 // ===============================
 // Create Order (Customer)
@@ -9,41 +9,31 @@ export const createOrder = async (req, res) => {
 
   try {
 
-
     const order = await Order.create({
-
       ...req.body,
-
       user: req.user._id,
-
       status: "Pending"
-
     });
 
-
+    // Send emails in background (don't await — don't block response)
+    const user = await User.findById(req.user._id).select("name email");
+    if (user) {
+      sendOrderConfirmation(order, user.email, user.name);
+      notifyAdminNewOrder(order, user.name);
+    }
 
     res.status(201).json({
-
-      success:true,
-
-      message:"Order placed successfully",
-
+      success: true,
+      message: "Order placed successfully",
       order
-
     });
 
-
-  } catch(error){
-
+  } catch(error) {
 
     res.status(500).json({
-
-      success:false,
-
-      message:error.message
-
+      success: false,
+      message: error.message
     });
-
 
   }
 

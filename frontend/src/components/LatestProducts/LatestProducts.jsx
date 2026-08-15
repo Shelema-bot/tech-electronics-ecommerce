@@ -6,6 +6,22 @@ import { useWishlist } from "../../context/WishlistContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./LatestProducts.css";
 
+// Show one product from each category
+const FEATURED_CATEGORIES = [
+  "Laptops",
+  "Smartphones",
+  "Gaming",
+  "Network",
+  "Smart Accessories",
+  "Smart Watch",
+  "Headphones & Audio",
+  "Tablets",
+  "Drones",
+  "Printers & Scanners",
+  "Smart Home",
+  "Cameras",
+];
+
 function LatestProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,9 +33,40 @@ function LatestProducts() {
     const fetchLatest = async () => {
       try {
         const res = await API.get("/products");
-        const all = res.data.products || res.data;
-        // Take latest 8 products
-        setProducts(Array.isArray(all) ? all.slice(0, 8) : []);
+        const all = Array.isArray(res.data.products)
+          ? res.data.products
+          : Array.isArray(res.data)
+          ? res.data
+          : [];
+
+        // Pick one product per featured category
+        const picked = [];
+        const usedIds = new Set();
+
+        for (const catName of FEATURED_CATEGORIES) {
+          const match = all.find(
+            (p) =>
+              p.category?.toLowerCase() === catName.toLowerCase() &&
+              !usedIds.has(p._id)
+          );
+          if (match) {
+            picked.push(match);
+            usedIds.add(match._id);
+          }
+        }
+
+        // If some categories had no products, fill up to 12 from remaining
+        if (picked.length < 12) {
+          for (const p of all) {
+            if (picked.length >= 12) break;
+            if (!usedIds.has(p._id)) {
+              picked.push(p);
+              usedIds.add(p._id);
+            }
+          }
+        }
+
+        setProducts(picked);
       } catch (err) {
         console.log("Latest products error:", err.message);
       } finally {
@@ -33,7 +80,10 @@ function LatestProducts() {
     return (
       <section className="latest-section">
         <div className="latest-header">
-          <h2>Latest Products</h2>
+          <div className="latest-header-left">
+            <span className="latest-tag">NEW ARRIVALS</span>
+            <h2>Latest Products</h2>
+          </div>
         </div>
         <div className="latest-loading">
           <div className="loading-spinner" />
@@ -51,9 +101,9 @@ function LatestProducts() {
       {/* Header */}
       <div className="latest-header">
         <div className="latest-header-left">
-          <span className="latest-tag">NEW ARRIVALS</span>
+          <span className="latest-tag">FEATURED</span>
           <h2>Latest Products</h2>
-          <p>Discover our newest tech gadgets and electronics</p>
+          <p>One pick from each category — discover what's new</p>
         </div>
         <Link to="/products" className="latest-view-all">
           View All Products →
@@ -78,7 +128,7 @@ function LatestProducts() {
                 {inWish ? "♥" : "♡"}
               </button>
 
-              {/* Badge */}
+              {/* Stock badge */}
               {product.stock <= 5 && product.stock > 0 && (
                 <span className="lp-badge low">Low Stock</span>
               )}
@@ -89,7 +139,7 @@ function LatestProducts() {
               {/* Image */}
               <Link to={`/product/${product._id}`} className="lp-img-link">
                 {imgSrc ? (
-                  <img src={imgSrc} alt={product.name} className="lp-img" />
+                  <img src={imgSrc} alt={product.name} className="lp-img" loading="lazy" />
                 ) : (
                   <div className="lp-no-img">📦</div>
                 )}
@@ -104,7 +154,9 @@ function LatestProducts() {
                 <p className="lp-brand">{product.brand}</p>
 
                 <div className="lp-footer">
-                  <span className="lp-price">{product.price.toLocaleString()} ETB</span>
+                  <span className="lp-price">
+                    {Number(product.price).toLocaleString()} ETB
+                  </span>
                   <button
                     className="lp-cart-btn"
                     disabled={product.stock === 0}
@@ -123,12 +175,9 @@ function LatestProducts() {
         })}
       </div>
 
-      {/* Bottom CTA */}
+      {/* CTA */}
       <div className="latest-cta">
-        <button
-          className="latest-cta-btn"
-          onClick={() => navigate("/products")}
-        >
+        <button className="latest-cta-btn" onClick={() => navigate("/products")}>
           Browse All Products
         </button>
       </div>

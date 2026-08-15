@@ -479,6 +479,17 @@ function ContactMessages() {
 
                     </div>
 
+                    {message.screenshot && (
+                        <a
+                            href={message.screenshot}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="view-screenshot-btn"
+                        >
+                            📎 View Screenshot
+                        </a>
+                    )}
+
                 </td>
 
 

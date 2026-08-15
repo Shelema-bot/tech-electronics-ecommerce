@@ -1,83 +1,39 @@
 import { useState } from "react";
-
 import Sidebar from "./Sidebar";
-
+import Topbar from "./Topbar";
+import AdminFooter from "./AdminFooter";
 import "./AdminLayout.css";
 
+function AdminLayout({ children }) {
+  const [collapsed, setCollapsed] = useState(false);
 
-function AdminLayout({children}){
+  return (
+    <div className="admin-layout">
 
+      {/* Sidebar */}
+      <Sidebar collapsed={collapsed} />
 
-    const [collapsed,setCollapsed]=useState(false);
+      {/* Main area */}
+      <div className={`admin-main ${collapsed ? "collapsed" : ""}`}>
 
+        {/* Topbar */}
+        <Topbar
+          collapsed={collapsed}
+          onToggle={() => setCollapsed(!collapsed)}
+        />
 
-
-    return(
-
-
-        <div className="admin-layout">
-
-
-            <Sidebar 
-                collapsed={collapsed}
-            />
-
-
-
-            <div
-
-            className={
-
-                collapsed
-
-                ?
-
-                "admin-main collapsed"
-
-                :
-
-                "admin-main"
-
-            }
-
-            >
-
-
-
-                <button
-
-                className="menu-btn"
-
-                onClick={()=>setCollapsed(!collapsed)}
-
-                >
-
-                    ☰
-
-                </button>
-
-
-
-
-                <div className="admin-body">
-
-                    {children}
-
-                </div>
-
-
-
-            </div>
-
-
-
+        {/* Page content */}
+        <div className="admin-body">
+          {children}
         </div>
 
+        {/* Footer */}
+        <AdminFooter />
 
-    );
+      </div>
 
-
+    </div>
+  );
 }
-
 
 export default AdminLayout;

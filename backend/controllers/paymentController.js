@@ -1,9 +1,11 @@
 import Payment from "../models/Payment.js";
 import Order from "../models/Order.js";
+import User from "../models/User.js";
 import {
   initializeChapaPayment,
   verifyChapaPayment,
 } from "../services/chapaService.js";
+import { sendPaymentConfirmation } from "../utils/sendEmail.js";
 
 
 // ===============================
@@ -147,6 +149,12 @@ export const verifyPayment = async (req, res) => {
         order.isPaid = true;
         order.paidAt = new Date();
         await order.save();
+      }
+
+      // Send payment confirmation email
+      const user = await User.findById(payment.user).select("name email");
+      if (user) {
+        sendPaymentConfirmation(payment, user.email, user.name);
       }
 
       return res.json({

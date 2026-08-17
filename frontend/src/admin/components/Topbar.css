@@ -1,11 +1,11 @@
 /* ================================
-   ADMIN TOPBAR
+   ADMIN TOPBAR — Green theme
 ================================ */
 
 .admin-topbar {
   height: 64px;
-  background: #ffffff;
-  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(90deg, #15803d 0%, #16a34a 100%);
+  border-bottom: 1px solid #14532d;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -13,9 +13,10 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 
+/* Left */
 .topbar-left {
   display: flex;
   align-items: center;
@@ -23,18 +24,20 @@
 }
 
 .topbar-menu-btn {
-  background: transparent;
+  background: rgba(255,255,255,0.15);
   border: none;
   font-size: 20px;
-  color: #475569;
+  color: white;
   cursor: pointer;
-  padding: 6px 8px;
+  padding: 6px 10px;
   border-radius: 8px;
   transition: background 0.2s;
   line-height: 1;
 }
 
-.topbar-menu-btn:hover { background: #f1f5f9; }
+.topbar-menu-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
 
 .topbar-breadcrumb {
   display: flex;
@@ -44,22 +47,22 @@
 
 .breadcrumb-root {
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255,255,255,0.7);
   font-weight: 500;
 }
 
 .breadcrumb-sep {
   font-size: 13px;
-  color: #cbd5e1;
+  color: rgba(255,255,255,0.5);
 }
 
 .breadcrumb-page {
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: #ffffff;
 }
 
-/* Right side */
+/* Right */
 .topbar-right {
   display: flex;
   align-items: center;
@@ -70,36 +73,45 @@
   width: 36px;
   height: 36px;
   border-radius: 9px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: white;
   font-size: 16px;
   text-decoration: none;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s;
 }
 
-.topbar-icon-btn:hover { background: #eff6ff; color: #2563eb; }
+.topbar-icon-btn:hover {
+  background: rgba(255,255,255,0.28);
+}
 
-/* Profile */
+/* Profile (now a link) */
 .topbar-profile {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
   border-radius: 10px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.25);
+  text-decoration: none;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.topbar-profile:hover {
+  background: rgba(255,255,255,0.25);
 }
 
 .topbar-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: white;
+  background: white;
+  color: #16a34a;
   font-size: 14px;
   font-weight: 700;
   display: flex;
@@ -117,16 +129,22 @@
 .topbar-name {
   font-size: 13px;
   font-weight: 700;
-  color: #0f172a;
+  color: #ffffff;
   line-height: 1;
 }
 
 .topbar-role {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255,255,255,0.75);
 }
 
+/* Mobile */
 @media (max-width: 600px) {
   .topbar-profile-info { display: none; }
-  .admin-topbar { padding: 0 16px; }
+  .admin-topbar { padding: 0 12px; }
+  .topbar-breadcrumb { display: none; }
+}
+
+@media (max-width: 400px) {
+  .admin-topbar { height: 56px; }
 }

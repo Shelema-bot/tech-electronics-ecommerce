@@ -29,6 +29,12 @@
 /* Remove old menu-btn since it's now in Topbar */
 .menu-btn { display: none; }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .admin-main { margin-left: 80px; }
+  .admin-main.collapsed { margin-left: 0; }
+}
+
+@media (max-width: 640px) {
   .admin-main { margin-left: 0; }
+  .admin-main.collapsed { margin-left: 0; }
 }

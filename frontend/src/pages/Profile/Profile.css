@@ -123,5 +123,8 @@
 .profile button[type="submit"]:hover { background: #1d4ed8; }
 
 @media (max-width: 500px) {
-  .profile { margin: 24px auto; }
+  .profile { margin: 20px auto; padding: 0 12px 60px; }
+  .profile h1 { font-size: 22px; }
+  .profile-avatar-section { flex-direction: column; align-items: center; text-align: center; padding: 18px; }
+  .profile-form-card { padding: 18px 14px; }
 }

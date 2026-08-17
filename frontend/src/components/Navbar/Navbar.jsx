@@ -14,21 +14,14 @@ import logo from "../../assets/LOGO.jpg";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { getImageUrl } from "../../utils/imageUrl";
-
-const CATEGORIES = [
-  { name: "Laptops",           path: "/products?category=Laptops" },
-  { name: "Smartphones",       path: "/products?category=Smartphones" },
-  { name: "Gaming",            path: "/products?category=Gaming" },
-  { name: "Network",           path: "/products?category=Network" },
-  { name: "Smart Accessories", path: "/products?category=Smart Accessories" },
-  { name: "Smart Watch",       path: "/products?category=Smart Watch" },
-];
+import API from "../../api/axios";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const [search, setSearch] = useState("");
   const [catOpen, setCatOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
   const catRef = useRef(null);
   const navigate = useNavigate();
   const { cartCount } = useCart();
@@ -43,6 +36,13 @@ const Navbar = () => {
     loadUser();
     window.addEventListener("loginStatusChanged", loadUser);
     return () => window.removeEventListener("loginStatusChanged", loadUser);
+  }, []);
+
+  // Fetch categories from API
+  useEffect(() => {
+    API.get("/categories")
+      .then((res) => setCategories(res.data))
+      .catch(() => setCategories([]));
   }, []);
 
   // Close category dropdown on outside click
@@ -71,10 +71,10 @@ const Navbar = () => {
     }
   };
 
-  const handleCatClick = (path) => {
+  const handleCatClick = (name) => {
     setCatOpen(false);
     setMenuOpen(false);
-    navigate(path);
+    navigate(`/products?category=${encodeURIComponent(name)}`);
   };
 
   return (
@@ -117,7 +117,7 @@ const Navbar = () => {
             <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
             <li><Link to="/products" onClick={() => setMenuOpen(false)}>Products</Link></li>
 
-            {/* CATEGORIES DROPDOWN */}
+            {/* CATEGORIES DROPDOWN — live from API */}
             <li className="nav-cat-item" ref={catRef}>
               <button
                 className="nav-cat-btn"
@@ -128,15 +128,21 @@ const Navbar = () => {
 
               {catOpen && (
                 <div className="cat-dropdown">
-                  {CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.name}
-                      className="cat-dropdown-item"
-                      onClick={() => handleCatClick(cat.path)}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
+                  {categories.length === 0 ? (
+                    <div className="cat-dropdown-item" style={{ color: "#94a3b8" }}>
+                      No categories
+                    </div>
+                  ) : (
+                    categories.map((cat) => (
+                      <button
+                        key={cat._id}
+                        className="cat-dropdown-item"
+                        onClick={() => handleCatClick(cat.name)}
+                      >
+                        {cat.name}
+                      </button>
+                    ))
+                  )}
                 </div>
               )}
             </li>

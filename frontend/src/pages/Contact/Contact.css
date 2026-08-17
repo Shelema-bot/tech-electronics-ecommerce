@@ -250,4 +250,11 @@
 @media (max-width: 768px) {
   .contact-container { grid-template-columns: 1fr; }
   .contact-page { padding: 32px 16px 60px; }
+  .contact-info { padding: 24px 18px; }
+  .contact-form { padding: 24px 18px; }
+}
+
+@media (max-width: 480px) {
+  .contact-page { padding: 20px 10px 48px; }
+  .contact-info h1 { font-size: 22px; }
 }

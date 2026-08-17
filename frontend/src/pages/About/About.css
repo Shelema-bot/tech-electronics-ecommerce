@@ -1,111 +1,67 @@
-.about-section{
-
-    padding:60px 40px;
-
-    background:#f8fafc;
-
+.about-section {
+  padding: 60px 40px;
+  background: #f8fafc;
 }
 
-
-.about-container{
-
-    max-width:1100px;
-
-    margin:auto;
-
-    text-align:center;
-
+.about-container {
+  max-width: 1100px;
+  margin: auto;
+  text-align: center;
 }
 
-
-.about-container h1{
-
-    font-size:36px;
-
-    color:#111827;
-
-    margin-bottom:25px;
-
+.about-container h1 {
+  font-size: 36px;
+  color: #111827;
+  margin-bottom: 25px;
 }
 
-
-.about-container p{
-
-    font-size:17px;
-
-    line-height:1.8;
-
-    color:#4b5563;
-
+.about-container p {
+  font-size: 17px;
+  line-height: 1.8;
+  color: #4b5563;
 }
 
-
-.about-cards{
-
-    display:flex;
-
-    justify-content:center;
-
-    gap:25px;
-
-    margin:40px 0;
-
+.about-cards {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin: 40px 0;
 }
 
-
-.about-card{
-
-    width:300px;
-
-    padding:25px;
-
-    background:white;
-
-    border-radius:15px;
-
-    box-shadow:0 8px 20px rgba(0,0,0,0.1);
-
-    transition:0.3s;
-
+.about-card {
+  width: 300px;
+  padding: 25px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  transition: 0.3s;
 }
 
-
-.about-card:hover{
-
-    transform:translateY(-8px);
-
-    background:#2563eb;
-
+.about-card:hover {
+  transform: translateY(-8px);
+  background: #2563eb;
 }
 
-
-.about-card h3{
-
-    color:#111827;
-
-}
-
-
-.about-card p{
-
-    color:#4b5563;
-
-}
-
+.about-card h3 { color: #111827; }
+.about-card p  { color: #4b5563; }
 
 .about-card:hover h3,
+.about-card:hover p { color: white; }
 
-.about-card:hover p{
-
-    color:white;
-
+.about-container h2 {
+  color: #2563eb;
+  margin-top: 40px;
 }
 
+@media (max-width: 768px) {
+  .about-section { padding: 40px 20px; }
+  .about-container h1 { font-size: 28px; }
+  .about-card { width: 100%; max-width: 340px; }
+}
 
-.about-container h2{
-
-    color:#2563eb;
-
-    margin-top:40px;
-
+@media (max-width: 480px) {
+  .about-section { padding: 28px 12px; }
+  .about-container h1 { font-size: 24px; }
+  .about-container p { font-size: 15px; }
 }

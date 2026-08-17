@@ -79,3 +79,9 @@
   margin: 0;
   line-height: 1.6;
 }
+
+@media (max-width: 600px) {
+  .my-messages { padding: 28px 12px 60px; }
+  .my-messages h1 { font-size: 22px; }
+  .message-card { padding: 18px 14px; }
+}

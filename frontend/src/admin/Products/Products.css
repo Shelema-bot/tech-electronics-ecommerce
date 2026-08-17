@@ -232,4 +232,23 @@ tbody tr:hover { background: #f8fafc; }
 
 @media (max-width: 900px) {
   .products-admin { padding: 20px 16px; }
+  .products-table-wrapper { overflow-x: auto; }
+  .search-box { width: 160px; }
+}
+
+@media (max-width: 640px) {
+  .products-admin { padding: 16px 10px; }
+  .products-header { flex-direction: column; align-items: stretch; }
+  .products-header h1 { font-size: 20px; }
+  .products-actions { flex-wrap: wrap; }
+  .search-box { width: 100%; }
+  .category-filter { width: 100%; }
+  .add-btn { width: 100%; text-align: center; }
+}
+
+@media (max-width: 480px) {
+  th:nth-child(3),
+  td:nth-child(3),
+  th:nth-child(5),
+  td:nth-child(5) { display: none; }
 }

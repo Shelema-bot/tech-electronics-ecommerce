@@ -149,6 +149,16 @@
 .ap-edit-btn:hover { background: #1d4ed8; }
 
 @media (max-width: 600px) {
-  .ap-page { padding: 20px 16px; }
-  .ap-card { padding: 24px 16px; }
+  .ap-page { padding: 20px 14px; }
+  .ap-card { padding: 20px 14px; }
+  .ap-header h1 { font-size: 20px; }
+  .ap-avatar-placeholder,
+  .ap-avatar-img { width: 90px; height: 90px; font-size: 30px; }
+  .ap-info h2 { font-size: 18px; }
+  .ap-edit-btn { width: 100%; text-align: center; }
+}
+
+@media (max-width: 400px) {
+  .ap-field { flex-direction: column; gap: 2px; }
+  .ap-field-label { width: auto; }
 }

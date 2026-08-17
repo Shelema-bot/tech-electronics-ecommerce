@@ -139,4 +139,15 @@
 @media (max-width: 900px) {
   .payments-page { padding: 20px 16px; }
   .payments-card { overflow-x: auto; }
+  .payments-table { min-width: 700px; }
+}
+
+@media (max-width: 640px) {
+  .payments-page { padding: 16px 10px; }
+  .payments-page-header { flex-direction: column; }
+  .payments-page-header h1 { font-size: 20px; }
+}
+
+@media (max-width: 480px) {
+  .payments-page-header h1 { font-size: 18px; }
 }

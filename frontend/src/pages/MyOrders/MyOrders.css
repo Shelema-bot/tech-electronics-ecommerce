@@ -227,4 +227,12 @@
   .order-info { flex-direction: column; }
   .order-product { flex-direction: column; text-align: center; }
   .order-card h2 { text-align: center; }
+  .my-orders h1 { font-size: 22px; }
+  .order-card { padding: 18px 14px; }
+}
+
+@media (max-width: 400px) {
+  .my-orders { padding: 28px 12px 60px; }
+  .my-orders h1 { font-size: 19px; }
+  .order-product img { width: 52px; height: 52px; }
 }

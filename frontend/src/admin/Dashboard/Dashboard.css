@@ -64,7 +64,13 @@
 }
 
 @media (max-width: 600px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
+  .dashboard-title { font-size: 20px; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .dashboard-cards { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dashboard-welcome { padding: 22px 18px; }
+  .dashboard-welcome h2 { font-size: 17px; }
+}
+
+@media (max-width: 400px) {
+  .dashboard-cards { grid-template-columns: 1fr; }
 }

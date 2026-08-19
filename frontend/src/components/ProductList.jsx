@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import API from "../api/axios";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
+import { useToast } from "../context/ToastContext";
 import { getImageUrl } from "../utils/imageUrl";
 import "./ProductList.css";
 
@@ -30,6 +31,7 @@ function ProductList() {
 
   const { addToCart }           = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const toast = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -235,6 +237,7 @@ function ProductList() {
                           disabled={outOfStock}
                           onClick={() => {
                             addToCart(product);
+                            if (!outOfStock) toast.success(`${product.name} added to cart`);
                           }}
                         >
                           {outOfStock ? "Sold Out" : "Add to Cart"}

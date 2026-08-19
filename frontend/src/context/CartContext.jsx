@@ -58,11 +58,7 @@ if(exist){
 
 
 if(product.stock && exist.quantity >= product.stock){
-
-    alert(`Only ${product.stock} available`);
-
     return currentCart;
-
 }
 
 
@@ -158,11 +154,7 @@ if(item._id===id){
 
 
 if(item.stock && item.quantity >= item.stock){
-
-alert(`Only ${item.stock} available`);
-
 return item;
-
 }
 
 

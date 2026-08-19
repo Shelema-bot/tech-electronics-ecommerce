@@ -2,9 +2,10 @@ import { useState } from "react";
 import API from "../../api/axios";
 import "./Contact.css";
 import { Link } from "react-router-dom";
-import { getImageUrl } from "../../utils/imageUrl";
+import { useToast } from "../../context/ToastContext";
 
 function Contact() {
+  const toast = useToast();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -49,7 +50,7 @@ function Contact() {
       setPreview("");
     } catch (error) {
       console.log(error);
-      alert("Message failed. Please try again.");
+      toast.error("Message failed. Please try again.");
     } finally {
       setSending(false);
     }

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { useToast } from "../../context/ToastContext";
 import API from "../../api/axios";
 import "./Checkout.css";
 
 function Checkout() {
   const { cartItems, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("chapa");
 
@@ -26,13 +28,13 @@ function Checkout() {
     e.preventDefault();
 
     if (cartItems.length === 0) {
-      alert("Your cart is empty");
+      toast.warning("Your cart is empty");
       return;
     }
 
     const token = localStorage.getItem("token");
     if (!token) {
-      alert("Please login before checkout");
+      toast.warning("Please login before checkout");
       return;
     }
 
@@ -74,7 +76,7 @@ function Checkout() {
       if (paymentMethod === "cod") {
         clearCart();
         localStorage.removeItem("pendingOrder");
-        alert("Order placed successfully! Pay on delivery.");
+        toast.success("Order placed! Pay on delivery when it arrives.");
         navigate("/my-orders");
         return;
       }
@@ -92,7 +94,7 @@ function Checkout() {
       if (checkoutUrl) {
         window.location.href = checkoutUrl;
       } else {
-        alert("Payment link was not generated");
+        toast.error("Payment link was not generated. Please try again.");
       }
     } catch (error) {
       console.log("CHECKOUT ERROR:", error.response?.data || error.message);
@@ -108,7 +110,7 @@ function Checkout() {
         msg = error.message;
       }
 
-      alert(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

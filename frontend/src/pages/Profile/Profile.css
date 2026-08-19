@@ -128,3 +128,58 @@
   .profile-avatar-section { flex-direction: column; align-items: center; text-align: center; padding: 18px; }
   .profile-form-card { padding: 18px 14px; }
 }
+
+.profile-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 14px;
+  color: #64748b;
+}
+
+.profile-spinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.profile-img-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.avatar-upload-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  border: 2px solid white;
+}
+
+.profile-role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  margin-top: 4px;
+}

@@ -1,26 +1,17 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { getImageUrl } from "../../utils/imageUrl";
+import { useToast } from "../../context/ToastContext";
 import "./Cart.css";
 
+function Cart() {
+  const { cartItems, increaseQuantity, decreaseQuantity, removeFromCart, cartTotal } = useCart();
+  const toast = useToast();
 
-function Cart(){
-
-
-    const {
-
-        cartItems,
-
-        increaseQuantity,
-
-        decreaseQuantity,
-
-        removeFromCart,
-
-        cartTotal
-
-
-    } = useCart();
+  const handleRemove = (item) => {
+    removeFromCart(item._id);
+    toast.info(`${item.name} removed from cart`);
+  };
 
 
 
@@ -308,12 +299,9 @@ function Cart(){
 
 
 
-                        <button
-
+        <button
                         className="remove-btn"
-
-                        onClick={()=>removeFromCart(item._id)}
-
+                        onClick={()=>handleRemove(item)}
                         >
 
                             Remove
@@ -353,17 +341,7 @@ function Cart(){
 
 
                     <h2>
-
-
-                        Total:
-
-                        {" "}
-
-                        {cartTotal}
-
-                        {" "}ETB
-
-
+                        Total: {cartTotal.toLocaleString()} ETB
                     </h2>
 
 

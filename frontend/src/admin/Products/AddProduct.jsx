@@ -1,332 +1,85 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../../api/axios";
+import AdminLayout from "../components/AdminLayout";
+import { useToast } from "../../context/ToastContext";
 import "./AddProduct.css";
 
-
-function AddProduct(){
-
-    const [image,setImage] = useState(null);
-
-    const [categories,setCategories] = useState([]);
-
-
-    const [product,setProduct] = useState({
-
-        name:"",
-        category:"",
-        brand:"",
-        description:"",
-        price:"",
-        stock:""
-
-    });
-
-
-
-    // Get categories from database
-    useEffect(()=>{
-
-        const getCategories = async()=>{
-
-            try{
-
-                const res = await API.get("/categories");
-
-                setCategories(res.data);
-
-            }
-            catch(error){
-
-                console.log(error);
-
-            }
-
-        };
-
-
-        getCategories();
-
-
-    },[]);
-
-
-
-
-    const handleChange=(e)=>{
-
-        setProduct({
-
-            ...product,
-
-            [e.target.name]: e.target.value
-
-        });
-
-    };
-
-
-
-    const handleImage=(e)=>{
-
-        setImage(e.target.files[0]);
-
-    };
-
-
-
-
-    const submitProduct=async(e)=>{
-
-        e.preventDefault();
-
-
-        try{
-
-
-            const formData = new FormData();
-
-
-            formData.append("name", product.name);
-
-            formData.append("category", product.category);
-
-            formData.append("brand", product.brand);
-
-            formData.append("description", product.description);
-
-            formData.append("price", product.price);
-
-            formData.append("stock", product.stock);
-
-
-
-            if(image){
-
-                formData.append(
-                    "images",
-                    image
-                );
-
-            }
-
-
-
-            await API.post(
-
-                "/products",
-
-                formData,
-
-                {
-
-                    headers:{
-
-                        "Content-Type":"multipart/form-data"
-
-                    }
-
-                }
-
-            );
-
-
-
-            alert("Product Added Successfully");
-
-
-
-            setProduct({
-
-                name:"",
-                category:"",
-                brand:"",
-                description:"",
-                price:"",
-                stock:""
-
-            });
-
-
-            setImage(null);
-
-
-        }
-        catch(error){
-
-            console.log(error);
-
-            alert("Product creation failed");
-
-        }
-
-
-    };
-
-
-
-
-    return(
-
-        <div className="add-product">
-
-
-            <h1>
-                Add New Product
-            </h1>
-
-
-
-            <form onSubmit={submitProduct}>
-
-
-                <input
-
-                name="name"
-
-                placeholder="Product Name"
-
-                value={product.name}
-
-                onChange={handleChange}
-
-                />
-
-
-
-
-                <select
-
-                name="category"
-
-                value={product.category}
-
-                onChange={handleChange}
-
-                >
-
-
-                <option value="">
-                    Select Category
-                </option>
-
-
-
-                {
-                    categories.map(category=>(
-
-                        <option
-
-                        key={category._id}
-
-                        value={category.name}
-
-                        >
-
-                            {category.name}
-
-                        </option>
-
-                    ))
-                }
-
-
-                </select>
-
-
-
-
-
-                <input
-
-                name="brand"
-
-                placeholder="Brand"
-
-                value={product.brand}
-
-                onChange={handleChange}
-
-                />
-
-
-
-
-                <textarea
-
-                name="description"
-
-                placeholder="Description"
-
-                value={product.description}
-
-                onChange={handleChange}
-
-                />
-
-
-
-
-                <input
-
-                type="number"
-
-                name="price"
-
-                placeholder="Price"
-
-                value={product.price}
-
-                onChange={handleChange}
-
-                />
-
-
-
-
-                <input
-
-                type="number"
-
-                name="stock"
-
-                placeholder="Stock"
-
-                value={product.stock}
-
-                onChange={handleChange}
-
-                />
-
-
-
-
-                <input
-
-                type="file"
-
-                onChange={handleImage}
-
-                />
-
-
-
-
-                <button>
-
-                    Add Product
-
-                </button>
-
-
-
-            </form>
-
-
-        </div>
-
-    );
-
+function AddProduct() {
+  const navigate = useNavigate();
+  const toast = useToast();
+
+  const [image, setImage]         = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading]     = useState(false);
+  const [product, setProduct]     = useState({
+    name: "", category: "", brand: "", description: "", price: "", stock: "",
+  });
+
+  useEffect(() => {
+    API.get("/categories")
+      .then(res => setCategories(res.data))
+      .catch(err => console.log(err));
+  }, []);
+
+  const handleChange = (e) => setProduct({ ...product, [e.target.name]: e.target.value });
+
+  const submitProduct = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const fd = new FormData();
+      Object.keys(product).forEach(k => fd.append(k, product[k]));
+      if (image) fd.append("images", image);
+      await API.post("/products", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      toast.success("Product added successfully");
+      setProduct({ name: "", category: "", brand: "", description: "", price: "", stock: "" });
+      setImage(null);
+      navigate("/admin/products");
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Failed to add product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <AdminLayout>
+      <div className="add-product">
+        <h1>Add New Product</h1>
+        <form onSubmit={submitProduct}>
+          <label>Product Name</label>
+          <input name="name" placeholder="Product Name" value={product.name} onChange={handleChange} required />
+
+          <label>Category</label>
+          <select name="category" value={product.category} onChange={handleChange} required>
+            <option value="">Select Category</option>
+            {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+          </select>
+
+          <label>Brand</label>
+          <input name="brand" placeholder="Brand" value={product.brand} onChange={handleChange} />
+
+          <label>Description</label>
+          <textarea name="description" placeholder="Product description" value={product.description} onChange={handleChange} />
+
+          <label>Price (ETB)</label>
+          <input type="number" name="price" placeholder="Price" value={product.price} onChange={handleChange} required min="0" />
+
+          <label>Stock</label>
+          <input type="number" name="stock" placeholder="Stock quantity" value={product.stock} onChange={handleChange} required min="0" />
+
+          <label>Product Image</label>
+          <input type="file" accept="image/*" onChange={e => setImage(e.target.files[0])} />
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Adding..." : "Add Product"}
+          </button>
+        </form>
+      </div>
+    </AdminLayout>
+  );
 }
-
 
 export default AddProduct;

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import { useToast } from "../../context/ToastContext";
+import { useNavigate } from "react-router-dom";
 import "./Orders.css";
 
 function Orders() {
+  const toast = useToast();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -38,7 +41,7 @@ function Orders() {
       await API.delete(`/admin/orders/${id}`);
       fetchOrders();
     } catch (error) {
-      alert(error.response?.data?.message || "Failed to delete order");
+      toast.error(error.response?.data?.message || "Failed to delete order");
     }
   };
 

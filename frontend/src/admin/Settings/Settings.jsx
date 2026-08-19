@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import { useToast } from "../../context/ToastContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./Settings.css";
 
 function Settings() {
+  const toast = useToast();
   const [user, setUser] = useState({ name: "", email: "", phone: "", address: "", profileImage: "" });
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
@@ -43,13 +45,13 @@ function Settings() {
       await API.put("/users/admin/profile", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      alert("Profile Updated Successfully");
+      toast.success("Profile updated successfully");
       getProfile();
       setPreview("");
       setImage(null);
     } catch (error) {
       console.log(error);
-      alert("Update Failed");
+      toast.error("Update failed");
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
+import { useToast } from "../../context/ToastContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./LatestProducts.css";
 
@@ -27,6 +28,7 @@ function LatestProducts() {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const toast = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -162,7 +164,7 @@ function LatestProducts() {
                     disabled={product.stock === 0}
                     onClick={() => {
                       addToCart(product);
-                      alert(`${product.name} added to cart`);
+                      toast.success(`${product.name} added to cart`);
                     }}
                   >
                     {product.stock === 0 ? "Out of Stock" : "Add to Cart"}

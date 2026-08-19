@@ -27,6 +27,10 @@ import Wishlist from "./pages/Wishlist/Wishlist";
 import Help from "./pages/Help/Help";
 import Terms from "./pages/Terms/Terms";
 import Privacy from "./pages/Privacy/Privacy";
+import FAQ from "./pages/FAQ/FAQ";
+import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
+import Returns from "./pages/Returns/Returns";
+import AnnouncementBar from "./components/AnnouncementBar/AnnouncementBar";
 
 // ================= ADMIN PAGES =================
 import Dashboard from "./admin/Dashboard/Dashboard";
@@ -51,8 +55,8 @@ function App() {
       <Routes>
 
         {/* ================= CUSTOMER WEBSITE ================= */}
-        <Route path="/" element={<><Navbar /><Home /><Footer /></>} />
-        <Route path="/products" element={<><Navbar /><ProductList /><Footer /></>} />
+        <Route path="/" element={<><AnnouncementBar /><Navbar /><Home /><Footer /></>} />
+        <Route path="/products" element={<><AnnouncementBar /><Navbar /><ProductList /><Footer /></>} />
         <Route path="/product/:id" element={<><Navbar /><ProductDetails /><Footer /></>} />
         <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
         <Route path="/team" element={<><Navbar /><Team /><Footer /></>} />
@@ -70,6 +74,9 @@ function App() {
         <Route path="/help" element={<><Navbar /><Help /><Footer /></>} />
         <Route path="/terms" element={<><Navbar /><Terms /><Footer /></>} />
         <Route path="/privacy" element={<><Navbar /><Privacy /><Footer /></>} />
+        <Route path="/faq" element={<><Navbar /><FAQ /><Footer /></>} />
+        <Route path="/shipping-info" element={<><Navbar /><ShippingInfo /><Footer /></>} />
+        <Route path="/returns" element={<><Navbar /><Returns /><Footer /></>} />
 
         <Route
           path="/profile"

@@ -28,9 +28,8 @@ const Footer = () => {
         <div className="footer-brand">
           <h2>Tech &amp; Electronic</h2>
           <p>
-            Your trusted online store for laptops, smartphones, accessories,
-            gaming devices, networking equipment, and the latest technology
-            products.
+            Your trusted destination for the latest technology and electronics.
+            Quality products, best prices, exceptional service.
           </p>
           <div className="footer-social">
             <a href="https://facebook.com" target="_blank" rel="noreferrer" className="social-icon facebook"><FaFacebookF /></a>
@@ -42,53 +41,57 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Quick Links */}
+        {/* Shop */}
         <div className="footer-col">
-          <h3>Quick Links</h3>
+          <h3>Shop</h3>
           <ul>
-            <li><Link to="/">Home</Link></li>
             <li><Link to="/products">All Products</Link></li>
-            <li><Link to="/about">About Us</Link></li>
-            <li><Link to="/team">Our Team</Link></li>
-            <li><Link to="/contact">Contact</Link></li>
-            <li><Link to="/my-orders">My Orders</Link></li>
-          </ul>
-        </div>
-
-        {/* Categories — live from API */}
-        <div className="footer-col">
-          <h3>Categories</h3>
-          <ul>
+            <li><Link to="/products">New Arrivals</Link></li>
+            <li><Link to="/products">Best Sellers</Link></li>
+            <li><Link to="/products">Deals &amp; Offers</Link></li>
             {categories.map((cat) => (
               <li key={cat._id}>
-                <Link to={`/products?category=${encodeURIComponent(cat.name)}`}>
-                  {cat.name}
-                </Link>
+                <Link to={`/products?category=${encodeURIComponent(cat.name)}`}>{cat.name}</Link>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Help & Legal */}
+        {/* Customer Service */}
         <div className="footer-col">
-          <h3>Help &amp; Legal</h3>
+          <h3>Customer Service</h3>
           <ul>
+            <li><Link to="/contact">Contact Us</Link></li>
+            <li><Link to="/shipping-info">Shipping Information</Link></li>
+            <li><Link to="/returns">Returns &amp; Refunds</Link></li>
+            <li><Link to="/my-orders">Track My Order</Link></li>
+            <li><Link to="/faq">FAQ</Link></li>
             <li><Link to="/help">Help Center</Link></li>
-            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
-            <li><Link to="/privacy">Privacy Policy</Link></li>
+          </ul>
+        </div>
+
+        {/* My Account + Contact */}
+        <div className="footer-col">
+          <h3>My Account</h3>
+          <ul>
+            <li><Link to="/login">Sign In</Link></li>
+            <li><Link to="/register">Register</Link></li>
+            <li><Link to="/my-orders">My Orders</Link></li>
+            <li><Link to="/wishlist">Wishlist</Link></li>
+            <li><Link to="/profile">Account Settings</Link></li>
           </ul>
 
-          <h3 style={{ marginTop: "24px" }}>Contact Info</h3>
+          <h3 style={{ marginTop: "24px" }}>Connect With Us</h3>
           <div className="footer-contact-item">
-            <span className="footer-contact-label">📍 Address</span>
+            <span className="footer-contact-label">📍</span>
             <span>Addis Ababa, Ethiopia</span>
           </div>
           <div className="footer-contact-item">
-            <span className="footer-contact-label">📞 Phone</span>
+            <span className="footer-contact-label">📞</span>
             <span>+251 974 007 772</span>
           </div>
           <div className="footer-contact-item">
-            <span className="footer-contact-label">✉️ Email</span>
+            <span className="footer-contact-label">✉️</span>
             <span>shelemaagari@gmail.com</span>
           </div>
         </div>
@@ -99,9 +102,10 @@ const Footer = () => {
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} Tech &amp; Electronic E-Commerce. All Rights Reserved.</span>
         <span className="footer-bottom-links">
-          <Link to="/terms">Terms</Link>
-          <Link to="/privacy">Privacy</Link>
-          <Link to="/help">Help</Link>
+          <Link to="/privacy">Privacy Policy</Link>
+          <Link to="/terms">Terms &amp; Conditions</Link>
+          <Link to="/returns">Return Policy</Link>
+          <Link to="/shipping-info">Shipping Policy</Link>
         </span>
       </div>
     </footer>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Footer.css";
 import { Link } from "react-router-dom";
 import {
@@ -9,17 +9,17 @@ import {
   FaTiktok,
   FaYoutube,
 } from "react-icons/fa";
-
-const CATEGORIES = [
-  { name: "Laptops",           path: "/products?category=Laptops" },
-  { name: "Smartphones",       path: "/products?category=Smartphones" },
-  { name: "Smart Accessories", path: "/products?category=Smart Accessories" },
-  { name: "Gaming",            path: "/products?category=Gaming" },
-  { name: "Network",           path: "/products?category=Network" },
-  { name: "Smart Watch",       path: "/products?category=Smart Watch" },
-];
+import API from "../../api/axios";
 
 const Footer = () => {
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    API.get("/categories")
+      .then((res) => setCategories(res.data.slice(0, 6)))
+      .catch(() => setCategories([]));
+  }, []);
+
   return (
     <footer className="footer">
       <div className="footer-container">
@@ -55,21 +55,30 @@ const Footer = () => {
           </ul>
         </div>
 
-        {/* Categories */}
+        {/* Categories — live from API */}
         <div className="footer-col">
           <h3>Categories</h3>
           <ul>
-            {CATEGORIES.map((cat) => (
-              <li key={cat.name}>
-                <Link to={cat.path}>{cat.name}</Link>
+            {categories.map((cat) => (
+              <li key={cat._id}>
+                <Link to={`/products?category=${encodeURIComponent(cat.name)}`}>
+                  {cat.name}
+                </Link>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Contact Info */}
+        {/* Help & Legal */}
         <div className="footer-col">
-          <h3>Contact Info</h3>
+          <h3>Help &amp; Legal</h3>
+          <ul>
+            <li><Link to="/help">Help Center</Link></li>
+            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+          </ul>
+
+          <h3 style={{ marginTop: "24px" }}>Contact Info</h3>
           <div className="footer-contact-item">
             <span className="footer-contact-label">📍 Address</span>
             <span>Addis Ababa, Ethiopia</span>
@@ -89,6 +98,11 @@ const Footer = () => {
       {/* Bottom bar */}
       <div className="footer-bottom">
         <span>© {new Date().getFullYear()} Tech &amp; Electronic E-Commerce. All Rights Reserved.</span>
+        <span className="footer-bottom-links">
+          <Link to="/terms">Terms</Link>
+          <Link to="/privacy">Privacy</Link>
+          <Link to="/help">Help</Link>
+        </span>
       </div>
     </footer>
   );

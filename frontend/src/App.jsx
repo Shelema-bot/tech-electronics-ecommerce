@@ -24,6 +24,9 @@ import MyMessages from "./pages/MyMessages/MyMessages";
 import Team from "./components/Team/Team";
 import NotFound from "./pages/NotFound";
 import Wishlist from "./pages/Wishlist/Wishlist";
+import Help from "./pages/Help/Help";
+import Terms from "./pages/Terms/Terms";
+import Privacy from "./pages/Privacy/Privacy";
 
 // ================= ADMIN PAGES =================
 import Dashboard from "./admin/Dashboard/Dashboard";
@@ -64,6 +67,9 @@ function App() {
         <Route path="/forgot-password" element={<><Navbar /><ForgotPassword /><Footer /></>} />
         <Route path="/reset-password" element={<><Navbar /><ResetPassword /><Footer /></>} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/help" element={<><Navbar /><Help /><Footer /></>} />
+        <Route path="/terms" element={<><Navbar /><Terms /><Footer /></>} />
+        <Route path="/privacy" element={<><Navbar /><Privacy /><Footer /></>} />
 
         <Route
           path="/profile"

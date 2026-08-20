@@ -1,0 +1,223 @@
+/* ================================
+   ACCOUNT SIDEBAR
+================================ */
+
+.account-sidebar {
+  width: 270px;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  overflow: hidden;
+  position: sticky;
+  top: 88px;
+  align-self: flex-start;
+}
+
+/* ── Profile header ── */
+.asb-header {
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  padding: 28px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.asb-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.5);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(255,255,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asb-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asb-avatar-initial {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+}
+
+.asb-user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.asb-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+}
+
+.asb-email {
+  font-size: 12px;
+  color: rgba(255,255,255,0.75);
+  margin: 0;
+  word-break: break-all;
+}
+
+/* ── Divider ── */
+.asb-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 0;
+}
+
+/* ── Menu ── */
+.asb-menu {
+  padding: 10px 10px;
+}
+
+.asb-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  text-decoration: none;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.asb-menu-item:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.asb-menu-item.active {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.asb-menu-icon {
+  font-size: 17px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.asb-menu-label { flex: 1; }
+
+.asb-badge {
+  background: #ef4444;
+  color: white;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── Logout ── */
+.asb-logout-wrap {
+  padding: 8px 10px 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.asb-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  background: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  text-align: left;
+}
+
+.asb-logout-btn:hover {
+  background: #e11d48;
+  color: white;
+  border-color: #e11d48;
+}
+
+/* ── Account layout wrapper ── */
+.account-page-layout {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.account-page-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .account-page-layout {
+    flex-direction: column;
+    padding: 24px 14px 60px;
+  }
+
+  .account-sidebar {
+    width: 100%;
+    position: static;
+  }
+
+  .asb-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .asb-menu-item {
+    flex: 1;
+    min-width: 130px;
+    justify-content: center;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .asb-logout-wrap {
+    padding: 6px 10px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .asb-header { padding: 20px 16px 18px; }
+  .asb-avatar { width: 60px; height: 60px; }
+  .asb-avatar-initial { font-size: 22px; }
+  .asb-name { font-size: 15px; }
+  .account-page-layout { padding: 16px 10px 50px; gap: 18px; }
+
+  .asb-menu-item {
+    min-width: calc(50% - 6px);
+    font-size: 12px;
+    padding: 9px 6px;
+  }
+}

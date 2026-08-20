@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import API from "../../api/axios";
 import { getImageUrl } from "../../utils/imageUrl";
 import { useToast } from "../../context/ToastContext";
+import AccountLayout from "../../components/AccountLayout/AccountLayout";
 import "./Profile.css";
 
 function Profile() {
@@ -88,8 +89,9 @@ function Profile() {
     : null;
 
   return (
-    <div className="profile">
-      <h1>My Profile</h1>
+    <AccountLayout>
+      <div className="profile">
+        <h1>My Profile</h1>
 
       {/* Avatar */}
       <div className="profile-avatar-section">
@@ -134,6 +136,7 @@ function Profile() {
         </form>
       </div>
     </div>
+    </AccountLayout>
   );
 }
 

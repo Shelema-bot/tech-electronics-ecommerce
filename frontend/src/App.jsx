@@ -30,6 +30,8 @@ import Privacy from "./pages/Privacy/Privacy";
 import FAQ from "./pages/FAQ/FAQ";
 import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
 import Returns from "./pages/Returns/Returns";
+import PaymentHistory from "./pages/PaymentHistory/PaymentHistory";
+import Notifications from "./pages/Notifications/Notifications";
 import AnnouncementBar from "./components/AnnouncementBar/AnnouncementBar";
 
 // ================= ADMIN PAGES =================
@@ -64,8 +66,6 @@ function App() {
         <Route path="/cart" element={<><Navbar /><Cart /><Footer /></>} />
         <Route path="/wishlist" element={<><Navbar /><Wishlist /><Footer /></>} />
         <Route path="/checkout" element={<><Navbar /><Checkout /><Footer /></>} />
-        <Route path="/my-orders" element={<><Navbar /><MyOrders /><Footer /></>} />
-        <Route path="/my-messages" element={<><Navbar /><MyMessages /><Footer /></>} />
         <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
         <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
         <Route path="/forgot-password" element={<><Navbar /><ForgotPassword /><Footer /></>} />
@@ -83,6 +83,38 @@ function App() {
           element={
             <PrivateRoute>
               <><Navbar /><Profile /><Footer /></>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/my-orders"
+          element={
+            <PrivateRoute>
+              <><Navbar /><MyOrders /><Footer /></>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/my-messages"
+          element={
+            <PrivateRoute>
+              <><Navbar /><MyMessages /><Footer /></>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/payment-history"
+          element={
+            <PrivateRoute>
+              <><Navbar /><PaymentHistory /><Footer /></>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <PrivateRoute>
+              <><Navbar /><Notifications /><Footer /></>
             </PrivateRoute>
           }
         />

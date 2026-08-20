@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import API from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import { getImageUrl } from "../../utils/imageUrl";
+import AccountLayout from "../../components/AccountLayout/AccountLayout";
 import "./MyOrders.css";
 
 const STATUS_COLORS = {
@@ -41,11 +42,16 @@ function MyOrders() {
   };
 
   if (loading) {
-    return <div className="loading-orders">Loading your orders...</div>;
+    return (
+      <AccountLayout>
+        <div className="loading-orders">Loading your orders...</div>
+      </AccountLayout>
+    );
   }
 
   return (
-    <div className="my-orders">
+    <AccountLayout>
+      <div className="my-orders">
       <h1>My Orders</h1>
 
       {orders.length === 0 ? (
@@ -115,6 +121,7 @@ function MyOrders() {
         ))
       )}
     </div>
+    </AccountLayout>
   );
 }
 

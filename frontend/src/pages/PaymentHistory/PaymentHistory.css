@@ -1,0 +1,158 @@
+/* ================================
+   PAYMENT HISTORY PAGE
+================================ */
+
+.ph-page {
+  min-height: 60vh;
+}
+
+.ph-header {
+  margin-bottom: 24px;
+}
+
+.ph-header h1 {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.ph-header p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Loading */
+.ph-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.ph-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty */
+.ph-empty {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.ph-empty-icon { font-size: 48px; margin-bottom: 12px; }
+.ph-empty h3 { font-size: 18px; color: #0f172a; margin: 0 0 8px; }
+.ph-empty p  { font-size: 14px; color: #64748b; margin: 0 0 20px; }
+
+.ph-shop-btn {
+  display: inline-block;
+  padding: 11px 28px;
+  background: #2563eb;
+  color: white;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.ph-shop-btn:hover { background: #1d4ed8; }
+
+/* List */
+.ph-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Card */
+.ph-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s;
+}
+
+.ph-card:hover {
+  box-shadow: 0 4px 14px rgba(37,99,235,0.08);
+  border-color: #bfdbfe;
+}
+
+.ph-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ph-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.ph-status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* Detail rows */
+.ph-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ph-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.ph-label {
+  color: #94a3b8;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 110px;
+}
+
+.ph-value {
+  color: #334155;
+  text-align: right;
+  word-break: break-all;
+}
+
+.ph-txref {
+  font-family: monospace;
+  font-size: 12px;
+  color: #64748b;
+}
+
+@media (max-width: 480px) {
+  .ph-card { padding: 16px 14px; }
+  .ph-amount { font-size: 17px; }
+  .ph-detail-row { flex-direction: column; gap: 2px; }
+  .ph-value { text-align: left; }
+  .ph-label { min-width: auto; }
+}

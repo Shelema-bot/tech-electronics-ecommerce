@@ -181,3 +181,21 @@ export const verifyPayment = async (req, res) => {
     });
   }
 };
+
+
+// ===============================
+// Get My Payments (authenticated user only)
+// ===============================
+
+export const getMyPayments = async (req, res) => {
+  try {
+    const payments = await Payment.find({ user: req.user._id })
+      .populate("order", "totalPrice status orderItems")
+      .sort({ createdAt: -1 });
+
+    return res.json({ success: true, payments });
+  } catch (error) {
+    console.log("GET MY PAYMENTS ERROR:", error.message);
+    return res.status(500).json({ success: false, message: "Failed to fetch payment history" });
+  }
+};

@@ -35,16 +35,11 @@ export const createProduct = async (req, res) => {
 
 
     const product = await Product.create({
-
-      name,
-      description,
-      price,
-      category,
-      brand,
-      stock,
-      images:imagePaths
-
-});
+      name, description, price, category, brand, stock,
+      images: imagePaths,
+      isPublic: true,
+      approvalStatus: "approved",
+    });
 
 
     console.log("PRODUCT SAVED:", product);

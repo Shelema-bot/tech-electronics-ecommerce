@@ -1,5 +1,5 @@
 /* ================================
-   ADMIN TOPBAR — Green theme
+   ADMIN TOPBAR — Green + Account Dropdown
 ================================ */
 
 .admin-topbar {
@@ -9,14 +9,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
+  padding: 0 24px;
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 200;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 
-/* Left */
+/* ── Left ── */
 .topbar-left {
   display: flex;
   align-items: center;
@@ -35,9 +35,7 @@
   line-height: 1;
 }
 
-.topbar-menu-btn:hover {
-  background: rgba(255,255,255,0.25);
-}
+.topbar-menu-btn:hover { background: rgba(255,255,255,0.25); }
 
 .topbar-breadcrumb {
   display: flex;
@@ -45,28 +43,15 @@
   gap: 6px;
 }
 
-.breadcrumb-root {
-  font-size: 13px;
-  color: rgba(255,255,255,0.7);
-  font-weight: 500;
-}
+.breadcrumb-root { font-size: 13px; color: rgba(255,255,255,0.65); font-weight: 500; }
+.breadcrumb-sep  { font-size: 13px; color: rgba(255,255,255,0.4); }
+.breadcrumb-page { font-size: 15px; font-weight: 700; color: #fff; }
 
-.breadcrumb-sep {
-  font-size: 13px;
-  color: rgba(255,255,255,0.5);
-}
-
-.breadcrumb-page {
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-/* Right */
+/* ── Right ── */
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .topbar-icon-btn {
@@ -74,36 +59,45 @@
   height: 36px;
   border-radius: 9px;
   background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.22);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 16px;
+  font-size: 17px;
+  cursor: pointer;
   text-decoration: none;
   transition: background 0.2s;
 }
 
-.topbar-icon-btn:hover {
-  background: rgba(255,255,255,0.28);
-}
+.topbar-icon-btn:hover { background: rgba(255,255,255,0.28); }
 
-/* Profile (now a link) */
-.topbar-profile {
+/* ── Account button ── */
+.topbar-acct-wrap { position: relative; }
+
+.topbar-acct-btn {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 10px;
   background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.25);
-  text-decoration: none;
-  transition: background 0.2s;
+  border: 1px solid rgba(255,255,255,0.22);
   cursor: pointer;
+  transition: background 0.2s;
+  color: white;
+  font-family: inherit;
 }
 
-.topbar-profile:hover {
-  background: rgba(255,255,255,0.25);
+.topbar-acct-btn:hover { background: rgba(255,255,255,0.25); }
+
+.topbar-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.4);
+  flex-shrink: 0;
 }
 
 .topbar-avatar {
@@ -124,25 +118,184 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
+  text-align: left;
 }
 
 .topbar-name {
   font-size: 13px;
   font-weight: 700;
-  color: #ffffff;
+  color: #fff;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .topbar-role {
-  font-size: 11px;
-  color: rgba(255,255,255,0.75);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: capitalize;
+  line-height: 1;
 }
 
-/* Mobile */
-@media (max-width: 600px) {
+.topbar-chevron {
+  font-size: 10px;
+  color: rgba(255,255,255,0.7);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+.topbar-chevron.open { transform: rotate(180deg); }
+
+/* ── Dropdown panel ── */
+.topbar-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 270px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.18);
+  z-index: 500;
+  overflow: hidden;
+  animation: dropIn 0.15s ease;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Dropdown header */
+.topbar-drop-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(135deg, #14532d, #16a34a);
+}
+
+.drop-avatar-img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.4);
+  flex-shrink: 0;
+}
+
+.drop-avatar-placeholder {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.4);
+}
+
+.drop-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.drop-email {
+  font-size: 11px;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.drop-role-badge {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 2px 9px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  text-transform: capitalize;
+}
+
+/* Divider */
+.drop-divider { height: 1px; background: #f1f5f9; margin: 3px 0; }
+
+/* Menu items */
+.drop-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.drop-item:hover  { background: #f1f5f9; color: #16a34a; }
+.drop-item.active { background: #f0fdf4; color: #16a34a; font-weight: 700; }
+
+.drop-item-icon {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.drop-item:hover .drop-item-icon  { color: #16a34a; }
+.drop-item.active .drop-item-icon { color: #16a34a; }
+
+/* Logout */
+.drop-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e11d48;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.drop-logout:hover { background: #fff1f2; }
+.drop-logout .drop-item-icon { color: #e11d48; }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
   .topbar-profile-info { display: none; }
-  .admin-topbar { padding: 0 12px; }
-  .topbar-breadcrumb { display: none; }
+  .topbar-chevron      { display: none; }
+  .admin-topbar        { padding: 0 12px; }
+  .topbar-breadcrumb   { display: none; }
+  .topbar-dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    border-radius: 18px 18px 0 0;
+    animation: none;
+  }
 }
 
 @media (max-width: 400px) {

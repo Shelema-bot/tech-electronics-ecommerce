@@ -1,34 +1,19 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaHome, FaBox, FaList, FaShoppingCart,
-  FaUsers, FaCreditCard, FaChartBar,
-  FaSignOutAlt, FaEnvelope, FaUserShield,
-  FaCheckCircle, FaClipboardCheck, FaUserCog
+  FaUsers, FaCreditCard, FaSignOutAlt,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
 const getMenuItems = (role) => {
-  const isSuperAdmin = role === "super_admin" || role === "admin";
-  const isCashier    = role === "cashier";
-  const isSeller     = role === "seller";
-
   const items = [
-    { path: "/admin",            name: "Dashboard",        icon: <FaHome />, roles: ["admin","super_admin","cashier","seller"] },
-    { path: "/admin/products",   name: "Products",         icon: <FaBox />,  roles: ["admin","super_admin","seller"] },
-    { path: "/admin/categories", name: "Categories",       icon: <FaList />, roles: ["admin","super_admin"] },
-    { path: "/admin/orders",     name: "Orders",           icon: <FaShoppingCart />, roles: ["admin","super_admin","cashier"] },
-    { path: "/admin/customers",  name: "Customers",        icon: <FaUsers />, roles: ["admin","super_admin"] },
-    { path: "/admin/payments",   name: "Payments",         icon: <FaCreditCard />, roles: ["admin","super_admin","cashier"] },
-    { path: "/admin/reports",    name: "Reports",          icon: <FaChartBar />, roles: ["admin","super_admin"] },
-    { path: "/admin/contacts",   name: "Messages",         icon: <FaEnvelope />, roles: ["admin","super_admin"] },
-    // Super admin only
-    { path: "/admin/staff",          name: "Staff",            icon: <FaUserCog />,       roles: ["super_admin"] },
-    { path: "/admin/seller-verify",  name: "Seller Verify",    icon: <FaCheckCircle />,   roles: ["super_admin"] },
-    { path: "/admin/product-approval",name:"Product Approval", icon: <FaClipboardCheck />,roles: ["super_admin"] },
-    // Seller only
-    { path: "/admin/my-products",    name: "My Products",      icon: <FaBox />,            roles: ["seller"] },
+    { path: "/admin",            name: "Dashboard",  icon: <FaHome />,         roles: ["admin","super_admin","cashier","seller"] },
+    { path: "/admin/products",   name: "Products",   icon: <FaBox />,          roles: ["admin","super_admin","seller"] },
+    { path: "/admin/categories", name: "Categories", icon: <FaList />,         roles: ["admin","super_admin"] },
+    { path: "/admin/orders",     name: "Orders",     icon: <FaShoppingCart />, roles: ["admin","super_admin","cashier"] },
+    { path: "/admin/customers",  name: "Customers",  icon: <FaUsers />,        roles: ["admin","super_admin"] },
+    { path: "/admin/payments",   name: "Payments",   icon: <FaCreditCard />,   roles: ["admin","super_admin","cashier"] },
   ];
-
   return items.filter(item => item.roles.includes(role));
 };
 

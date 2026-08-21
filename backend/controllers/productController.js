@@ -9,7 +9,9 @@ export const getProducts = async (req, res) => {
     const { search, category, brand, minPrice, maxPrice, sort } = req.query;
     const { page, limit, skip } = getPagination(req.query);
 
-    const filter = { isPublic: true };
+    // Show products that are either explicitly public OR have no isPublic field
+    // (backward compat: all products created before the isPublic field existed)
+    const filter = { $or: [{ isPublic: true }, { isPublic: { $exists: false } }] };
 
     if (category) filter.category = { $regex: new RegExp(category, "i") };
     if (brand)    filter.brand    = { $regex: new RegExp(brand, "i") };
@@ -57,7 +59,7 @@ export const getProductsByCategory = async (req, res) => {
   try {
     const products = await Product.find({
       category: req.params.categoryName,
-      isPublic: true,
+      $or: [{ isPublic: true }, { isPublic: { $exists: false } }],
     }).lean();
     res.status(200).json(products);
   } catch (error) {

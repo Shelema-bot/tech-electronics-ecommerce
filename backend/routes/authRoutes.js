@@ -1,38 +1,14 @@
 import express from "express";
-import {
-forgotPassword,
-resetPassword
-}
-from "../controllers/authController.js";
-import {
-    registerUser,
-    loginUser
-} from "../controllers/authController.js";
-
+import { registerUser, loginUser, forgotPassword, resetPassword, getProfile } from "../controllers/authController.js";
+import { validateLogin, validateRegister } from "../middleware/validation.middleware.js";
 
 const router = express.Router();
 
+// Rate limiting is applied at server.js level for all /api/auth routes
 
-router.post(
-    "/register",
-    registerUser
-);
-
-
-router.post(
-    "/login",
-    loginUser
-);
-router.post(
-"/forgot-password",
-forgotPassword
-);
-
-
-router.post(
-"/reset-password",
-resetPassword
-);
-
+router.post("/register",        validateRegister, registerUser);
+router.post("/login",           validateLogin,    loginUser);
+router.post("/forgot-password",                   forgotPassword);
+router.post("/reset-password",                    resetPassword);
 
 export default router;

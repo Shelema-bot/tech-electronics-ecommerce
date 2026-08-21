@@ -1,5 +1,6 @@
 import express from "express";
 import protect from "../middleware/authMiddleware.js";
+import { validatePayment } from "../middleware/validation.middleware.js";
 import {
   initializePayment,
   verifyPayment,
@@ -8,8 +9,8 @@ import {
 
 const router = express.Router();
 
-router.post("/initialize", protect, initializePayment);
-router.get("/verify", verifyPayment);
-router.get("/my-payments", protect, getMyPayments);
+router.post("/initialize", protect, validatePayment, initializePayment);
+router.get("/verify",                                verifyPayment);
+router.get("/my-payments", protect,                 getMyPayments);
 
 export default router;

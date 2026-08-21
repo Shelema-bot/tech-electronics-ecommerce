@@ -38,4 +38,11 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// ── Indexes for faster queries ────────────────────────────────
+productSchema.index({ category: 1 });
+productSchema.index({ isPublic: 1 });
+productSchema.index({ approvalStatus: 1 });
+productSchema.index({ price: 1 });
+productSchema.index({ name: "text", brand: "text", description: "text" }); // text search
+
 export default mongoose.model("Product", productSchema);

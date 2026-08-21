@@ -1,29 +1,68 @@
 import Product from "../models/Product.js";
+import { getPagination, getPaginationMeta } from "../utils/pagination.js";
 
-
-// @desc    Get all products
+// @desc    Get all products (with optional pagination, search, filter, sort)
 // @route   GET /api/products
 // @access  Public
 export const getProducts = async (req, res) => {
-    try {
-        // Only show approved public products to customers
-        const products = await Product.find({ isPublic: true });
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const { search, category, brand, minPrice, maxPrice, sort } = req.query;
+    const { page, limit, skip } = getPagination(req.query);
+
+    const filter = { isPublic: true };
+
+    if (category) filter.category = { $regex: new RegExp(category, "i") };
+    if (brand)    filter.brand    = { $regex: new RegExp(brand, "i") };
+    if (search)   filter.$or = [
+      { name:        { $regex: new RegExp(search, "i") } },
+      { brand:       { $regex: new RegExp(search, "i") } },
+      { category:    { $regex: new RegExp(search, "i") } },
+      { description: { $regex: new RegExp(search, "i") } },
+    ];
+    if (minPrice || maxPrice) {
+      filter.price = {};
+      if (minPrice) filter.price.$gte = Number(minPrice);
+      if (maxPrice) filter.price.$lte = Number(maxPrice);
     }
+
+    let sortObj = { createdAt: -1 };
+    if (sort === "price-asc")  sortObj = { price: 1 };
+    if (sort === "price-desc") sortObj = { price: -1 };
+    if (sort === "name-asc")   sortObj = { name: 1 };
+    if (sort === "name-desc")  sortObj = { name: -1 };
+    if (sort === "rating")     sortObj = { rating: -1 };
+
+    const [products, total] = await Promise.all([
+      Product.find(filter).sort(sortObj).skip(skip).limit(limit).lean(),
+      Product.countDocuments(filter),
+    ]);
+
+    // Backward-compatible: paginated response when ?page or ?limit present
+    if (req.query.page || req.query.limit) {
+      return res.status(200).json({
+        success: true,
+        ...getPaginationMeta(total, page, limit),
+        products,
+      });
+    }
+
+    return res.status(200).json(products);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 export const getProductsByCategory = async (req, res) => {
-    try {
-        const products = await Product.find({
-            category: req.params.categoryName,
-            isPublic: true,
-        });
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    const products = await Product.find({
+      category: req.params.categoryName,
+      isPublic: true,
+    }).lean();
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 // @desc    Get single product
 // @route   GET /api/products/:id

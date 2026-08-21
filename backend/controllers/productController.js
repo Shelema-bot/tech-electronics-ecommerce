@@ -5,49 +5,25 @@ import Product from "../models/Product.js";
 // @route   GET /api/products
 // @access  Public
 export const getProducts = async (req, res) => {
-
     try {
-
-        const products = await Product.find();
-
+        // Only show approved public products to customers
+        const products = await Product.find({ isPublic: true });
         res.status(200).json(products);
-
     } catch (error) {
-
-        res.status(500).json({
-            message: error.message
-        });
-
+        res.status(500).json({ message: error.message });
     }
-
 };
 
-
-
-
-// @desc    Get products by category
-// @route   GET /api/products/category/:categoryName
-// @access  Public
 export const getProductsByCategory = async (req, res) => {
-
     try {
-
         const products = await Product.find({
-            category: req.params.categoryName
+            category: req.params.categoryName,
+            isPublic: true,
         });
-
-
         res.status(200).json(products);
-
-
     } catch (error) {
-
-        res.status(500).json({
-            message: error.message
-        });
-
+        res.status(500).json({ message: error.message });
     }
-
 };
 // @desc    Get single product
 // @route   GET /api/products/:id

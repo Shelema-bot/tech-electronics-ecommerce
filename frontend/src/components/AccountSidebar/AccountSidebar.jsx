@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { FiUser, FiShoppingBag, FiCreditCard, FiHeart, FiMessageSquare, FiBell, FiLogOut } from "react-icons/fi";
+import { FiUser, FiShoppingBag, FiCreditCard, FiHeart, FiMessageSquare, FiBell, FiLogOut, FiShoppingCart } from "react-icons/fi";
 import { getImageUrl } from "../../utils/imageUrl";
 import { useWishlist } from "../../context/WishlistContext";
 import "./AccountSidebar.css";
@@ -11,6 +11,7 @@ const menuItems = [
   { path: "/wishlist",        label: "Wishlist",         icon: <FiHeart />, badge: "wishlist" },
   { path: "/my-messages",     label: "Message Center",   icon: <FiMessageSquare /> },
   { path: "/notifications",   label: "Notifications",    icon: <FiBell /> },
+  { path: "/become-seller",   label: "Become a Seller",  icon: <FiShoppingCart /> },
 ];
 
 function AccountSidebar({ user }) {

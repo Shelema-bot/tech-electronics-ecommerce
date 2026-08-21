@@ -31,10 +31,12 @@ export const protect = async (req, res, next) => {
       const user = await User.findById(decoded.id).select("-password");
 
       if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: "User not found",
-        });
+        return res.status(401).json({ success: false, message: "User not found" });
+      }
+
+      // Block deactivated accounts
+      if (!user.isActive) {
+        return res.status(403).json({ success: false, message: "Your account has been deactivated. Contact support." });
       }
 
       req.user = user;
@@ -72,24 +74,18 @@ export const protect = async (req, res, next) => {
 
 
 // =====================================
-// ADMIN MIDDLEWARE
+// ADMIN MIDDLEWARE (inline — kept for backward compat)
+// Allows: admin, super_admin
 // =====================================
 
 export const admin = (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({
-      success: false,
-      message: "Not authorized",
-    });
+    return res.status(401).json({ success: false, message: "Not authorized" });
   }
-
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      success: false,
-      message: "Admin access only",
-    });
+  const allowed = ["admin", "super_admin"];
+  if (!allowed.includes(req.user.role)) {
+    return res.status(403).json({ success: false, message: "Admin access only" });
   }
-
   next();
 };
 

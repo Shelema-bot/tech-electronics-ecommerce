@@ -50,6 +50,11 @@ import Settings from "./admin/Settings/Settings";
 import AdminProfile from "./admin/Profile/AdminProfile";
 import ContactMessages from "./admin/Contacts/ContactMessages";
 import AdminRoute from "./admin/AdminRoute";
+import StaffManagement from "./admin/Staff/StaffManagement";
+import SellerVerification from "./admin/Staff/SellerVerification";
+import ProductApproval from "./admin/Staff/ProductApproval";
+import MyProducts from "./admin/Staff/MyProducts";
+import BecomeSeller from "./pages/BecomeSeller/BecomeSeller";
 
 function App() {
   return (
@@ -135,6 +140,17 @@ function App() {
         <Route path="/admin/settings" element={<AdminRoute><Settings /></AdminRoute>} />
         <Route path="/admin/profile" element={<AdminRoute><AdminProfile /></AdminRoute>} />
         <Route path="/admin/contacts" element={<AdminRoute><ContactMessages /></AdminRoute>} />
+        <Route path="/admin/staff"            element={<AdminRoute requiredRole="super_admin"><StaffManagement /></AdminRoute>} />
+        <Route path="/admin/seller-verify"    element={<AdminRoute requiredRole="super_admin"><SellerVerification /></AdminRoute>} />
+        <Route path="/admin/product-approval" element={<AdminRoute requiredRole="super_admin"><ProductApproval /></AdminRoute>} />
+        <Route path="/admin/my-products"      element={<AdminRoute><MyProducts /></AdminRoute>} />
+
+        {/* Become a seller */}
+        <Route path="/become-seller" element={
+          <PrivateRoute>
+            <><Navbar /><BecomeSeller /><Footer /></>
+          </PrivateRoute>
+        } />
 
         {/* 404 */}
         <Route path="*" element={<><Navbar /><NotFound /><Footer /></>} />

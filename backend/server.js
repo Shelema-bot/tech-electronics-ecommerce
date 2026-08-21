@@ -26,6 +26,7 @@ import adminReportRoutes from "./routes/adminReportRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import reviewRoutes from "./routes/reviewRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
+import staffRoutes from "./routes/staffRoutes.js";
 
 // =========================
 // CHECK ENVIRONMENT VARIABLES
@@ -122,6 +123,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/reviews", reviewRoutes);
 
 app.use("/api/contact", contactRoutes);
+app.use("/api/staff", staffRoutes);
 
 // =========================
 // ADMIN ROUTES

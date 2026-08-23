@@ -31,6 +31,7 @@ import FAQ from "./pages/FAQ/FAQ";
 import ShippingInfo from "./pages/ShippingInfo/ShippingInfo";
 import Returns from "./pages/Returns/Returns";
 import PaymentHistory from "./pages/PaymentHistory/PaymentHistory";
+import PaymentResult from "./pages/PaymentResult/PaymentResult";
 import Notifications from "./pages/Notifications/Notifications";
 import AnnouncementBar from "./components/AnnouncementBar/AnnouncementBar";
 
@@ -76,6 +77,7 @@ function App() {
         <Route path="/forgot-password" element={<><Navbar /><ForgotPassword /><Footer /></>} />
         <Route path="/reset-password" element={<><Navbar /><ResetPassword /><Footer /></>} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-result"  element={<><Navbar /><PaymentResult /><Footer /></>} />
         <Route path="/help" element={<><Navbar /><Help /><Footer /></>} />
         <Route path="/terms" element={<><Navbar /><Terms /><Footer /></>} />
         <Route path="/privacy" element={<><Navbar /><Privacy /><Footer /></>} />

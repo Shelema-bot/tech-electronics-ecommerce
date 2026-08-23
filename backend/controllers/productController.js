@@ -48,7 +48,9 @@ export const getProducts = async (req, res) => {
       });
     }
 
-    return res.status(200).json(products);
+    // No pagination params — fetch ALL (backward compatible with frontend)
+    const allProducts = await Product.find(filter).sort(sortObj).lean();
+    return res.status(200).json(allProducts);
 
   } catch (error) {
     res.status(500).json({ message: error.message });

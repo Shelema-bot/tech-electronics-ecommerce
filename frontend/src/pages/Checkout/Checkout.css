@@ -405,3 +405,88 @@
   .checkout-section { padding: 20px 16px; }
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* ── Payment Instruction Card ── */
+.payment-instruction-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.pic-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.pic-icon { font-size: 32px; }
+
+.pic-header h2 { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+
+.pic-amount { font-size: 14px; color: #64748b; }
+.pic-amount strong { color: #16a34a; font-size: 18px; }
+
+.pic-details { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+.pic-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.pic-row span { color: #64748b; }
+.pic-row strong { color: #0f172a; }
+
+.pic-instructions {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+
+.pic-instructions h4 { font-size: 13px; font-weight: 700; color: #92400e; margin: 0 0 8px; }
+.pic-instructions pre { font-family: inherit; font-size: 13px; color: #475569; white-space: pre-wrap; margin: 0; line-height: 1.7; }
+
+.pic-qr { text-align: center; margin-top: 14px; }
+.pic-qr img { max-width: 160px; border-radius: 8px; border: 1px solid #e2e8f0; }
+
+/* ── Proof form ── */
+.proof-form {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.proof-form h3 { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 20px; }
+
+.file-upload-area { display: flex; flex-direction: column; gap: 8px; }
+
+.file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  background: #f8fafc;
+  border: 2px dashed #bfdbfe;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.file-upload-btn:hover { background: #eff6ff; border-color: #2563eb; }

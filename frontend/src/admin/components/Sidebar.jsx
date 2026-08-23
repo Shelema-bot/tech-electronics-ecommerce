@@ -1,7 +1,7 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   FaHome, FaBox, FaList, FaShoppingCart,
-  FaUsers, FaCreditCard, FaSignOutAlt,
+  FaUsers, FaCreditCard,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -18,18 +18,10 @@ const getMenuItems = (role) => {
 };
 
 function Sidebar({ collapsed }) {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const location  = useLocation();
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const role = currentUser.role || "admin";
   const menuItems = getMenuItems(role);
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.dispatchEvent(new Event("loginStatusChanged"));
-    navigate("/login");
-  };
 
   const roleBadgeStyle = {
     fontSize: "10px", fontWeight: "700", padding: "2px 8px",
@@ -68,14 +60,6 @@ function Sidebar({ collapsed }) {
             </Link>
           </li>
         ))}
-
-        {/* Logout */}
-        <li className="logout">
-          <button onClick={logout}>
-            <FaSignOutAlt />
-            <span>Logout</span>
-          </button>
-        </li>
       </ul>
 
     </div>

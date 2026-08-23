@@ -80,6 +80,7 @@ app.use("/api/auth",       authRateLimit,    authRoutes);
 app.use("/api/products",                     productRoutes);
 app.use("/api/orders",                       orderRoutes);
 app.use("/api/payments",   paymentRateLimit, paymentRoutes);
+app.use("/api/payment-methods",              paymentRoutes);   // alias for GET /api/payment-methods
 app.use("/api/categories",                   categoryRoutes);
 app.use("/api/users",                        userRoutes);
 app.use("/api/reviews",                      reviewRoutes);

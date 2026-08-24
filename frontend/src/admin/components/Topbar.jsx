@@ -2,9 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaCog, FaChevronDown, FaSignOutAlt,
-  FaChartBar, FaEnvelope, FaUserCog,
-  FaCheckCircle, FaClipboardCheck, FaBox,
-  FaUser,
+  FaEnvelope, FaUser, FaCreditCard,
 } from "react-icons/fa";
 import { FiBell } from "react-icons/fi";
 import API from "../../api/axios";
@@ -41,10 +39,7 @@ const getAccountMenuItems = (role) => {
 
   if (isSuperAdmin) {
     items.push(
-      { path: "/admin/reports",          label: "Reports",           icon: <FaChartBar /> },
-      { path: "/admin/staff",            label: "Staff Management",  icon: <FaUserCog /> },
-      { path: "/admin/seller-verify",    label: "Seller Verify",     icon: <FaCheckCircle /> },
-      { path: "/admin/product-approval", label: "Product Approval",  icon: <FaClipboardCheck /> },
+      { path: "/admin/payment-methods", label: "Payment Methods", icon: <FaCreditCard /> },
     );
   }
 

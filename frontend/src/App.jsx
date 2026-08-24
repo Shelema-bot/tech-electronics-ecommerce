@@ -56,6 +56,7 @@ import SellerVerification from "./admin/Staff/SellerVerification";
 import ProductApproval from "./admin/Staff/ProductApproval";
 import MyProducts from "./admin/Staff/MyProducts";
 import BecomeSeller from "./pages/BecomeSeller/BecomeSeller";
+import Coupons from "./admin/Coupons/Coupons";
 
 function App() {
   return (
@@ -146,6 +147,7 @@ function App() {
         <Route path="/admin/seller-verify"    element={<AdminRoute requiredRole="super_admin"><SellerVerification /></AdminRoute>} />
         <Route path="/admin/product-approval" element={<AdminRoute requiredRole="super_admin"><ProductApproval /></AdminRoute>} />
         <Route path="/admin/my-products"      element={<AdminRoute><MyProducts /></AdminRoute>} />
+        <Route path="/admin/coupons"          element={<AdminRoute><Coupons /></AdminRoute>} />
 
         {/* Become a seller */}
         <Route path="/become-seller" element={

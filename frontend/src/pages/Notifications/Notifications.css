@@ -104,3 +104,17 @@
   .notif-item { padding: 12px 14px; gap: 10px; }
   .notif-icon-wrap { width: 36px; height: 36px; font-size: 18px; }
 }
+
+.notif-delete {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+.notif-delete:hover { color: #ef4444; }

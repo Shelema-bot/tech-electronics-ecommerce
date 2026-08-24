@@ -1,42 +1,83 @@
 import AccountLayout from "../../components/AccountLayout/AccountLayout";
+import { useNotifications } from "../../context/NotificationContext";
 import "./Notifications.css";
 
-// Placeholder notifications — in production connect to a real notification system
-const SAMPLE_NOTIFICATIONS = [
-  { id: 1, icon: "📦", title: "Order Confirmed", message: "Your order has been placed and is being processed.", time: "Just now", read: false },
-  { id: 2, icon: "✅", title: "Payment Successful", message: "Your Chapa payment was verified and your order is confirmed.", time: "2 hours ago", read: false },
-  { id: 3, icon: "🚚", title: "Order Shipped", message: "Your order is on its way! Expected delivery in 1-3 days.", time: "Yesterday", read: true },
-  { id: 4, icon: "⭐", title: "Review Reminder", message: "How was your recent purchase? Share your feedback.", time: "3 days ago", read: true },
-];
+const TYPE_ICON = {
+  order:        "📦",
+  payment:      "💳",
+  promotion:    "🎁",
+  system:       "⚙️",
+  delivery:     "🚚",
+  verification: "✅",
+};
 
 function Notifications() {
-  const unread = SAMPLE_NOTIFICATIONS.filter(n => !n.read).length;
+  const { notifications, unreadCount, loading, markRead, markAllRead, deleteNotif } = useNotifications();
 
   return (
     <AccountLayout>
       <div className="notif-page">
 
         <div className="notif-header">
-          <h1>
-            Notifications
-            {unread > 0 && <span className="notif-unread-badge">{unread} new</span>}
-          </h1>
-          <p>Stay updated on your orders and account activity</p>
+          <div>
+            <h1>
+              Notifications
+              {unreadCount > 0 && <span className="notif-unread-badge">{unreadCount} new</span>}
+            </h1>
+            <p>Stay updated on your orders, payments, and account activity</p>
+          </div>
+          {unreadCount > 0 && (
+            <button
+              onClick={markAllRead}
+              style={{ padding:"8px 16px", background:"#eff6ff", color:"#2563eb", border:"1px solid #bfdbfe", borderRadius:8, fontWeight:700, fontSize:13, cursor:"pointer" }}
+            >
+              ✓ Mark all as read
+            </button>
+          )}
         </div>
 
-        <div className="notif-list">
-          {SAMPLE_NOTIFICATIONS.map(n => (
-            <div className={`notif-item ${!n.read ? "unread" : ""}`} key={n.id}>
-              <div className="notif-icon-wrap">{n.icon}</div>
-              <div className="notif-content">
-                <div className="notif-title">{n.title}</div>
-                <div className="notif-message">{n.message}</div>
-                <div className="notif-time">{n.time}</div>
+        {loading ? (
+          <div style={{ color:"#64748b", padding:"40px 0", textAlign:"center" }}>Loading notifications...</div>
+        ) : notifications.length === 0 ? (
+          <div style={{ textAlign:"center", padding:"60px 20px", background:"white", borderRadius:"14px", border:"1px solid #e2e8f0" }}>
+            <div style={{ fontSize:48, marginBottom:12 }}>🔔</div>
+            <h3 style={{ margin:"0 0 8px", color:"#0f172a" }}>No notifications yet</h3>
+            <p style={{ color:"#64748b", fontSize:14, margin:0 }}>You'll see order updates, payment confirmations, and promotions here.</p>
+          </div>
+        ) : (
+          <div className="notif-list">
+            {notifications.map(n => (
+              <div
+                className={`notif-item ${!n.isRead ? "unread" : ""}`}
+                key={n._id}
+                onClick={() => !n.isRead && markRead(n._id)}
+                style={{ cursor: !n.isRead ? "pointer" : "default" }}
+              >
+                <div className="notif-icon-wrap">
+                  {TYPE_ICON[n.type] || n.icon || "🔔"}
+                </div>
+                <div className="notif-content">
+                  <div className="notif-title">{n.title}</div>
+                  <div className="notif-message">{n.message}</div>
+                  <div className="notif-time">
+                    {n.createdAt ? new Date(n.createdAt).toLocaleString("en-US",{
+                      month:"short", day:"numeric", hour:"2-digit", minute:"2-digit"
+                    }) : ""}
+                  </div>
+                </div>
+                {!n.isRead && <span className="notif-dot" aria-label="Unread" />}
+                <button
+                  className="notif-delete"
+                  onClick={e => { e.stopPropagation(); deleteNotif(n._id); }}
+                  aria-label="Delete notification"
+                  title="Delete"
+                >
+                  ✕
+                </button>
               </div>
-              {!n.read && <span className="notif-dot" aria-label="Unread" />}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
       </div>
     </AccountLayout>

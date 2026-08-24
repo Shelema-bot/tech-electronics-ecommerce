@@ -30,8 +30,10 @@ import paymentRoutes  from "./routes/paymentRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import userRoutes     from "./routes/userRoutes.js";
 import reviewRoutes   from "./routes/reviewRoutes.js";
-import contactRoutes  from "./routes/contactRoutes.js";
-import staffRoutes    from "./routes/staffRoutes.js";
+import contactRoutes      from "./routes/contactRoutes.js";
+import staffRoutes        from "./routes/staffRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import couponRoutes       from "./routes/couponRoutes.js";
 
 // ── Admin Routes ────────────────────────────────────────────────
 import adminRoutes          from "./routes/adminRoutes.js";
@@ -84,8 +86,10 @@ app.use("/api/payment-methods",              paymentRoutes);   // alias for GET 
 app.use("/api/categories",                   categoryRoutes);
 app.use("/api/users",                        userRoutes);
 app.use("/api/reviews",                      reviewRoutes);
-app.use("/api/contact",                      contactRoutes);
-app.use("/api/staff",                        staffRoutes);
+app.use("/api/contact",        contactRoutes);
+app.use("/api/staff",          staffRoutes);
+app.use("/api/notifications",  notificationRoutes);
+app.use("/api/coupons",        couponRoutes);
 
 // ══════════════════════════════════════════════════════════════
 // ADMIN ROUTES

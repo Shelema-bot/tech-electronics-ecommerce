@@ -193,3 +193,34 @@ export const getMyProducts = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
+// ── ASSIGN ROLE BY EMAIL (super_admin) ────────────────────────
+export const assignRoleByEmail = async (req, res) => {
+  try {
+    const { email, role } = req.body;
+    const allowed = ["cashier", "seller", "admin"];
+    if (!email || !role) {
+      return res.status(400).json({ success: false, message: "email and role are required" });
+    }
+    if (!allowed.includes(role)) {
+      return res.status(400).json({ success: false, message: `Role must be one of: ${allowed.join(", ")}` });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "No account found with that email address" });
+    }
+
+    if (user.role === "super_admin") {
+      return res.status(403).json({ success: false, message: "Cannot change a super admin's role" });
+    }
+
+    user.role = role;
+    await user.save();
+
+    res.json({ success: true, message: `Role assigned: ${role}`, user: { _id: user._id, name: user.name, email: user.email, role: user.role } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

@@ -14,6 +14,7 @@ import {
   approveProduct,
   getPendingProducts,
   getMyProducts,
+  assignRoleByEmail,
 } from "../controllers/staffController.js";
 
 const router = express.Router();
@@ -22,6 +23,7 @@ const router = express.Router();
 router.get("/all",                   protect, superAdmin,   getAllStaff);
 router.put("/:id/role",              protect, superAdmin,   assignRole);
 router.put("/:id/toggle-status",     protect, adminOrSuper, toggleUserStatus);
+router.post("/assign-by-email",      protect, superAdmin,   assignRoleByEmail);
 
 // ── Super Admin: Seller verification ─────────────
 router.get("/verifications/pending", protect, superAdmin,   getPendingVerifications);

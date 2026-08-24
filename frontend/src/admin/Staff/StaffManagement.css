@@ -7,30 +7,161 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
 }
 
 .staff-header h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 4px; }
 .staff-header p  { font-size: 14px; color: #64748b; margin: 0; }
 
-.role-badge {
-  display: inline-block;
-  padding: 3px 12px;
-  border-radius: 20px;
-  font-size: 11px;
+.staff-invite-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  color: white;
+  border: none;
+  border-radius: 9px;
+  font-size: 14px;
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
-.role-badge.super_admin { background: #7c3aed; color: white; }
-.role-badge.admin       { background: #2563eb; color: white; }
-.role-badge.seller      { background: #16a34a; color: white; }
-.role-badge.cashier     { background: #f59e0b; color: white; }
-.role-badge.customer    { background: #e2e8f0; color: #475569; }
+.staff-invite-btn:hover { opacity: 0.9; }
 
+/* Stats */
+.staff-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.staff-stat-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.staff-stat-icon { font-size: 28px; }
+.staff-stat-num  { font-size: 26px; font-weight: 800; line-height: 1; }
+.staff-stat-label{ font-size: 12px; color: #64748b; margin-top: 3px; }
+
+/* Invite card */
+.staff-invite-card {
+  background: white;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.staff-invite-card h3 { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 6px; }
+.staff-invite-card p  { font-size: 13px; color: #64748b; margin: 0 0 16px; }
+
+.staff-invite-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.staff-invite-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.staff-invite-form input:focus { border-color: #2563eb; }
+
+.staff-invite-form select {
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  outline: none;
+}
+
+.staff-invite-form button {
+  padding: 10px 20px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.staff-invite-form button:disabled { opacity: 0.65; cursor: not-allowed; }
+
+.staff-role-guide {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.staff-role-info { min-width: 160px; }
+.staff-role-info ul { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 3px; }
+.staff-role-info ul li { font-size: 12px; color: #64748b; }
+.staff-role-info ul li::before { content: "• "; color: #2563eb; }
+
+/* Filters */
+.staff-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.staff-search {
+  padding: 9px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  min-width: 220px;
+  transition: border-color 0.2s;
+}
+
+.staff-search:focus { border-color: #2563eb; }
+
+.staff-role-filters { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.staff-role-filter-btn {
+  padding: 7px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  background: white;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: capitalize;
+}
+
+.staff-role-filter-btn:hover { border-color: #2563eb; color: #2563eb; }
+.staff-role-filter-btn.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+/* Table */
 .staff-table-wrapper {
   background: white;
   border: 1px solid #e2e8f0;
@@ -42,7 +173,7 @@
 .staff-table { width: 100%; border-collapse: collapse; min-width: 700px; }
 .staff-table thead tr { background: #f1f5f9; }
 .staff-table th {
-  padding: 13px 16px;
+  padding: 12px 16px;
   text-align: left;
   font-size: 12px;
   font-weight: 700;
@@ -51,13 +182,7 @@
   letter-spacing: 0.05em;
   border-bottom: 1px solid #e2e8f0;
 }
-.staff-table td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: #334155;
-  border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle;
-}
+.staff-table td { padding: 13px 16px; font-size: 14px; color: #334155; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .staff-table tbody tr:last-child td { border-bottom: none; }
 .staff-table tbody tr:hover { background: #f8fafc; }
 
@@ -65,13 +190,21 @@
 .user-avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: white; font-size: 14px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
-.user-name  { font-weight: 600; color: #0f172a; }
+.user-name  { font-weight: 600; color: #0f172a; font-size: 14px; }
 .user-email { font-size: 12px; color: #94a3b8; }
+
+.role-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
 
 .role-select-admin {
   padding: 6px 10px;
@@ -81,6 +214,7 @@
   background: #f8fafc;
   cursor: pointer;
   outline: none;
+  text-transform: capitalize;
 }
 
 .toggle-btn {
@@ -91,13 +225,18 @@
   cursor: pointer;
   border: none;
   transition: 0.2s;
+  white-space: nowrap;
 }
-.toggle-btn.active   { background: #dcfce7; color: #16a34a; }
-.toggle-btn.inactive { background: #fee2e2; color: #dc2626; }
+.toggle-btn.active   { background: #fee2e2; color: #dc2626; }
+.toggle-btn.inactive { background: #dcfce7; color: #16a34a; }
 
 .staff-empty { text-align: center; padding: 60px; color: #94a3b8; font-size: 15px; }
 
-@media (max-width: 640px) {
+@media (max-width: 900px) {
   .staff-page { padding: 18px 12px; }
-  .staff-header h1 { font-size: 20px; }
+  .staff-stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .staff-stats-row { grid-template-columns: 1fr 1fr; }
 }

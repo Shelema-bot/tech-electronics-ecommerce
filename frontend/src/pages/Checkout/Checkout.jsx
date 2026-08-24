@@ -24,6 +24,13 @@ function Checkout() {
   const [methodsLoading, setMethodsLoading] = useState(true);
   const [selectedMethod, setSelectedMethod] = useState(null);
 
+  // Coupon state
+  const [couponCode, setCouponCode]   = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [discount, setDiscount]       = useState(0);
+  const finalTotal = cartTotal - discount;
+
   // Manual payment proof state
   const [proofStep, setProofStep]       = useState(false);
   const [paymentId, setPaymentId]       = useState(null);
@@ -59,6 +66,25 @@ function Checkout() {
   }, []);
 
   const handleChange = (e) => setShipping({ ...shipping, [e.target.name]: e.target.value });
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) { toast.warning("Enter a coupon code"); return; }
+    try {
+      setCouponLoading(true);
+      const res = await API.post("/coupons/validate", { code: couponCode, orderAmount: cartTotal });
+      setAppliedCoupon(res.data.coupon);
+      setDiscount(res.data.discount);
+      toast.success(res.data.message);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Invalid coupon code");
+      setAppliedCoupon(null);
+      setDiscount(0);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => { setAppliedCoupon(null); setDiscount(0); setCouponCode(""); };
 
   const currentMethod = methods.find(m => m.code === selectedMethod);
 
@@ -359,12 +385,46 @@ function Checkout() {
               )}
             </div>
 
+            {/* Coupon Code */}
+            <div className="checkout-section">
+              <h2><span className="section-num">3</span> Coupon Code</h2>
+              {appliedCoupon ? (
+                <div style={{ display:"flex", alignItems:"center", gap:10, padding:"12px 14px", background:"#f0fdf4", border:"1px solid #bbf7d0", borderRadius:9 }}>
+                  <span style={{ fontSize:18 }}>🎟️</span>
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontWeight:700, color:"#16a34a", fontSize:14 }}>{appliedCoupon.code}</div>
+                    <div style={{ fontSize:13, color:"#64748b" }}>You save {discount.toLocaleString()} ETB</div>
+                  </div>
+                  <button type="button" onClick={removeCoupon} style={{ background:"transparent", border:"none", color:"#94a3b8", cursor:"pointer", fontSize:16 }}>✕</button>
+                </div>
+              ) : (
+                <div style={{ display:"flex", gap:10 }}>
+                  <input
+                    type="text"
+                    placeholder="Enter coupon code (e.g. SAVE20)"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value.toUpperCase())}
+                    style={{ flex:1, padding:"10px 14px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:14, outline:"none" }}
+                    onKeyDown={e => e.key === "Enter" && (e.preventDefault(), applyCoupon())}
+                  />
+                  <button
+                    type="button"
+                    onClick={applyCoupon}
+                    disabled={couponLoading}
+                    style={{ padding:"10px 20px", background:"#2563eb", color:"white", border:"none", borderRadius:8, fontWeight:700, fontSize:14, cursor:"pointer", whiteSpace:"nowrap" }}
+                  >
+                    {couponLoading ? "..." : "Apply"}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <button type="submit" className={`checkout-button ${currentMethod?.code === "chapa" ? "chapa" : "cod"}`} disabled={loading}>
               {loading ? "Processing..." : currentMethod?.type === "chapa"
-                ? `Pay ${cartTotal.toLocaleString()} ETB via Chapa`
+                ? `Pay ${finalTotal.toLocaleString()} ETB via Chapa`
                 : currentMethod?.type === "cash_on_delivery"
-                ? `Place Order — ${cartTotal.toLocaleString()} ETB (Cash on Delivery)`
-                : `Place Order — ${cartTotal.toLocaleString()} ETB (${currentMethod?.name || "Manual Payment"})`}
+                ? `Place Order — ${finalTotal.toLocaleString()} ETB (Cash on Delivery)`
+                : `Place Order — ${finalTotal.toLocaleString()} ETB (${currentMethod?.name || "Manual Payment"})`}
             </button>
           </form>
 
@@ -384,7 +444,13 @@ function Checkout() {
             </div>
             <div className="checkout-total-row"><span>Subtotal</span><span>{cartTotal.toLocaleString()} ETB</span></div>
             <div className="checkout-total-row"><span>Shipping</span><span className="free-tag">Free</span></div>
-            <div className="checkout-total-row grand"><span>Total</span><strong>{cartTotal.toLocaleString()} ETB</strong></div>
+            {discount > 0 && (
+              <div className="checkout-total-row" style={{ color:"#16a34a" }}>
+                <span>🎟️ Coupon ({appliedCoupon?.code})</span>
+                <span>-{discount.toLocaleString()} ETB</span>
+              </div>
+            )}
+            <div className="checkout-total-row grand"><span>Total</span><strong>{finalTotal.toLocaleString()} ETB</strong></div>
           </div>
         </div>
       </div>

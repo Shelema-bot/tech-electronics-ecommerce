@@ -143,9 +143,9 @@ function App() {
         <Route path="/admin/settings" element={<AdminRoute><Settings /></AdminRoute>} />
         <Route path="/admin/profile" element={<AdminRoute><AdminProfile /></AdminRoute>} />
         <Route path="/admin/contacts" element={<AdminRoute><ContactMessages /></AdminRoute>} />
-        <Route path="/admin/staff"            element={<AdminRoute requiredRole="super_admin"><StaffManagement /></AdminRoute>} />
-        <Route path="/admin/seller-verify"    element={<AdminRoute requiredRole="super_admin"><SellerVerification /></AdminRoute>} />
-        <Route path="/admin/product-approval" element={<AdminRoute requiredRole="super_admin"><ProductApproval /></AdminRoute>} />
+        <Route path="/admin/staff"            element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><StaffManagement /></AdminRoute>} />
+        <Route path="/admin/seller-verify"    element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><SellerVerification /></AdminRoute>} />
+        <Route path="/admin/product-approval" element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><ProductApproval /></AdminRoute>} />
         <Route path="/admin/my-products"      element={<AdminRoute><MyProducts /></AdminRoute>} />
         <Route path="/admin/coupons"          element={<AdminRoute><Coupons /></AdminRoute>} />
 

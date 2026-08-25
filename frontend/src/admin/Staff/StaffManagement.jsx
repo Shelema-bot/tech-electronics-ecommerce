@@ -4,11 +4,13 @@ import API from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import "./StaffManagement.css";
 
-const ROLES = ["customer", "cashier", "seller", "admin", "super_admin"];
+const ROLES = ["customer", "cashier", "seller", "finance", "admin", "super_admin", "owner"];
 
 const ROLE_COLOR = {
+  owner:       { bg: "#f0fdf4", color: "#0f172a" },
   super_admin: { bg: "#ede9fe", color: "#7c3aed" },
   admin:       { bg: "#dbeafe", color: "#1d4ed8" },
+  finance:     { bg: "#e0f2fe", color: "#0891b2" },
   seller:      { bg: "#dcfce7", color: "#16a34a" },
   cashier:     { bg: "#fef9c3", color: "#a16207" },
   customer:    { bg: "#f1f5f9", color: "#475569" },

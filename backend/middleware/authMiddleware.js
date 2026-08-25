@@ -73,16 +73,12 @@ export const protect = async (req, res, next) => {
 };
 
 
-// =====================================
-// ADMIN MIDDLEWARE (inline — kept for backward compat)
-// Allows: admin, super_admin
-// =====================================
-
+// ── Inline admin (backward compat) — allows ALL staff roles ──
 export const admin = (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ success: false, message: "Not authorized" });
   }
-  const allowed = ["admin", "super_admin"];
+  const allowed = ["owner","admin","super_admin","finance","cashier","seller"];
   if (!allowed.includes(req.user.role)) {
     return res.status(403).json({ success: false, message: "Admin access only" });
   }

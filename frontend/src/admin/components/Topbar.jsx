@@ -1,9 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import {
-  FaCog, FaChevronDown, FaSignOutAlt,
-  FaEnvelope, FaUser, FaCreditCard,
-} from "react-icons/fa";
+import { FaCog, FaChevronDown, FaSignOutAlt, FaUser } from "react-icons/fa";
 import { FiBell } from "react-icons/fi";
 import API from "../../api/axios";
 import { getImageUrl } from "../../utils/imageUrl";
@@ -27,75 +24,53 @@ const pageMap = {
   "/admin/seller-verify":     "Seller Verification",
   "/admin/product-approval":  "Product Approval",
   "/admin/my-products":       "My Products",
+  "/admin/coupons":           "Coupons",
 };
 
-// Items that appear in the topbar account dropdown
-// (role-based — super_admin sees all, seller sees subset)
-const getAccountMenuItems = (role) => {
-  const isSuperAdmin = role === "super_admin" || role === "admin";
-  const isSeller     = role === "seller";
-
-  const items = [];
-
-  if (isSuperAdmin) {
-    items.push(
-      { path: "/admin/payment-methods", label: "Payment Methods", icon: <FaCreditCard /> },
-    );
-  }
-
-  if (isSeller) {
-    items.push(
-      { path: "/admin/my-products", label: "My Products", icon: <FaBox /> },
-    );
-  }
-
-  // Common to all roles
-  items.push(
-    { path: "/admin/contacts", label: "Messages",  icon: <FaEnvelope /> },
-    { path: "/admin/profile",  label: "My Profile", icon: <FaUser /> },
-    { path: "/admin/settings", label: "Settings",   icon: <FaCog /> },
-  );
-
-  return items;
+const ROLE_COLOR = {
+  owner:       "#0f172a",
+  super_admin: "#7c3aed",
+  admin:       "#2563eb",
+  seller:      "#16a34a",
+  cashier:     "#f59e0b",
+  finance:     "#0891b2",
 };
+
+// Topbar dropdown: ONLY profile, settings, sign out — no duplicates of sidebar items
+const getAccountMenuItems = () => [
+  { path: "/admin/profile",  label: "My Profile", icon: <FaUser /> },
+  { path: "/admin/settings", label: "Settings",   icon: <FaCog /> },
+];
 
 function Topbar({ collapsed, onToggle }) {
   const [adminUser, setAdminUser] = useState(null);
   const [dropOpen, setDropOpen]   = useState(false);
-  const dropRef   = useRef(null);
-  const location  = useLocation();
-  const navigate  = useNavigate();
+  const dropRef  = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
   const role = adminUser?.role || currentUser?.role || "admin";
 
-  // Derive page title — handle dynamic paths like /admin/edit-product/:id
   const getTitle = () => {
     const exact = pageMap[location.pathname];
     if (exact) return exact;
     for (const [prefix, label] of Object.entries(pageMap)) {
-      if (location.pathname.startsWith(prefix + "/") || location.pathname.startsWith(prefix)) {
-        return label;
-      }
+      if (location.pathname.startsWith(prefix + "/")) return label;
     }
     return "Admin Panel";
   };
 
   useEffect(() => {
     API.get("/users/admin/profile")
-      .then((res) => setAdminUser(res.data.user))
+      .then(res => setAdminUser(res.data.user))
       .catch(() => {});
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
-    const handler = (e) => {
-      if (dropRef.current && !dropRef.current.contains(e.target)) {
-        setDropOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    const h = (e) => { if (dropRef.current && !dropRef.current.contains(e.target)) setDropOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, []);
 
   const logout = () => {
@@ -105,25 +80,15 @@ function Topbar({ collapsed, onToggle }) {
     navigate("/login");
   };
 
-  const avatarSrc  = adminUser?.profileImage ? getImageUrl(adminUser.profileImage) : null;
-  const initial    = adminUser?.name?.charAt(0).toUpperCase() || "A";
-  const menuItems  = getAccountMenuItems(role);
-
-  const ROLE_COLOR = {
-    super_admin: "#7c3aed",
-    admin:       "#2563eb",
-    seller:      "#16a34a",
-    cashier:     "#f59e0b",
-  };
+  const avatarSrc = adminUser?.profileImage ? getImageUrl(adminUser.profileImage) : null;
+  const initial   = adminUser?.name?.charAt(0).toUpperCase() || "A";
+  const menuItems = getAccountMenuItems();
+  const roleColor = ROLE_COLOR[role] || "#2563eb";
 
   return (
     <div className="admin-topbar">
-
-      {/* ── Left: Hamburger + Breadcrumb ── */}
       <div className="topbar-left">
-        <button className="topbar-menu-btn" onClick={onToggle} aria-label="Toggle sidebar">
-          ☰
-        </button>
+        <button className="topbar-menu-btn" onClick={onToggle} aria-label="Toggle sidebar">☰</button>
         <div className="topbar-breadcrumb">
           <span className="breadcrumb-root">Admin</span>
           <span className="breadcrumb-sep">/</span>
@@ -131,22 +96,15 @@ function Topbar({ collapsed, onToggle }) {
         </div>
       </div>
 
-      {/* ── Right: Notification + Account dropdown ── */}
       <div className="topbar-right">
-
         {/* Notification bell */}
-        <button className="topbar-icon-btn" title="Notifications" aria-label="Notifications">
+        <Link to="/admin/contacts" className="topbar-icon-btn" title="Messages" aria-label="Messages">
           <FiBell />
-        </button>
+        </Link>
 
         {/* Account dropdown */}
         <div className="topbar-acct-wrap" ref={dropRef}>
-          <button
-            className="topbar-acct-btn"
-            onClick={() => setDropOpen(!dropOpen)}
-            aria-haspopup="true"
-            aria-expanded={dropOpen}
-          >
+          <button className="topbar-acct-btn" onClick={() => setDropOpen(!dropOpen)} aria-expanded={dropOpen}>
             {avatarSrc ? (
               <img src={avatarSrc} alt={adminUser?.name} className="topbar-avatar-img" />
             ) : (
@@ -154,8 +112,8 @@ function Topbar({ collapsed, onToggle }) {
             )}
             <div className="topbar-profile-info">
               <span className="topbar-name">{adminUser?.name || "Admin"}</span>
-              <span className="topbar-role" style={{ color: ROLE_COLOR[role] || "rgba(255,255,255,0.75)" }}>
-                {role.replace("_", " ")}
+              <span className="topbar-role" style={{ color: roleColor }}>
+                {role.replace(/_/g, " ")}
               </span>
             </div>
             <FaChevronDown className={`topbar-chevron ${dropOpen ? "open" : ""}`} />
@@ -163,8 +121,6 @@ function Topbar({ collapsed, onToggle }) {
 
           {dropOpen && (
             <div className="topbar-dropdown">
-
-              {/* Header */}
               <div className="topbar-drop-header">
                 {avatarSrc ? (
                   <img src={avatarSrc} alt={adminUser?.name} className="drop-avatar-img" />
@@ -174,19 +130,14 @@ function Topbar({ collapsed, onToggle }) {
                 <div>
                   <div className="drop-name">{adminUser?.name || "Admin"}</div>
                   <div className="drop-email">{adminUser?.email || ""}</div>
-                  <span className="drop-role-badge" style={{ background: ROLE_COLOR[role] || "#2563eb" }}>
-                    {role.replace("_", " ")}
+                  <span className="drop-role-badge" style={{ background: roleColor }}>
+                    {role.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
-
               <div className="drop-divider" />
-
-              {/* Menu items */}
-              {menuItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
+              {menuItems.map(item => (
+                <Link key={item.path} to={item.path}
                   className={`drop-item ${location.pathname === item.path ? "active" : ""}`}
                   onClick={() => setDropOpen(false)}
                 >
@@ -194,15 +145,11 @@ function Topbar({ collapsed, onToggle }) {
                   {item.label}
                 </Link>
               ))}
-
               <div className="drop-divider" />
-
-              {/* Logout */}
               <button className="drop-logout" onClick={logout}>
                 <span className="drop-item-icon"><FaSignOutAlt /></span>
                 Sign Out
               </button>
-
             </div>
           )}
         </div>

@@ -4,6 +4,7 @@ import API from "../../api/axios";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
+import { usePreference } from "../../context/PreferenceContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./LatestProducts.css";
 
@@ -30,6 +31,7 @@ function LatestProducts() {
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
   const navigate = useNavigate();
+  const { fmt } = usePreference();
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -157,7 +159,7 @@ function LatestProducts() {
 
                 <div className="lp-footer">
                   <span className="lp-price">
-                    {Number(product.price).toLocaleString()} ETB
+                    {fmt(product.price)}
                   </span>
                   <button
                     className="lp-cart-btn"

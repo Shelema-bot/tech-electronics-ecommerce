@@ -1,6 +1,6 @@
-/* ================================
-   CONTACT MESSAGES (ADMIN) — RESPONSIVE
-================================ */
+/* ════════════════════════════════════════
+   CONTACT MESSAGES — redesign
+════════════════════════════════════════ */
 
 .admin-contacts {
   padding: 28px 32px;
@@ -9,452 +9,353 @@
 }
 
 /* ── Header ── */
-.contacts-header {
+.cm-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 28px;
-  gap: 16px;
   flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 24px;
 }
-
-.contacts-header h1 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 4px;
-}
-
-.contacts-header p {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-}
-
-.message-count {
+.cm-title { font-size: 26px; font-weight: 800; color: #0f172a; margin: 0 0 4px; }
+.cm-sub   { font-size: 14px; color: #64748b; margin: 0; }
+.cm-refresh-btn {
+  padding: 9px 18px;
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 20px;
-  text-align: center;
-  min-width: 90px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  font-size: 26px;
-  font-weight: 700;
-  color: #2563eb;
-  flex-shrink: 0;
-}
-
-.message-count span {
-  display: block;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
-  color: #64748b;
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s;
 }
+.cm-refresh-btn:hover { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
 
-/* ── Table (desktop) ── */
-.contact-table-container {
+/* ── Stats ── */
+.cm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.cm-stat-card {
   background: white;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cm-stat-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.cm-stat-row   { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.cm-stat-icon  {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
+.cm-stat-value { font-size: 28px; font-weight: 800; line-height: 1; }
+.cm-stat-label { font-size: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ── Toolbar ── */
+.cm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.cm-search {
+  flex: 0 0 280px;
+  padding: 9px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.cm-search:focus { border-color: #2563eb; background: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+.cm-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.cm-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.cm-pill:hover  { border-color: #2563eb; color: #2563eb; }
+.cm-pill.active { background: #2563eb; color: white; border-color: #2563eb; }
+.cm-pill-count {
+  background: rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 700;
+}
+.cm-count { font-size: 13px; color: #64748b; margin-left: auto; }
+
+/* ── Loading / empty ── */
+.cm-loading-state {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; color: #64748b; font-size: 15px;
+  min-height: 200px;
+}
+.cm-spinner {
+  width: 22px; height: 22px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: cm-spin 0.7s linear infinite;
+}
+@keyframes cm-spin { to { transform: rotate(360deg); } }
+.cm-empty-state {
+  background: white; border: 1px solid #e2e8f0; border-radius: 14px;
+  padding: 60px 30px; text-align: center;
+}
+
+/* ── Table ── */
+.cm-table-wrap {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   overflow-x: auto;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  -webkit-overflow-scrolling: touch;
 }
-
-.contact-table {
-  width: 100%;
-  min-width: 700px;
-  border-collapse: collapse;
-}
-
-.contact-table thead tr {
-  background: #f1f5f9;
-}
-
-.contact-table th {
+.cm-table { width: 100%; border-collapse: collapse; min-width: 750px; }
+.cm-table thead tr { background: #f8fafc; }
+.cm-table th {
   padding: 13px 16px;
   text-align: left;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
-
-.contact-table td {
-  padding: 14px 16px;
-  font-size: 14px;
-  color: #334155;
+.cm-row {
   border-bottom: 1px solid #f1f5f9;
-  vertical-align: middle;
-}
-
-.contact-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.contact-table tbody tr:hover {
-  background: #f8fafc;
-}
-
-.message-text {
-  max-width: 200px;
-  color: #475569;
-  font-size: 13px;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-/* ── Status select ── */
-.message-status {
-  padding: 6px 10px;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
+  transition: background 0.15s;
   cursor: pointer;
+}
+.cm-row:last-child { border-bottom: none; }
+.cm-row:hover { background: #f0f9ff; }
+.cm-row-new { background: #fffbeb; }
+.cm-row-new:hover { background: #fef3c7; }
+.cm-table td { padding: 13px 16px; vertical-align: middle; }
+
+/* Sender cell */
+.cm-sender-cell { display: flex; align-items: center; gap: 10px; }
+.cm-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: white; font-size: 14px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.cm-sender-name  { font-weight: 600; color: #0f172a; font-size: 13px; }
+.cm-sender-email { font-size: 11px; color: #94a3b8; }
+.cm-subject-cell { font-weight: 600; color: #334155; font-size: 13px; max-width: 160px; }
+.cm-msg-preview  {
+  font-size: 12px; color: #64748b; max-width: 200px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cm-proof-link-sm {
+  display: inline-block; margin-top: 4px;
+  font-size: 11px; color: #2563eb; text-decoration: none; font-weight: 600;
+}
+.cm-date { font-size: 12px; color: #64748b; white-space: nowrap; }
+
+/* Status select */
+.cm-status-select {
+  padding: 5px 10px;
+  border-radius: 20px;
   border: none;
-  outline: none;
-  width: 100%;
-  max-width: 110px;
-}
-
-.message-status.new     { background: #fef9c3; color: #a16207; }
-.message-status.read    { background: #dbeafe; color: #1d4ed8; }
-.message-status.replied { background: #dcfce7; color: #15803d; }
-
-/* ── Action buttons ── */
-.view-screenshot-btn {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 4px 10px;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  border-radius: 6px;
   font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.2s;
-}
-
-.view-screenshot-btn:hover {
-  background: #dbeafe;
-}
-
-.reply-message-btn {
-  padding: 7px 12px;
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-right: 6px;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
-}
-
-.reply-message-btn:hover {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-
-.delete-message-btn {
-  padding: 7px 12px;
-  background: #fff1f2;
-  color: #e11d48;
-  border: 1px solid #fecdd3;
-  border-radius: 7px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
-  white-space: nowrap;
-}
-
-.delete-message-btn:hover {
-  background: #e11d48;
-  color: white;
-  border-color: #e11d48;
-}
-
-/* ── Empty state ── */
-.no-contact-messages {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 72px 30px;
-  text-align: center;
-}
-
-.no-contact-messages h2 {
-  color: #0f172a;
-  margin: 0;
-}
-
-/* ── Loading ── */
-.contact-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  color: #64748b;
-  font-size: 15px;
-}
-
-/* ── Reply box ── */
-.reply-box {
-  margin-top: 24px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 28px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.reply-box h2 {
-  font-size: 17px;
   font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 16px;
-  word-break: break-word;
-}
-
-.reply-box textarea {
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 120px;
-  padding: 12px 14px;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  font-size: 14px;
-  font-family: inherit;
-  resize: vertical;
+  cursor: pointer;
   outline: none;
-  transition: border-color 0.2s;
-  margin-bottom: 16px;
+  min-width: 80px;
 }
 
-.reply-box textarea:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+/* Status badge */
+.cm-status-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
-.reply-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.send-reply-btn {
-  padding: 10px 22px;
-  background: #16a34a;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
+/* Actions */
+.cm-actions { display: flex; gap: 5px; }
+.cm-reply-btn {
+  padding: 6px 12px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+  border-radius: 7px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
-  flex: 1;
-  min-width: 120px;
+  white-space: nowrap;
+  transition: all 0.15s;
 }
-
-.send-reply-btn:hover {
-  background: #15803d;
-}
-
-.cancel-reply-btn {
-  padding: 10px 22px;
-  background: #f1f5f9;
-  color: #475569;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
+.cm-reply-btn:hover { background: #2563eb; color: white; border-color: #2563eb; }
+.cm-delete-btn {
+  width: 30px; height: 30px;
+  border-radius: 7px;
+  background: transparent;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
   cursor: pointer;
-  transition: background 0.2s;
-  flex: 1;
-  min-width: 120px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
 }
+.cm-delete-btn:hover { background: #fee2e2; color: #dc2626; border-color: #fecdd3; }
 
-.cancel-reply-btn:hover {
-  background: #e2e8f0;
+/* ── Mobile cards ── */
+.cm-cards { display: none; flex-direction: column; gap: 12px; }
+.cm-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
+.cm-card-new { border-left: 3px solid #f59e0b; }
+.cm-card-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 10px; margin-bottom: 8px;
+}
+.cm-card-subject { font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+.cm-card-text    { font-size: 13px; color: #64748b; line-height: 1.5; margin-bottom: 10px; word-break: break-word; }
+.cm-card-footer  { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid #f1f5f9; padding-top: 10px; }
 
-/* ================================
-   CARD LAYOUT — mobile cards
-   (shown below 640px, hidden on desktop)
-================================ */
-.contact-cards {
-  display: none;
-  flex-direction: column;
+/* ── Overlay / Modal ── */
+.cm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+.cm-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%; max-width: 540px;
+  max-height: 88vh; overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.25);
+  animation: cmModalIn 0.18s ease;
+}
+@keyframes cmModalIn {
+  from { opacity:0; transform: scale(0.96) translateY(8px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.cm-modal-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
   gap: 14px;
 }
-
-.contact-card {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+.cm-modal-header h3 { margin: 0 0 4px; font-size: 17px; font-weight: 800; color: #0f172a; }
+.cm-modal-email { font-size: 12px; color: #64748b; }
+.cm-modal-close {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: #f1f5f9; border: none; font-size: 15px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; color: #64748b;
+  transition: background 0.15s;
 }
+.cm-modal-close:hover { background: #fee2e2; color: #dc2626; }
+.cm-modal-body { padding: 20px 24px 24px; }
 
-.contact-card-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  margin-bottom: 10px;
+.cm-date-chip {
+  display: inline-block; padding: 3px 10px;
+  background: #f1f5f9; color: #475569;
+  border-radius: 20px; font-size: 11px; font-weight: 600;
 }
-
-.contact-card-name {
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
+.cm-detail-message {
+  background: #f8fafc; border-radius: 10px; padding: 16px;
+  font-size: 14px; color: #334155; line-height: 1.7;
+  margin-bottom: 16px; word-break: break-word;
 }
-
-.contact-card-email {
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 2px;
-  word-break: break-all;
+.cm-proof-link {
+  display: inline-block; padding: 7px 14px;
+  background: #eff6ff; color: #2563eb;
+  border: 1px solid #bfdbfe; border-radius: 7px;
+  font-size: 13px; font-weight: 600; text-decoration: none;
+  transition: all 0.15s; margin-bottom: 12px;
 }
-
-.contact-card-subject {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 6px;
+.cm-proof-link:hover { background: #2563eb; color: white; border-color: #2563eb; }
+.cm-reply-preview {
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+  padding: 14px; margin-top: 12px;
 }
+.cm-reply-preview-label { font-size: 11px; font-weight: 700; color: #16a34a; text-transform: uppercase; margin-bottom: 6px; }
+.cm-reply-preview-text  { font-size: 13px; color: #334155; line-height: 1.6; }
 
-.contact-card-message {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.5;
-  margin-bottom: 10px;
-  word-break: break-word;
+.cm-original-msg {
+  background: #f8fafc; border-radius: 10px; padding: 14px; margin-bottom: 16px;
+  border-left: 3px solid #e2e8f0;
 }
+.cm-original-label   { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; }
+.cm-original-subject { font-size: 13px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+.cm-original-text    { font-size: 13px; color: #475569; line-height: 1.6; }
 
-.contact-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 10px;
+.cm-reply-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 9px;
+  font-size: 14px; font-family: inherit; resize: vertical;
+  outline: none; transition: border-color 0.2s; margin-bottom: 14px;
+  min-height: 120px;
 }
+.cm-reply-textarea:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-/* ================================
-   TABLET — 641px to 900px
-================================ */
-@media (max-width: 900px) {
-  .admin-contacts {
-    padding: 20px 18px;
-  }
-
-  .contacts-header h1 {
-    font-size: 22px;
-  }
-
-  .contact-table-container {
-    overflow-x: auto;
-  }
-
-  .contact-table {
-    min-width: 620px;
-  }
-
-  .message-text {
-    max-width: 160px;
-  }
+.cm-modal-actions { display: flex; gap: 10px; }
+.cm-send-btn {
+  flex: 1; padding: 11px;
+  background: #16a34a; color: white;
+  border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  transition: background 0.15s;
 }
-
-/* ================================
-   MOBILE — up to 640px
-   Switch table → cards
-================================ */
-@media (max-width: 640px) {
-  .admin-contacts {
-    padding: 16px 12px;
-  }
-
-  .contacts-header {
-    flex-direction: column;
-    align-items: stretch;
-    margin-bottom: 20px;
-  }
-
-  .contacts-header h1 {
-    font-size: 20px;
-  }
-
-  .message-count {
-    align-self: flex-start;
-    padding: 10px 16px;
-    font-size: 22px;
-  }
-
-  /* Hide table, show cards */
-  .contact-table-container {
-    display: none;
-  }
-
-  .contact-cards {
-    display: flex;
-  }
-
-  .no-contact-messages {
-    padding: 48px 20px;
-  }
-
-  .reply-box {
-    padding: 18px 14px;
-  }
-
-  .reply-box h2 {
-    font-size: 15px;
-  }
-
-  .reply-actions {
-    flex-direction: column;
-  }
-
-  .send-reply-btn,
-  .cancel-reply-btn {
-    width: 100%;
-    text-align: center;
-  }
+.cm-send-btn:hover:not(:disabled) { background: #15803d; }
+.cm-send-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+.cm-cancel-btn {
+  flex: 1; padding: 11px;
+  background: #f1f5f9; color: #475569;
+  border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background 0.15s;
 }
+.cm-cancel-btn:hover { background: #e2e8f0; }
 
-/* ================================
-   SMALL MOBILE — up to 400px
-================================ */
-@media (max-width: 400px) {
-  .admin-contacts {
-    padding: 12px 8px;
-  }
-
-  .contact-card {
-    padding: 14px 12px;
-  }
-
-  .contacts-header h1 {
-    font-size: 18px;
-  }
-
-  .reply-message-btn,
-  .delete-message-btn {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
+/* ── Responsive ── */
+@media (max-width: 1100px) { .cm-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px)  {
+  .admin-contacts { padding: 20px 16px; }
+  .cm-search { flex: 1; min-width: 0; }
 }
+@media (max-width: 640px)  {
+  .admin-contacts { padding: 16px 10px; }
+  .cm-title { font-size: 22px; }
+  .cm-stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cm-toolbar { flex-direction: column; align-items: stretch; }
+  .cm-search { flex: unset; }
+  .cm-count { margin-left: 0; }
+  .cm-table-wrap { display: none; }
+  .cm-cards { display: flex; }
+}
+@media (max-width: 400px) { .cm-stats-grid { grid-template-columns: 1fr; } }

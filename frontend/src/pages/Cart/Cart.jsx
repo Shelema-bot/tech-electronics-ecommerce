@@ -2,11 +2,13 @@ import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import { useToast } from "../../context/ToastContext";
+import { usePreference } from "../../context/PreferenceContext";
 import "./Cart.css";
 
 function Cart() {
   const { cartItems, increaseQuantity, decreaseQuantity, removeFromCart, cartTotal } = useCart();
   const toast = useToast();
+  const { fmt } = usePreference();
 
   const handleRemove = (item) => {
     removeFromCart(item._id);
@@ -189,13 +191,7 @@ function Cart() {
 
 
                             <p>
-
-                                Price:
-
-                                {" "}
-
-                                {item.price} ETB
-
+                                Price: {fmt(item.price)}
                             </p>
 
 
@@ -265,30 +261,7 @@ function Cart() {
 
 
                         <div className="item-total">
-
-
-                            <h3>
-
-
-                            {
-
-                            Number(item.price)
-
-                            *
-
-                            item.quantity
-
-
-                            }
-
-
-                            {" "}ETB
-
-
-
-                            </h3>
-
-
+                            <h3>{fmt(Number(item.price) * item.quantity)}</h3>
                         </div>
 
 
@@ -340,9 +313,7 @@ function Cart() {
 
 
 
-                    <h2>
-                        Total: {cartTotal.toLocaleString()} ETB
-                    </h2>
+                    <h2>Total: {fmt(cartTotal)}</h2>
 
 
 

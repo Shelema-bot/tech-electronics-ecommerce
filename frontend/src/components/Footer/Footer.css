@@ -173,3 +173,79 @@
 
   .footer-col ul li a:hover { padding-left: 0; }
 }
+
+/* ════════════════════════════════════════
+   FOOTER LOCALE BAR
+════════════════════════════════════════ */
+
+.footer-locale-bar {
+  background: #060c18;
+  border-top: 1px solid #1e293b;
+  padding: 12px 5%;
+}
+
+.footer-locale-inner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-locale-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.footer-locale-divider {
+  color: #1e293b;
+  font-size: 16px;
+  user-select: none;
+}
+
+.footer-locale-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 12px;
+  transition: background 0.18s;
+}
+
+.footer-locale-select:hover { background: rgba(255,255,255,0.1); }
+
+.footer-locale-select select {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  max-width: 130px;
+}
+
+.footer-locale-select select option {
+  background: #0f172a;
+  color: white;
+}
+
+.footer-locale-note {
+  font-size: 11px;
+  color: #334155;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .footer-locale-inner { gap: 8px; }
+  .footer-locale-note  { display: none; }
+  .footer-locale-select select { max-width: 90px; }
+}

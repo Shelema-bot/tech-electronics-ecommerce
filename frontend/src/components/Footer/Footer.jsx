@@ -2,17 +2,15 @@ import React, { useEffect, useState } from "react";
 import "./Footer.css";
 import { Link } from "react-router-dom";
 import {
-  FaFacebookF,
-  FaTelegramPlane,
-  FaInstagram,
-  FaLinkedinIn,
-  FaTiktok,
-  FaYoutube,
+  FaFacebookF, FaTelegramPlane, FaInstagram,
+  FaLinkedinIn, FaTiktok, FaYoutube,
 } from "react-icons/fa";
 import API from "../../api/axios";
+import { usePreference, COUNTRIES, LANGUAGES, CURRENCIES } from "../../context/PreferenceContext";
 
 const Footer = () => {
   const [categories, setCategories] = useState([]);
+  const { country, setCountry, language, setLanguage, currency, setCurrency } = usePreference();
 
   useEffect(() => {
     API.get("/categories")
@@ -107,6 +105,61 @@ const Footer = () => {
           <Link to="/returns">Return Policy</Link>
           <Link to="/shipping-info">Shipping Policy</Link>
         </span>
+      </div>
+
+      {/* Locale bar */}
+      <div className="footer-locale-bar">
+        <div className="footer-locale-inner">
+          <span className="footer-locale-label">🌍 Your preferences:</span>
+
+          {/* Country */}
+          <div className="footer-locale-select">
+            <span>{country.flag}</span>
+            <select
+              value={country.code}
+              onChange={e => setCountry(COUNTRIES.find(c => c.code === e.target.value))}
+              aria-label="Select country"
+            >
+              {COUNTRIES.map(c => (
+                <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <span className="footer-locale-divider">|</span>
+
+          {/* Language */}
+          <div className="footer-locale-select">
+            <span>🌐</span>
+            <select
+              value={language.code}
+              onChange={e => setLanguage(LANGUAGES.find(l => l.code === e.target.value))}
+              aria-label="Select language"
+            >
+              {LANGUAGES.map(l => (
+                <option key={l.code} value={l.code}>{l.nativeName}</option>
+              ))}
+            </select>
+          </div>
+
+          <span className="footer-locale-divider">|</span>
+
+          {/* Currency */}
+          <div className="footer-locale-select">
+            <span>💱</span>
+            <select
+              value={currency.code}
+              onChange={e => setCurrency(CURRENCIES.find(c => c.code === e.target.value))}
+              aria-label="Select currency"
+            >
+              {CURRENCIES.map(c => (
+                <option key={c.code} value={c.code}>{c.symbol} {c.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <span className="footer-locale-note">Prices are approximate conversions from ETB.</span>
+        </div>
       </div>
     </footer>
   );

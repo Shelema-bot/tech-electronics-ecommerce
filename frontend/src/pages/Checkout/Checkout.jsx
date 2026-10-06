@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useToast } from "../../context/ToastContext";
+import { usePreference } from "../../context/PreferenceContext";
 import API from "../../api/axios";
 import "./Checkout.css";
 
@@ -18,6 +19,7 @@ function Checkout() {
   const { cartItems, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
   const toast    = useToast();
+  const { fmt }  = usePreference();
 
   const [loading, setLoading]           = useState(false);
   const [methods, setMethods]           = useState([]);
@@ -191,7 +193,7 @@ function Checkout() {
               <span className="pic-icon">{METHOD_ICONS[selectedMethod] || "💳"}</span>
               <div>
                 <h2>Pay with {methodInfo.name}</h2>
-                <div className="pic-amount">Amount: <strong>{Number(orderAmount).toLocaleString()} ETB</strong></div>
+                <div className="pic-amount">Amount: <strong>{fmt(orderAmount)}</strong></div>
               </div>
             </div>
 
@@ -393,7 +395,7 @@ function Checkout() {
                   <span style={{ fontSize:18 }}>🎟️</span>
                   <div style={{ flex:1 }}>
                     <div style={{ fontWeight:700, color:"#16a34a", fontSize:14 }}>{appliedCoupon.code}</div>
-                    <div style={{ fontSize:13, color:"#64748b" }}>You save {discount.toLocaleString()} ETB</div>
+                    <div style={{ fontSize:13, color:"#64748b" }}>You save {fmt(discount)}</div>
                   </div>
                   <button type="button" onClick={removeCoupon} style={{ background:"transparent", border:"none", color:"#94a3b8", cursor:"pointer", fontSize:16 }}>✕</button>
                 </div>
@@ -420,11 +422,11 @@ function Checkout() {
             </div>
 
             <button type="submit" className={`checkout-button ${currentMethod?.code === "chapa" ? "chapa" : "cod"}`} disabled={loading}>
-              {loading ? "Processing..." : currentMethod?.type === "chapa"
-                ? `Pay ${finalTotal.toLocaleString()} ETB via Chapa`
+              {loading ? "Processing…" : currentMethod?.type === "chapa"
+                ? `Pay ${fmt(finalTotal)} via Chapa`
                 : currentMethod?.type === "cash_on_delivery"
-                ? `Place Order — ${finalTotal.toLocaleString()} ETB (Cash on Delivery)`
-                : `Place Order — ${finalTotal.toLocaleString()} ETB (${currentMethod?.name || "Manual Payment"})`}
+                ? `Place Order — ${fmt(finalTotal)} (Cash on Delivery)`
+                : `Place Order — ${fmt(finalTotal)} (${currentMethod?.name || "Manual Payment"})`}
             </button>
           </form>
 
@@ -438,19 +440,19 @@ function Checkout() {
                     <span className="checkout-item-name">{item.name}</span>
                     <span className="checkout-item-qty">× {item.quantity}</span>
                   </div>
-                  <strong>{(item.price * item.quantity).toLocaleString()} ETB</strong>
+                  <strong>{fmt(item.price * item.quantity)}</strong>
                 </div>
               ))}
             </div>
-            <div className="checkout-total-row"><span>Subtotal</span><span>{cartTotal.toLocaleString()} ETB</span></div>
+            <div className="checkout-total-row"><span>Subtotal</span><span>{fmt(cartTotal)}</span></div>
             <div className="checkout-total-row"><span>Shipping</span><span className="free-tag">Free</span></div>
             {discount > 0 && (
               <div className="checkout-total-row" style={{ color:"#16a34a" }}>
                 <span>🎟️ Coupon ({appliedCoupon?.code})</span>
-                <span>-{discount.toLocaleString()} ETB</span>
+                <span>-{fmt(discount)}</span>
               </div>
             )}
-            <div className="checkout-total-row grand"><span>Total</span><strong>{finalTotal.toLocaleString()} ETB</strong></div>
+            <div className="checkout-total-row grand"><span>Total</span><strong>{fmt(finalTotal)}</strong></div>
           </div>
         </div>
       </div>

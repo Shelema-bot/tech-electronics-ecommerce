@@ -4,6 +4,7 @@ import API from "../api/axios";
 import { useCart } from "../context/CartContext";
 import { useWishlist } from "../context/WishlistContext";
 import { useToast } from "../context/ToastContext";
+import { usePreference } from "../context/PreferenceContext";
 import { getImageUrl } from "../utils/imageUrl";
 import "./ProductList.css";
 
@@ -32,6 +33,7 @@ function ProductList() {
   const { addToCart }           = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
   const toast = useToast();
+  const { fmt, currency } = usePreference();
 
   useEffect(() => {
     const load = async () => {
@@ -146,11 +148,11 @@ function ProductList() {
 
           {/* Price */}
           <div className="pl-filter-group">
-            <h4>Max Price (ETB)</h4>
+            <h4>Max Price ({currency.code})</h4>
             <input
               type="number"
               className="pl-price-input"
-              placeholder="e.g. 50000"
+              placeholder={`e.g. ${currency.code === "ETB" ? "50000" : "1000"}`}
               value={priceMax}
               onChange={e => setPriceMax(e.target.value)}
               min="0"
@@ -231,7 +233,7 @@ function ProductList() {
                       {product.category && <p className="pl-category">{product.category}</p>}
 
                       <div className="pl-footer">
-                        <span className="pl-price">ETB {product.price?.toLocaleString()}</span>
+                        <span className="pl-price">{fmt(product.price)}</span>
                         <button
                           className="pl-cart-btn"
                           disabled={outOfStock}

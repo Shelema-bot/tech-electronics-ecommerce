@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../../api/axios";
+import { usePreference } from "../../context/PreferenceContext";
 import AccountLayout from "../../components/AccountLayout/AccountLayout";
 import "./PaymentHistory.css";
 
@@ -25,6 +26,7 @@ const METHOD_ICONS = {
 };
 
 function PaymentHistory() {
+  const { fmt } = usePreference();
   const [payments, setPayments] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [filter, setFilter]     = useState("all");
@@ -89,7 +91,7 @@ function PaymentHistory() {
                       <span className="ph-method-icon">{methodIcon}</span>
                       <div>
                         <div className="ph-method-name">{payment.methodName || payment.methodCode || "Payment"}</div>
-                        <div className="ph-amount">{Number(payment.amount).toLocaleString()} {payment.currency || "ETB"}</div>
+                        <div className="ph-amount">{fmt(payment.amount)}</div>
                       </div>
                     </div>
                     <span className="ph-status-badge" style={{ background: cfg.bg, color: cfg.color }}>

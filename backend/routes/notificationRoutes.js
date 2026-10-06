@@ -8,10 +8,11 @@ import {
 
 const router = express.Router();
 
-router.get("/",              protect, getMyNotifications);
-router.patch("/:id/read",    protect, markRead);
-router.patch("/read-all",    protect, markAllRead);
-router.delete("/:id",        protect, deleteNotification);
-router.post("/send",         protect, adminOrSuper, sendNotification);
+// ── IMPORTANT: specific paths before /:id ──────────────────
+router.get("/",               protect, getMyNotifications);
+router.patch("/read-all",     protect, markAllRead);       // must be before /:id
+router.patch("/:id/read",     protect, markRead);
+router.delete("/:id",         protect, deleteNotification);
+router.post("/send",          protect, adminOrSuper, sendNotification);
 
 export default router;

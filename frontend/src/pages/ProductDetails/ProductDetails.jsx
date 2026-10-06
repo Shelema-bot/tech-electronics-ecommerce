@@ -4,6 +4,7 @@ import API from "../../api/axios";
 import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
+import { usePreference } from "../../context/PreferenceContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./ProductDetails.css";
 
@@ -11,6 +12,7 @@ function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { fmt } = usePreference();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -192,7 +194,7 @@ function ProductDetails() {
           </div>
 
           <h2 className="product-price">
-            {Number(product.price).toLocaleString()} ETB
+            {fmt(product.price)}
           </h2>
 
           <p className={`product-stock ${product.stock <= 0 ? "out" : product.stock <= 5 ? "low" : "in"}`}>
@@ -248,7 +250,7 @@ function ProductDetails() {
                   alt={item.name}
                 />
                 <h3>{item.name}</h3>
-                <p>{Number(item.price).toLocaleString()} ETB</p>
+                <p>{fmt(item.price)}</p>
                 <Link to={`/product/${item._id}`} className="view-btn">View Details</Link>
               </div>
             ))}

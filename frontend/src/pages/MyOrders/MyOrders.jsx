@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
+import { usePreference } from "../../context/PreferenceContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import AccountLayout from "../../components/AccountLayout/AccountLayout";
 import "./MyOrders.css";
@@ -14,6 +15,7 @@ const STATUS_COLORS = {
 
 function MyOrders() {
   const toast = useToast();
+  const { fmt } = usePreference();
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -107,11 +109,11 @@ function MyOrders() {
                   <strong>{item.name}</strong>
                   <p>Quantity: {item.quantity}</p>
                 </div>
-                <span>{(item.quantity * item.price).toLocaleString()} ETB</span>
+                <span>{fmt(item.quantity * item.price)}</span>
               </div>
             ))}
 
-            <h2>Total: {Number(order.totalPrice).toLocaleString()} ETB</h2>
+            <h2>Total: {fmt(order.totalPrice)}</h2>
 
             <button className="remove-order-btn" onClick={() => deleteOrder(order._id)}>
               Remove Order

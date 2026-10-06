@@ -98,9 +98,11 @@ function Topbar({ collapsed, onToggle }) {
 
       <div className="topbar-right">
         {/* Notification bell */}
-        <Link to="/admin/contacts" className="topbar-icon-btn" title="Messages" aria-label="Messages">
-          <FiBell />
-        </Link>
+        <div className="topbar-notif-wrap">
+          <Link to="/admin/contacts" className="topbar-icon-btn" title="Messages" aria-label="Messages">
+            <FiBell />
+          </Link>
+        </div>
 
         {/* Account dropdown */}
         <div className="topbar-acct-wrap" ref={dropRef}>

@@ -2,6 +2,7 @@ import { useWishlist } from "../../context/WishlistContext";
 import { useCart } from "../../context/CartContext";
 import { Link } from "react-router-dom";
 import { getImageUrl } from "../../utils/imageUrl";
+import { usePreference } from "../../context/PreferenceContext";
 import "./Wishlist.css";
 
 
@@ -13,6 +14,7 @@ function Wishlist() {
     } = useWishlist();
 
     const { addToCart } = useCart();
+    const { fmt } = usePreference();
 
 
     const handleAddToCart = (product) => {
@@ -136,9 +138,7 @@ function Wishlist() {
 
 
                                     <p className="wishlist-price">
-
-                                        {product.price} ETB
-
+                                        {fmt(product.price)}
                                     </p>
 
 

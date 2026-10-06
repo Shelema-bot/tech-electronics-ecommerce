@@ -1,6 +1,6 @@
-/* ================================
-   SIDEBAR
-================================ */
+/* ════════════════════════════════════════
+   SIDEBAR — redesign
+════════════════════════════════════════ */
 
 .sidebar {
   width: 260px;
@@ -14,149 +14,153 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  transition: width 0.3s ease;
+  transition: width 0.28s ease;
   z-index: 900;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.18);
 }
-
-.sidebar.collapsed {
-  width: 80px;
-}
+.sidebar.collapsed { width: 72px; }
 
 /* Scrollbar */
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-track { background: #0f172a; }
 .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 
-/* Logo */
+/* ── Logo ── */
 .logo {
-  text-align: center;
-  padding: 24px 20px 16px;
-  color: white;
-  font-size: 20px;
-  font-weight: 700;
+  padding: 22px 20px 16px;
+  font-size: 18px;
+  font-weight: 800;
   letter-spacing: 0.5px;
   border-bottom: 1px solid #1e293b;
   white-space: nowrap;
   overflow: hidden;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: white;
+  text-align: center;
 }
 
-/* Profile block removed — profile is now in the topbar */
-
-/* Nav list */
+/* ── Nav list ── */
 .sidebar ul {
   list-style: none;
-  padding: 12px 12px;
+  padding: 10px 10px;
   margin: 0;
   flex: 1;
 }
-
-.sidebar li {
-  margin: 4px 0;
-}
+.sidebar li { margin: 2px 0; }
 
 .sidebar li a,
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
+  padding: 10px 14px;
   color: #94a3b8;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.18s, color 0.18s;
   white-space: nowrap;
   overflow: hidden;
 }
-
 .sidebar li a:hover,
 .sidebar-link:hover {
   background: #1e293b;
   color: #f1f5f9;
 }
-
 .sidebar li a.active,
 .sidebar-link.active {
-  background: #2563eb;
+  background: linear-gradient(135deg, #1d4ed8, #2563eb);
   color: white;
+  box-shadow: 0 2px 10px rgba(37,99,235,0.35);
 }
 
 .sidebar li svg {
-  font-size: 18px;
+  font-size: 17px;
   flex-shrink: 0;
 }
+.sidebar-icon { font-size: 17px; flex-shrink: 0; }
 
-.sidebar-icon {
-  font-size: 18px;
-  flex-shrink: 0;
+/* Section label */
+.sidebar-section-label {
+  padding: 14px 14px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
-/* Logout */
+/* ── Logout ── */
 .logout {
-  padding: 12px 12px;
+  padding: 10px 10px 16px;
   border-top: 1px solid #1e293b;
 }
-
 .logout button {
   width: 100%;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
+  padding: 10px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   color: #f87171;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
-  transition: background 0.2s;
+  transition: background 0.18s;
 }
+.logout button:hover { background: rgba(239,68,68,0.1); }
+.logout button svg { font-size: 17px; flex-shrink: 0; }
 
-.logout button:hover {
-  background: #1e293b;
-}
-
-.logout button svg {
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-/* Collapsed mode */
+/* ── Collapsed ── */
 .sidebar.collapsed li span,
-.sidebar.collapsed .logo,
+.sidebar.collapsed .sidebar-section-label,
 .sidebar.collapsed .logout button span {
   display: none;
 }
-
-.sidebar.collapsed ul {
-  padding: 12px 8px;
-}
-
+.sidebar.collapsed ul { padding: 10px 6px; }
 .sidebar.collapsed li a,
 .sidebar.collapsed .sidebar-link,
 .sidebar.collapsed .logout button {
   justify-content: center;
   padding: 11px;
 }
+.sidebar.collapsed .logo { padding: 20px 0; font-size: 22px; }
 
-/* Mobile — sidebar hidden by default, shown as overlay when not collapsed */
+/* ── Tooltip on collapsed ── */
+.sidebar.collapsed li {
+  position: relative;
+}
+.sidebar.collapsed li a:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 76px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1e293b;
+  color: #f1f5f9;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 200;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* ── Mobile ── */
 @media (max-width: 640px) {
   .sidebar {
     position: fixed;
     left: -260px;
-    transition: left 0.3s ease, width 0.3s ease;
+    transition: left 0.28s ease, width 0.28s ease;
     z-index: 950;
   }
-
-  .sidebar:not(.collapsed) {
-    left: 0;
-  }
-
-  .sidebar.collapsed {
-    left: -80px;
-    width: 80px;
-  }
+  .sidebar:not(.collapsed) { left: 0; }
+  .sidebar.collapsed { left: -72px; width: 72px; }
 }

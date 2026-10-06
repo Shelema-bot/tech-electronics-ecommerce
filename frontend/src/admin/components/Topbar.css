@@ -1,11 +1,11 @@
-/* ================================
-   ADMIN TOPBAR — Green + Account Dropdown
-================================ */
+/* ════════════════════════════════════════
+   ADMIN TOPBAR — redesign
+════════════════════════════════════════ */
 
 .admin-topbar {
   height: 64px;
-  background: linear-gradient(90deg, #15803d 0%, #16a34a 100%);
-  border-bottom: 1px solid #14532d;
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+  border-bottom: 1px solid #1e293b;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -105,7 +105,7 @@
   height: 32px;
   border-radius: 50%;
   background: white;
-  color: #16a34a;
+  color: #0f172a;
   font-size: 14px;
   font-weight: 700;
   display: flex;
@@ -165,13 +165,24 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Notification badge */
+.topbar-notif-wrap { position: relative; }
+.topbar-notif-dot {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #e11d48;
+  border: 2px solid #1e293b;
+}
+
 /* Dropdown header */
 .topbar-drop-header {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: linear-gradient(135deg, #14532d, #16a34a);
+  background: linear-gradient(135deg, #0f172a, #1e293b);
 }
 
 .drop-avatar-img {
@@ -245,8 +256,8 @@
   transition: background 0.15s, color 0.15s;
 }
 
-.drop-item:hover  { background: #f1f5f9; color: #16a34a; }
-.drop-item.active { background: #f0fdf4; color: #16a34a; font-weight: 700; }
+.drop-item:hover  { background: #f1f5f9; color: #2563eb; }
+.drop-item.active { background: #eff6ff; color: #2563eb; font-weight: 700; }
 
 .drop-item-icon {
   font-size: 15px;
@@ -256,8 +267,8 @@
   flex-shrink: 0;
 }
 
-.drop-item:hover .drop-item-icon  { color: #16a34a; }
-.drop-item.active .drop-item-icon { color: #16a34a; }
+.drop-item:hover .drop-item-icon  { color: #2563eb; }
+.drop-item.active .drop-item-icon { color: #2563eb; }
 
 /* Logout */
 .drop-logout {

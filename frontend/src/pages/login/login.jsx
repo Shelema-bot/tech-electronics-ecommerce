@@ -40,8 +40,10 @@ function Login() {
 
       toast.success("Welcome back! Login successful.");
 
-      if (response.data.user.role === "admin") {
-        navigate("/admin/dashboard");
+      // Redirect all staff roles to admin panel
+      const ADMIN_ROLES = ["owner", "super_admin", "admin", "finance", "cashier", "seller"];
+      if (ADMIN_ROLES.includes(response.data.user.role)) {
+        navigate("/admin");
       } else {
         navigate("/");
       }

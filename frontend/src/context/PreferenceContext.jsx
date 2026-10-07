@@ -107,12 +107,8 @@ export function PreferenceProvider({ children }) {
   useEffect(() => {
     document.documentElement.dir  = language.dir || "ltr";
     document.documentElement.lang = language.code;
-    // Sync i18next — only switch if loaded language differs
-    if (i18n.language !== language.code) {
-      i18n.changeLanguage(language.code);
-    }
-    // Store for i18next detector
-    localStorage.setItem("pref_i18n_lang", language.code);
+    // Sync i18next — changeLanguage is idempotent if already that lang
+    i18n.changeLanguage(language.code);
   }, [language]);
 
   const setCountry  = (c) => { setCountryState(c);  localStorage.setItem("pref_country",  JSON.stringify(c)); };

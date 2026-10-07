@@ -7,6 +7,7 @@
  * formatPrice(etbAmount) converts + formats for display.
  */
 import { createContext, useContext, useState, useEffect } from "react";
+import i18n from "../i18n.js";
 
 // ── Data lists ────────────────────────────────────────────────────────────────
 
@@ -102,10 +103,16 @@ export function PreferenceProvider({ children }) {
   const [language, setLanguageState] = useState(() => load("pref_language", LANGUAGES[0]));
   const [currency, setCurrencyState] = useState(() => load("pref_currency", CURRENCIES[0]));
 
-  // Apply text direction to <html> when language changes
+  // Apply text direction + i18next language when language changes
   useEffect(() => {
     document.documentElement.dir  = language.dir || "ltr";
     document.documentElement.lang = language.code;
+    // Sync i18next — only switch if loaded language differs
+    if (i18n.language !== language.code) {
+      i18n.changeLanguage(language.code);
+    }
+    // Store for i18next detector
+    localStorage.setItem("pref_i18n_lang", language.code);
   }, [language]);
 
   const setCountry  = (c) => { setCountryState(c);  localStorage.setItem("pref_country",  JSON.stringify(c)); };

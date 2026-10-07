@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import "./Navbar.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FaShoppingCart, FaUserCircle, FaSearch, FaHeart,
   FaChevronDown, FaBars, FaTimes, FaCamera,
@@ -10,34 +11,51 @@ import {
   FiMessageSquare, FiBell, FiLogOut,
 } from "react-icons/fi";
 import logo from "../../assets/LOGO.jpg";
-import { useCart }    from "../../context/CartContext";
-import { useWishlist } from "../../context/WishlistContext";
-import { getImageUrl } from "../../utils/imageUrl";
+import { useCart }       from "../../context/CartContext";
+import { useWishlist }   from "../../context/WishlistContext";
+import { getImageUrl }   from "../../utils/imageUrl";
 import { usePreference, COUNTRIES, LANGUAGES, CURRENCIES } from "../../context/PreferenceContext";
 import { useNotifications } from "../../context/NotificationContext";
 import API from "../../api/axios";
 
+// Category icon map – extend as needed
+const CAT_ICONS = {
+  Laptops:            "💻",
+  Smartphones:        "📱",
+  Gaming:             "🎮",
+  Network:            "🌐",
+  "Smart Accessories":"⌚",
+  "Smart Watch":      "⌚",
+  "Headphones & Audio":"🎧",
+  Tablets:            "📟",
+  Drones:             "🚁",
+  "Printers & Scanners":"🖨️",
+  "Smart Home":       "🏠",
+  Cameras:            "📷",
+};
+const catIcon = (name) => CAT_ICONS[name] || "📦";
+
 const Navbar = () => {
+  const { t } = useTranslation();
   const [user, setUser]             = useState(null);
   const [search, setSearch]         = useState("");
-  const [catOpen, setCatOpen]       = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [acctOpen, setAcctOpen]     = useState(false);
   const [notifOpen, setNotifOpen]   = useState(false);
   const [imgTooltip, setImgTooltip] = useState(false);
   const [categories, setCategories] = useState([]);
+  // mobile-only cat expand (hover handles desktop)
+  const [mobileCatOpen, setMobileCatOpen] = useState(false);
 
-  const catRef   = useRef(null);
   const acctRef  = useRef(null);
   const notifRef = useRef(null);
   const navigate = useNavigate();
 
-  const { cartCount }       = useCart();
-  const { wishlist }        = useWishlist();
+  const { cartCount }     = useCart();
+  const { wishlist }      = useWishlist();
   const { country, setCountry, language, setLanguage, currency, setCurrency } = usePreference();
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
 
-  // Load user
   useEffect(() => {
     const load = () => {
       const s = localStorage.getItem("user");
@@ -48,17 +66,14 @@ const Navbar = () => {
     return () => window.removeEventListener("loginStatusChanged", load);
   }, []);
 
-  // Fetch categories
   useEffect(() => {
     API.get("/categories")
-      .then(res => setCategories(res.data))
+      .then(res => setCategories(res.data || []))
       .catch(() => setCategories([]));
   }, []);
 
-  // Close dropdowns on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (catRef.current   && !catRef.current.contains(e.target))   setCatOpen(false);
       if (acctRef.current  && !acctRef.current.contains(e.target))  setAcctOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     };
@@ -83,19 +98,25 @@ const Navbar = () => {
     }
   };
 
-  const closeAll = () => { setMobileOpen(false); setAcctOpen(false); setCatOpen(false); setNotifOpen(false); };
+  const closeAll = () => {
+    setMobileOpen(false);
+    setAcctOpen(false);
+    setNotifOpen(false);
+    setMobileCatOpen(false);
+  };
 
   const acctMenu = [
-    { path: "/profile",         label: "My Profile",      icon: <FiUser /> },
-    { path: "/my-orders",       label: "My Orders",       icon: <FiShoppingBag /> },
-    { path: "/payment-history", label: "Payment History", icon: <FiCreditCard /> },
-    { path: "/wishlist",        label: "Wishlist",        icon: <FiHeart /> },
-    { path: "/my-messages",     label: "Messages",        icon: <FiMessageSquare /> },
-    { path: "/notifications",   label: "Notifications",   icon: <FiBell /> },
+    { path: "/profile",         label: t("account.myProfile"),      icon: <FiUser /> },
+    { path: "/my-orders",       label: t("account.myOrders"),       icon: <FiShoppingBag /> },
+    { path: "/payment-history", label: t("account.paymentHistory"), icon: <FiCreditCard /> },
+    { path: "/wishlist",        label: t("account.wishlist"),       icon: <FiHeart /> },
+    { path: "/my-messages",     label: t("account.messages"),       icon: <FiMessageSquare /> },
+    { path: "/notifications",   label: t("account.notifications"),  icon: <FiBell /> },
   ];
 
   const recentNotifs = notifications.slice(0, 5);
 
+  /* ────────────────────────────────────────────── */
   return (
     <nav className="navbar">
       <div className="navbar-inner">
@@ -106,18 +127,17 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="nav-logo" onClick={closeAll}>
             <img src={logo} alt="Tech & Electronic" />
-            <span className="nav-logo-text">Tech <b>&</b> Electronic</span>
+            <span className="nav-logo-text">Tech <b>&amp;</b> Electronic</span>
           </Link>
 
           {/* Preferences */}
           <div className="nav-prefs">
-            {/* Country */}
             <div className="nav-pref-select">
               <span className="nav-pref-flag">{country.flag}</span>
               <select
                 value={country.code}
                 onChange={e => setCountry(COUNTRIES.find(c => c.code === e.target.value))}
-                aria-label="Select country"
+                aria-label="Country"
               >
                 {COUNTRIES.map(c => (
                   <option key={c.code} value={c.code}>{c.flag} {c.name}</option>
@@ -127,13 +147,12 @@ const Navbar = () => {
 
             <span className="nav-pref-divider" />
 
-            {/* Language */}
             <div className="nav-pref-select">
               <span className="nav-pref-icon">🌐</span>
               <select
                 value={language.code}
                 onChange={e => setLanguage(LANGUAGES.find(l => l.code === e.target.value))}
-                aria-label="Select language"
+                aria-label="Language"
               >
                 {LANGUAGES.map(l => (
                   <option key={l.code} value={l.code}>{l.nativeName || l.name}</option>
@@ -143,13 +162,12 @@ const Navbar = () => {
 
             <span className="nav-pref-divider" />
 
-            {/* Currency */}
             <div className="nav-pref-select">
               <span className="nav-pref-icon">💱</span>
               <select
                 value={currency.code}
                 onChange={e => setCurrency(CURRENCIES.find(c => c.code === e.target.value))}
-                aria-label="Select currency"
+                aria-label="Currency"
               >
                 {CURRENCIES.map(c => (
                   <option key={c.code} value={c.code}>{c.symbol} {c.name}</option>
@@ -162,45 +180,48 @@ const Navbar = () => {
           <div className="nav-top-icons">
 
             {/* Wishlist */}
-            <Link to="/wishlist" className="nav-top-icon" onClick={closeAll} aria-label="Wishlist">
+            <Link to="/wishlist" className="nav-top-icon" onClick={closeAll}>
               <span className="nav-icon-wrap">
                 <FaHeart />
                 {wishlist.length > 0 && <span className="nav-badge">{wishlist.length}</span>}
               </span>
-              <span className="nav-icon-label">Wishlist</span>
+              <span className="nav-icon-label">{t("nav.wishlist")}</span>
             </Link>
 
             {/* Cart */}
-            <Link to="/cart" className="nav-top-icon" onClick={closeAll} aria-label="Cart">
+            <Link to="/cart" className="nav-top-icon" onClick={closeAll}>
               <span className="nav-icon-wrap">
                 <FaShoppingCart />
                 {cartCount > 0 && <span className="nav-badge">{cartCount}</span>}
               </span>
-              <span className="nav-icon-label">Cart</span>
+              <span className="nav-icon-label">{t("nav.cart")}</span>
             </Link>
 
             {/* Notification Bell */}
             {user && (
               <div className="nav-account-wrap" ref={notifRef}>
                 <button
-                  className="nav-top-icon"
-                  onClick={() => setNotifOpen(!notifOpen)}
-                  style={{ background: "none", border: "none", cursor: "pointer" }}
+                  className="nav-top-icon nav-notif-btn"
+                  onClick={() => setNotifOpen(o => !o)}
                   aria-label="Notifications"
                 >
                   <span className="nav-icon-wrap">
                     <FiBell style={{ fontSize: 20 }} />
-                    {unreadCount > 0 && <span className="nav-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>}
+                    {unreadCount > 0 && (
+                      <span className="nav-badge">{unreadCount > 9 ? "9+" : unreadCount}</span>
+                    )}
                   </span>
-                  <span className="nav-icon-label">Alerts</span>
+                  <span className="nav-icon-label">{t("nav.alerts")}</span>
                 </button>
 
                 {notifOpen && (
                   <div className="nav-notif-dropdown">
                     <div className="nav-notif-header">
-                      <span>Notifications {unreadCount > 0 && `(${unreadCount} new)`}</span>
+                      <span>{t("account.notifications")} {unreadCount > 0 && `(${unreadCount})`}</span>
                       {unreadCount > 0 && (
-                        <button onClick={markAllRead} className="nav-notif-mark-all">Mark all read</button>
+                        <button onClick={markAllRead} className="nav-notif-mark-all">
+                          Mark all read
+                        </button>
                       )}
                     </div>
                     {recentNotifs.length === 0 ? (
@@ -210,7 +231,11 @@ const Navbar = () => {
                         <div
                           key={n._id}
                           className={`nav-notif-item ${!n.isRead ? "unread" : ""}`}
-                          onClick={() => { markRead(n._id); setNotifOpen(false); if (n.link) navigate(n.link); }}
+                          onClick={() => {
+                            markRead(n._id);
+                            setNotifOpen(false);
+                            if (n.link) navigate(n.link);
+                          }}
                         >
                           <span className="nav-notif-icon">{n.icon || "🔔"}</span>
                           <div className="nav-notif-content">
@@ -221,7 +246,11 @@ const Navbar = () => {
                         </div>
                       ))
                     )}
-                    <Link to="/notifications" className="nav-notif-all" onClick={() => setNotifOpen(false)}>
+                    <Link
+                      to="/notifications"
+                      className="nav-notif-all"
+                      onClick={() => setNotifOpen(false)}
+                    >
                       View all notifications →
                     </Link>
                   </div>
@@ -234,18 +263,23 @@ const Navbar = () => {
               <div className="nav-account-wrap" ref={acctRef}>
                 <button
                   className="nav-acct-btn"
-                  onClick={() => setAcctOpen(!acctOpen)}
+                  onClick={() => setAcctOpen(o => !o)}
                   aria-expanded={acctOpen}
-                  aria-label="Account menu"
                 >
                   <span className="nav-icon-wrap">
                     {user.profileImage ? (
-                      <img src={getImageUrl(user.profileImage)} className="nav-avatar-img" alt="profile" />
+                      <img
+                        src={getImageUrl(user.profileImage)}
+                        className="nav-avatar-img"
+                        alt="profile"
+                      />
                     ) : (
-                      <span className="nav-avatar-initial">{user.name?.charAt(0).toUpperCase() || "U"}</span>
+                      <span className="nav-avatar-initial">
+                        {user.name?.charAt(0).toUpperCase() || "U"}
+                      </span>
                     )}
                   </span>
-                  <span className="nav-icon-label">Account</span>
+                  <span className="nav-icon-label">{t("nav.account")}</span>
                   <FaChevronDown className={`nav-chevron ${acctOpen ? "open" : ""}`} />
                 </button>
 
@@ -266,7 +300,12 @@ const Navbar = () => {
                     </div>
                     <div className="nav-acct-divider" />
                     {acctMenu.map(item => (
-                      <Link key={item.path} to={item.path} className="nav-acct-item" onClick={closeAll}>
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        className="nav-acct-item"
+                        onClick={closeAll}
+                      >
                         <span className="nav-acct-item-icon">{item.icon}</span>
                         {item.label}
                       </Link>
@@ -274,20 +313,26 @@ const Navbar = () => {
                     <div className="nav-acct-divider" />
                     <button className="nav-acct-logout" onClick={logout}>
                       <span className="nav-acct-item-icon"><FiLogOut /></span>
-                      Logout
+                      {t("account.logout")}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
-              <Link to="/login" className="nav-top-icon" onClick={closeAll} aria-label="Login">
-                <span className="nav-icon-wrap"><FaUserCircle style={{ fontSize: 20 }} /></span>
-                <span className="nav-icon-label">Login</span>
+              <Link to="/login" className="nav-top-icon" onClick={closeAll}>
+                <span className="nav-icon-wrap">
+                  <FaUserCircle style={{ fontSize: 20 }} />
+                </span>
+                <span className="nav-icon-label">{t("nav.login")}</span>
               </Link>
             )}
 
             {/* Hamburger */}
-            <button className="nav-hamburger" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle navigation">
+            <button
+              className="nav-hamburger"
+              onClick={() => setMobileOpen(o => !o)}
+              aria-label="Toggle navigation"
+            >
               {mobileOpen ? <FaTimes /> : <FaBars />}
             </button>
           </div>
@@ -298,27 +343,27 @@ const Navbar = () => {
           <div className="nav-search-bar">
             <input
               type="text"
-              placeholder="Search for laptops, phones, accessories..."
+              placeholder={t("nav.searchPlaceholder")}
               value={search}
               onChange={e => setSearch(e.target.value)}
               onKeyDown={e => e.key === "Enter" && searchProduct()}
-              aria-label="Search products"
             />
             <div className="nav-img-search-wrap">
               <button
                 type="button"
                 className="nav-img-search-btn"
-                onClick={() => setImgTooltip(!imgTooltip)}
+                onClick={() => setImgTooltip(v => !v)}
                 onBlur={() => setTimeout(() => setImgTooltip(false), 200)}
-                aria-label="Search by image (coming soon)"
               >
                 <FaCamera />
               </button>
-              {imgTooltip && <div className="nav-img-tooltip">📷 Image search coming soon</div>}
+              {imgTooltip && (
+                <div className="nav-img-tooltip">📷 Image search coming soon</div>
+              )}
             </div>
-            <button className="nav-search-submit" onClick={searchProduct} aria-label="Search">
+            <button className="nav-search-submit" onClick={searchProduct}>
               <FaSearch />
-              <span>Search</span>
+              <span>{t("nav.search")}</span>
             </button>
           </div>
         </div>
@@ -326,37 +371,104 @@ const Navbar = () => {
         {/* ══ ROW 3: Nav links ══ */}
         <div className={`nav-row nav-row-links ${mobileOpen ? "mobile-open" : ""}`}>
           <ul className="nav-links">
-            <li><Link to="/" onClick={closeAll}>Home</Link></li>
-            <li><Link to="/products" onClick={closeAll}>All Products</Link></li>
 
-            <li className="nav-cat-item" ref={catRef}>
-              <button className="nav-cat-btn" onClick={() => setCatOpen(!catOpen)}>
-                Categories <FaChevronDown className={`cat-arrow ${catOpen ? "open" : ""}`} />
-              </button>
-              {catOpen && (
-                <div className="cat-dropdown">
-                  {categories.length === 0 ? (
-                    <div className="cat-dropdown-item" style={{ color:"#94a3b8" }}>No categories</div>
-                  ) : categories.map(cat => (
-                    <button
-                      key={cat._id}
-                      className="cat-dropdown-item"
-                      onClick={() => {
-                        setCatOpen(false); setMobileOpen(false);
-                        navigate(`/products?category=${encodeURIComponent(cat.name)}`);
-                      }}
-                    >
-                      {cat.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+            <li className="nav-link-item">
+              <Link to="/" className="nav-link" onClick={closeAll}>
+                {t("nav.home")}
+              </Link>
             </li>
 
-            <li><Link to="/about"   onClick={closeAll}>About</Link></li>
-            <li><Link to="/team"    onClick={closeAll}>Team</Link></li>
-            <li><Link to="/contact" onClick={closeAll}>Contact</Link></li>
-            <li><Link to="/help"    onClick={closeAll}>Help</Link></li>
+            <li className="nav-link-item">
+              <Link to="/products" className="nav-link" onClick={closeAll}>
+                {t("nav.allProducts")}
+              </Link>
+            </li>
+
+            {/* ── Categories — hover on desktop, tap on mobile ── */}
+            <li className="nav-link-item nav-cat-item">
+              {/* Desktop: just a label that triggers CSS :hover */}
+              <span className="nav-link nav-cat-trigger">
+                {t("nav.categories")}
+                <FaChevronDown className="nav-cat-arrow" />
+              </span>
+
+              {/* Mobile toggle */}
+              <button
+                className="nav-cat-mobile-btn"
+                onClick={() => setMobileCatOpen(o => !o)}
+                aria-expanded={mobileCatOpen}
+              >
+                {t("nav.categories")}
+                <FaChevronDown
+                  className={`nav-cat-arrow ${mobileCatOpen ? "open" : ""}`}
+                />
+              </button>
+
+              {/* Mega dropdown — visible on hover (desktop) or mobileCatOpen (mobile) */}
+              <div className={`cat-mega-dropdown ${mobileCatOpen ? "mobile-visible" : ""}`}>
+                <div className="cat-mega-inner">
+
+                  {/* All products shortcut */}
+                  <button
+                    className="cat-mega-all"
+                    onClick={() => {
+                      navigate("/products");
+                      closeAll();
+                    }}
+                  >
+                    🛍️ {t("product.allProducts")}
+                  </button>
+
+                  <div className="cat-mega-divider" />
+
+                  {/* Category grid */}
+                  <div className="cat-mega-grid">
+                    {categories.length === 0 ? (
+                      <span className="cat-mega-empty">No categories yet</span>
+                    ) : (
+                      categories.map(cat => (
+                        <button
+                          key={cat._id}
+                          className="cat-mega-item"
+                          onClick={() => {
+                            navigate(`/products?category=${encodeURIComponent(cat.name)}`);
+                            closeAll();
+                          }}
+                        >
+                          <span className="cat-mega-icon">{catIcon(cat.name)}</span>
+                          <span className="cat-mega-label">{cat.name}</span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <li className="nav-link-item">
+              <Link to="/about" className="nav-link" onClick={closeAll}>
+                {t("nav.about")}
+              </Link>
+            </li>
+
+            <li className="nav-link-item">
+              <Link to="/team" className="nav-link" onClick={closeAll}>
+                {t("nav.team")}
+              </Link>
+            </li>
+
+            <li className="nav-link-item">
+              <Link to="/contact" className="nav-link" onClick={closeAll}>
+                {t("nav.contact")}
+              </Link>
+            </li>
+
+            <li className="nav-link-item">
+              <Link to="/help" className="nav-link" onClick={closeAll}>
+                {t("nav.help")}
+              </Link>
+            </li>
+
           </ul>
         </div>
 

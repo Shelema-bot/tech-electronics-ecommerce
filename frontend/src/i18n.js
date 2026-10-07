@@ -1,18 +1,18 @@
 /**
- * i18n.js — bundled translations (no async HTTP loading).
- * All JSON files are imported directly so every language is
- * available instantly without a network request.
+ * i18n.js — bundled translations.
+ * JSON files live in src/locales/ so Vite includes them
+ * in the bundle — no async HTTP loading, works on all hosts.
  */
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-// Import all translation files directly
-import en from "../public/locales/en/translation.json";
-import am from "../public/locales/am/translation.json";
-import ar from "../public/locales/ar/translation.json";
-import fr from "../public/locales/fr/translation.json";
+// Import translation files from src/locales/ (Vite-bundled)
+import en from "./locales/en/translation.json";
+import am from "./locales/am/translation.json";
+import ar from "./locales/ar/translation.json";
+import fr from "./locales/fr/translation.json";
 
-// Read stored language preference (set by PreferenceContext)
+// Read stored language preference set by PreferenceContext
 const storedLang = (() => {
   try {
     const v = localStorage.getItem("pref_language");
@@ -30,17 +30,13 @@ i18n
       ar: { translation: ar },
       fr: { translation: fr },
     },
-    lng:        storedLang,   // start with stored preference
-    fallbackLng: "en",
+    lng:           storedLang,
+    fallbackLng:   "en",
     supportedLngs: ["en", "am", "ar", "fr"],
-    ns:         ["translation"],
-    defaultNS:  "translation",
-    interpolation: {
-      escapeValue: false, // React escapes already
-    },
-    react: {
-      useSuspense: false,
-    },
+    ns:            ["translation"],
+    defaultNS:     "translation",
+    interpolation: { escapeValue: false },
+    react:         { useSuspense: false },
   });
 
 export default i18n;

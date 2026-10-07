@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, lazy, Suspense } from "react";
 import "./Navbar.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -17,6 +17,9 @@ import { getImageUrl }   from "../../utils/imageUrl";
 import { usePreference, COUNTRIES, LANGUAGES, CURRENCIES } from "../../context/PreferenceContext";
 import { useNotifications } from "../../context/NotificationContext";
 import API from "../../api/axios";
+
+// Lazy-load the image search modal so it doesn't inflate initial bundle
+const ImageSearch = lazy(() => import("../ImageSearch/ImageSearch"));
 
 // Category icon map – extend as needed
 const CAT_ICONS = {
@@ -42,7 +45,8 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [acctOpen, setAcctOpen]     = useState(false);
   const [notifOpen, setNotifOpen]   = useState(false);
-  const [imgTooltip, setImgTooltip] = useState(false);
+  const [imgSearchOpen, setImgSearchOpen] = useState(false);
+  const [imgTooltip, setImgTooltip]       = useState(false);
   const [categories, setCategories] = useState([]);
   // mobile-only cat expand (hover handles desktop)
   const [mobileCatOpen, setMobileCatOpen] = useState(false);
@@ -118,6 +122,7 @@ const Navbar = () => {
 
   /* ────────────────────────────────────────────── */
   return (
+    <>
     <nav className="navbar">
       <div className="navbar-inner">
 
@@ -352,13 +357,13 @@ const Navbar = () => {
               <button
                 type="button"
                 className="nav-img-search-btn"
-                onClick={() => setImgTooltip(v => !v)}
-                onBlur={() => setTimeout(() => setImgTooltip(false), 200)}
+                onClick={() => setImgSearchOpen(true)}
+                title="Search by image"
               >
                 <FaCamera />
               </button>
               {imgTooltip && (
-                <div className="nav-img-tooltip">📷 Image search coming soon</div>
+                <div className="nav-img-tooltip">📷 Image search</div>
               )}
             </div>
             <button className="nav-search-submit" onClick={searchProduct}>
@@ -474,6 +479,14 @@ const Navbar = () => {
 
       </div>
     </nav>
+
+    {/* Image Search Modal — lazy loaded */}
+    {imgSearchOpen && (
+      <Suspense fallback={null}>
+        <ImageSearch onClose={() => setImgSearchOpen(false)} />
+      </Suspense>
+    )}
+    </>
   );
 };
 

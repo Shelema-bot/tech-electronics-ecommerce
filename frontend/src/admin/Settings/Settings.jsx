@@ -3,26 +3,26 @@ import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
 import { useToast } from "../../context/ToastContext";
 import { getImageUrl } from "../../utils/imageUrl";
-import { usePreference, COUNTRIES, LANGUAGES, CURRENCIES, formatPrice } from "../../context/PreferenceContext";
+import { usePreference, COUNTRIES, LANGUAGES, CURRENCIES } from "../../context/PreferenceContext";
 import "./Settings.css";
 
 const TABS = [
-  { key:"profile",     label:"Profile",        icon:"👤" },
-  { key:"password",    label:"Change Password", icon:"🔒" },
-  { key:"preferences", label:"Preferences",    icon:"🌍" },
+  { key: "profile",     label: "Profile",         icon: "👤" },
+  { key: "password",    label: "Change Password",  icon: "🔒" },
+  { key: "preferences", label: "Preferences",      icon: "🌍" },
 ];
 
 function Settings() {
   const toast = useToast();
   const [tab, setTab]         = useState("profile");
-  const [user, setUser]       = useState({ name:"", email:"", phone:"", address:"", profileImage:"" });
+  const [user, setUser]       = useState({ name: "", email: "", phone: "", address: "", profileImage: "" });
   const [image, setImage]     = useState(null);
   const [preview, setPreview] = useState("");
   const [saving, setSaving]   = useState(false);
 
-  const [pwForm, setPwForm]   = useState({ currentPassword:"", newPassword:"", confirmPassword:"" });
+  const [pwForm, setPwForm]     = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
   const [pwSaving, setPwSaving] = useState(false);
-  const [showPw, setShowPw]   = useState({ current:false, new:false, confirm:false });
+  const [showPw, setShowPw]     = useState({ current: false, new: false, confirm: false });
 
   const { country, setCountry, language, setLanguage, currency, setCurrency, fmt } = usePreference();
 
@@ -32,7 +32,7 @@ function Settings() {
     try {
       const res = await API.get("/users/admin/profile");
       setUser(res.data.user);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load profile");
     }
   };
@@ -42,7 +42,7 @@ function Settings() {
   const handleImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5 MB"); return; }
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
@@ -56,7 +56,7 @@ function Settings() {
       fd.append("phone",   user.phone);
       fd.append("address", user.address);
       if (image) fd.append("profileImage", image);
-      await API.put("/users/admin/profile", fd, { headers:{ "Content-Type":"multipart/form-data" } });
+      await API.put("/users/admin/profile", fd, { headers: { "Content-Type": "multipart/form-data" } });
       toast.success("Profile updated");
       setPreview(""); setImage(null);
       fetchProfile();
@@ -78,7 +78,7 @@ function Settings() {
         newPassword:     pwForm.newPassword,
       });
       toast.success("Password changed successfully");
-      setPwForm({ currentPassword:"", newPassword:"", confirmPassword:"" });
+      setPwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to change password");
     } finally {
@@ -90,9 +90,9 @@ function Settings() {
 
   const pwStrength = (p) => {
     if (!p) return null;
-    if (p.length < 6)  return { label:"Weak",   color:"#dc2626", w:"33%" };
-    if (p.length < 10) return { label:"Medium",  color:"#f59e0b", w:"66%" };
-    return                    { label:"Strong",  color:"#16a34a", w:"100%" };
+    if (p.length < 6)  return { label: "Weak",   color: "#dc2626", w: "33%" };
+    if (p.length < 10) return { label: "Medium",  color: "#f59e0b", w: "66%" };
+    return                    { label: "Strong",  color: "#16a34a", w: "100%" };
   };
   const strength = pwStrength(pwForm.newPassword);
 
@@ -100,7 +100,7 @@ function Settings() {
     <AdminLayout>
       <div className="settings-page">
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="set-header">
           <div>
             <h1 className="set-title">Settings</h1>
@@ -108,7 +108,7 @@ function Settings() {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* ── Tabs ── */}
         <div className="set-tabs">
           {TABS.map(t => (
             <button
@@ -121,12 +121,10 @@ function Settings() {
           ))}
         </div>
 
-        {/* ── Profile tab ── */}
+        {/* ══ Profile tab ══ */}
         {tab === "profile" && (
           <div className="set-card">
             <form onSubmit={saveProfile}>
-
-              {/* Avatar */}
               <div className="set-avatar-row">
                 <div className="set-avatar-wrap">
                   {avatarSrc ? (
@@ -145,15 +143,18 @@ function Settings() {
                   <div className="set-avatar-name">{user.name || "Admin"}</div>
                   <div className="set-avatar-email">{user.email}</div>
                   <div className="set-avatar-role">
-                    {JSON.parse(localStorage.getItem("user") || "{}").role?.replace("_"," ") || "admin"}
+                    {JSON.parse(localStorage.getItem("user") || "{}").role?.replace("_", " ") || "admin"}
                   </div>
                   <label className="set-change-photo-btn">
                     Change Photo
                     <input type="file" accept="image/*" onChange={handleImage} hidden />
                   </label>
                   {preview && (
-                    <button type="button" className="set-remove-photo-btn"
-                      onClick={() => { setPreview(""); setImage(null); }}>
+                    <button
+                      type="button"
+                      className="set-remove-photo-btn"
+                      onClick={() => { setPreview(""); setImage(null); }}
+                    >
                       Remove preview
                     </button>
                   )}
@@ -175,10 +176,15 @@ function Settings() {
                   <label>Phone Number</label>
                   <input name="phone" value={user.phone || ""} onChange={handleChange} placeholder="+251 9XX XXX XXX" />
                 </div>
-                <div className="set-field" style={{ gridColumn:"1/-1" }}>
+                <div className="set-field" style={{ gridColumn: "1/-1" }}>
                   <label>Address</label>
-                  <textarea name="address" value={user.address || ""} onChange={handleChange}
-                    placeholder="Your address" rows="3" />
+                  <textarea
+                    name="address"
+                    value={user.address || ""}
+                    onChange={handleChange}
+                    placeholder="Your address"
+                    rows="3"
+                  />
                 </div>
               </div>
 
@@ -191,49 +197,57 @@ function Settings() {
           </div>
         )}
 
-        {/* ── Password tab ── */}
+        {/* ══ Password tab ══ */}
         {tab === "password" && (
           <div className="set-card">
             <div className="set-pw-info">
               <span className="set-pw-info-icon">🔒</span>
               <div>
-                <div style={{ fontWeight:700, color:"#0f172a", fontSize:15 }}>Change Password</div>
-                <div style={{ fontSize:13, color:"#64748b" }}>Use a strong password with at least 8 characters.</div>
+                <div style={{ fontWeight: 700, color: "#0f172a", fontSize: 15 }}>Change Password</div>
+                <div style={{ fontSize: 13, color: "#64748b" }}>Use a strong password with at least 6 characters.</div>
               </div>
             </div>
             <form onSubmit={savePassword}>
-              <div className="set-fields-grid" style={{ gridTemplateColumns:"1fr" }}>
+              <div className="set-fields-grid" style={{ gridTemplateColumns: "1fr" }}>
                 {[
-                  { key:"currentPassword", label:"Current Password", placeholder:"Enter current password" },
-                  { key:"newPassword",     label:"New Password",     placeholder:"Enter new password (min. 6 chars)" },
-                  { key:"confirmPassword", label:"Confirm Password", placeholder:"Repeat new password" },
+                  { key: "currentPassword", label: "Current Password", placeholder: "Enter current password" },
+                  { key: "newPassword",     label: "New Password",     placeholder: "Enter new password (min. 6 chars)" },
+                  { key: "confirmPassword", label: "Confirm Password", placeholder: "Repeat new password" },
                 ].map(f => (
                   <div className="set-field" key={f.key}>
                     <label>{f.label}</label>
                     <div className="set-pw-wrap">
                       <input
-                        type={showPw[f.key.replace("Password","")] ? "text" : "password"}
+                        type={showPw[f.key.replace("Password", "")] ? "text" : "password"}
                         placeholder={f.placeholder}
                         value={pwForm[f.key]}
                         onChange={e => setPwForm({ ...pwForm, [f.key]: e.target.value })}
                         required
                       />
-                      <button type="button" className="set-pw-eye"
-                        onClick={() => setShowPw(s => ({ ...s, [f.key.replace("Password","")]: !s[f.key.replace("Password","")] }))}>
-                        {showPw[f.key.replace("Password","")] ? "🙈" : "👁"}
+                      <button
+                        type="button"
+                        className="set-pw-eye"
+                        onClick={() => setShowPw(s => ({
+                          ...s,
+                          [f.key.replace("Password", "")]: !s[f.key.replace("Password", "")],
+                        }))}
+                      >
+                        {showPw[f.key.replace("Password", "")] ? "🙈" : "👁"}
                       </button>
                     </div>
                     {f.key === "newPassword" && strength && (
                       <div className="set-pw-strength">
                         <div className="set-pw-bar">
-                          <div style={{ width:strength.w, background:strength.color, height:"100%", borderRadius:4, transition:"width 0.3s" }} />
+                          <div style={{ width: strength.w, background: strength.color, height: "100%", borderRadius: 4, transition: "width 0.3s" }} />
                         </div>
-                        <span style={{ color:strength.color, fontSize:11, fontWeight:700 }}>{strength.label}</span>
+                        <span style={{ color: strength.color, fontSize: 11, fontWeight: 700 }}>{strength.label}</span>
                       </div>
                     )}
                     {f.key === "confirmPassword" && pwForm.confirmPassword && (
-                      <div style={{ fontSize:12, marginTop:4, fontWeight:600,
-                        color: pwForm.newPassword === pwForm.confirmPassword ? "#16a34a" : "#dc2626" }}>
+                      <div style={{
+                        fontSize: 12, marginTop: 4, fontWeight: 600,
+                        color: pwForm.newPassword === pwForm.confirmPassword ? "#16a34a" : "#dc2626",
+                      }}>
                         {pwForm.newPassword === pwForm.confirmPassword ? "✓ Passwords match" : "✗ Passwords don't match"}
                       </div>
                     )}
@@ -249,18 +263,15 @@ function Settings() {
           </div>
         )}
 
-      </div>
-
-        {/* ── Preferences tab ── */}
+        {/* ══ Preferences tab ══ */}
         {tab === "preferences" && (
-          <div className="set-card" style={{ maxWidth: 740 }}>
+          <div className="set-card">
 
-            {/* Header info */}
             <div className="set-pref-intro">
               <span className="set-pref-intro-icon">🌍</span>
               <div>
-                <div style={{ fontWeight:800, color:"#0f172a", fontSize:15 }}>Store Preferences</div>
-                <div style={{ fontSize:13, color:"#64748b", marginTop:3 }}>
+                <div style={{ fontWeight: 800, color: "#0f172a", fontSize: 15 }}>Store Preferences</div>
+                <div style={{ fontSize: 13, color: "#64748b", marginTop: 3 }}>
                   These settings control how prices, dates, and text are displayed across the entire storefront.
                 </div>
               </div>
@@ -290,7 +301,7 @@ function Settings() {
               </div>
             </div>
 
-            <div className="set-fields-grid" style={{ marginTop:24 }}>
+            <div className="set-fields-grid" style={{ marginTop: 24 }}>
 
               {/* Country */}
               <div className="set-field">
@@ -322,7 +333,7 @@ function Settings() {
                   >
                     {LANGUAGES.map(l => (
                       <option key={l.code} value={l.code}>
-                        {l.nativeName} — {l.name} {l.dir === "rtl" ? "(RTL)" : ""}
+                        {l.nativeName} — {l.name}{l.dir === "rtl" ? " (RTL)" : ""}
                       </option>
                     ))}
                   </select>
@@ -331,7 +342,7 @@ function Settings() {
               </div>
 
               {/* Currency */}
-              <div className="set-field" style={{ gridColumn:"1/-1" }}>
+              <div className="set-field" style={{ gridColumn: "1/-1" }}>
                 <label>💱 Display Currency</label>
                 <div className="set-pref-currency-grid">
                   {CURRENCIES.map(c => (
@@ -350,14 +361,13 @@ function Settings() {
                   ))}
                 </div>
                 <span className="set-pref-hint">
-                  All prices are stored in ETB. Selecting a different currency converts display prices using the exchange rate above.
-                  <strong> Rates are approximate and for display only.</strong>
+                  All prices are stored in ETB. Selecting a different currency converts display prices using the exchange rate above.{" "}
+                  <strong>Rates are approximate and for display only.</strong>
                 </span>
               </div>
 
             </div>
 
-            {/* Confirmation */}
             <div className="set-pref-saved-note">
               ✓ Preferences are saved instantly to your browser and applied across the entire store.
             </div>

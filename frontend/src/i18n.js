@@ -11,6 +11,7 @@ import en from "./locales/en/translation.json";
 import am from "./locales/am/translation.json";
 import ar from "./locales/ar/translation.json";
 import fr from "./locales/fr/translation.json";
+import om from "./locales/om/translation.json";
 
 // Read stored language preference set by PreferenceContext
 const storedLang = (() => {
@@ -29,10 +30,11 @@ i18n
       am: { translation: am },
       ar: { translation: ar },
       fr: { translation: fr },
+      om: { translation: om },
     },
     lng:           storedLang,
     fallbackLng:   "en",
-    supportedLngs: ["en", "am", "ar", "fr"],
+    supportedLngs: ["en", "am", "ar", "fr", "om"],
     ns:            ["translation"],
     defaultNS:     "translation",
     interpolation: { escapeValue: false },

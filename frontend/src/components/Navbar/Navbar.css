@@ -590,3 +590,198 @@
 @media (max-width: 360px) {
   .nav-logo-text { display: none; }
 }
+
+/* ══════════════════════════════════════
+   GENERIC HOVER PANEL  (nav-has-panel)
+   Used by All Products, About, Help
+══════════════════════════════════════ */
+
+/* Arrow that appears next to any link with a sub-panel */
+.nav-link-arrow {
+  font-size: 9px;
+  opacity: 0.6;
+  transition: transform 0.22s, opacity 0.22s;
+  flex-shrink: 0;
+}
+.nav-has-panel:hover .nav-link-arrow {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+/* The panel itself — hidden, slides in on hover */
+.nav-hover-panel {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  min-width: 420px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
+  z-index: 400;
+  padding: 18px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+  pointer-events: none;
+}
+
+/* Narrow version for About / Help */
+.nav-hover-panel.nhp-narrow {
+  min-width: 280px;
+  max-width: 320px;
+}
+
+/* Show on hover — keep visible while cursor moves into panel */
+.nav-has-panel:hover .nav-hover-panel {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+/* Bridge so cursor can move from trigger into panel without closing */
+.nav-has-panel::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  height: 8px;
+  background: transparent;
+}
+
+/* ── Panel header title ── */
+.nhp-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 12px;
+}
+
+/* ── 2-col grid (used in "All Products" panel) ── */
+.nhp-grid {
+  display: grid;
+  gap: 6px;
+}
+.nhp-grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.nhp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: transparent;
+  border: 1px solid #f1f5f9;
+  color: #1e293b;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+}
+.nhp-item:hover {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+  transform: translateY(-2px);
+}
+.nhp-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+/* Panel footer */
+.nhp-footer {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.nhp-view-all {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.nhp-view-all:hover { color: #1d4ed8; }
+
+/* ── Menu-style rows (About, Help panels) ── */
+.nhp-menu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 9px;
+  color: #1e293b;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background 0.15s, color 0.15s;
+}
+.nhp-menu-item:hover {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.nhp-menu-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  color: #64748b;
+}
+.nhp-menu-item:hover .nhp-menu-icon { color: #2563eb; }
+.nhp-menu-label { font-weight: 600; font-size: 14px; }
+.nhp-menu-sub   { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+
+/* ══ Mobile: hover panels become toggleable ══ */
+@media (max-width: 860px) {
+  /* On mobile, suppress CSS hover reveal */
+  .nav-has-panel:hover .nav-hover-panel:not(.mobile-visible) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  /* When toggled open via JS */
+  .nav-hover-panel.mobile-visible {
+    position: static;
+    transform: none !important;
+    min-width: unset;
+    max-width: unset;
+    width: calc(100% - 32px);
+    margin: 0 16px 8px;
+    border-radius: 10px;
+    box-shadow: none;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.06);
+    padding: 12px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  /* Dark mobile colour overrides */
+  .nav-hover-panel.mobile-visible .nhp-item,
+  .nav-hover-panel.mobile-visible .nhp-menu-item {
+    background: rgba(255,255,255,0.08);
+    border-color: transparent;
+    color: rgba(255,255,255,0.88);
+  }
+  .nav-hover-panel.mobile-visible .nhp-item:hover,
+  .nav-hover-panel.mobile-visible .nhp-menu-item:hover {
+    background: rgba(255,255,255,0.18);
+    color: white;
+    transform: none;
+    border-color: transparent;
+  }
+  .nav-hover-panel.mobile-visible .nhp-menu-icon { color: rgba(255,255,255,0.6); }
+  .nav-hover-panel.mobile-visible .nhp-title     { color: rgba(255,255,255,0.45); }
+  .nav-hover-panel.mobile-visible .nhp-menu-sub  { color: rgba(255,255,255,0.5); }
+  .nav-hover-panel.mobile-visible .nhp-footer    { border-color: rgba(255,255,255,0.1); }
+  .nav-hover-panel.mobile-visible .nhp-view-all  { color: #60a5fa; }
+}

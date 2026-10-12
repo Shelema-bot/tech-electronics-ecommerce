@@ -43,7 +43,8 @@ const paymentMethodSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Only the compound index — the schema-level unique:true on code handles the unique index
 paymentMethodSchema.index({ enabled: 1, displayOrder: 1 });
-paymentMethodSchema.index({ code: 1 });
+// Note: individual code index is already created by unique:true on the field above
 
 export default mongoose.model("PaymentMethod", paymentMethodSchema);

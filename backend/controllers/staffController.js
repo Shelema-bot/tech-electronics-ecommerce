@@ -120,13 +120,69 @@ export const applyAsSeller = async (req, res) => {
 // ── SELLER: SUBMIT PRODUCT FOR APPROVAL ──────────
 export const sellerSubmitProduct = async (req, res) => {
   try {
-    const seller = await User.findById(req.user._id);
+    const seller = await User.findById(req.user._id).populate("staffInfo.plan");
     if (!seller || seller.role !== "seller") {
       return res.status(403).json({ success: false, message: "Seller access only" });
     }
     if (seller.staffInfo.verificationStatus !== "verified") {
       return res.status(403).json({ success: false, message: "Your seller account is not yet verified. Please wait for approval." });
     }
+
+    // ── Plan-based checks ──────────────────────────────────────────
+    const plan = seller.staffInfo.plan;
+    if (plan) {
+      // Check subscription is active
+      const subStatus = seller.staffInfo.subscriptionStatus;
+      if (subStatus === "suspended") {
+        return res.status(403).json({ success: false, message: "Your seller subscription is suspended. Please contact admin." });
+      }
+      if (subStatus === "overdue") {
+        return res.status(403).json({ success: false, message: "Your subscription payment is overdue. Please settle your balance to submit products." });
+      }
+
+      // Check plan expiry
+      if (seller.staffInfo.planExpiresAt && new Date() > seller.staffInfo.planExpiresAt) {
+        return res.status(403).json({ success: false, message: "Your subscription plan has expired. Please contact admin to renew." });
+      }
+
+      // Check monthly product limit
+      const currentMonthYear = new Date().toISOString().slice(0, 7); // "2026-10"
+      let listingsThisMonth = seller.staffInfo.productListingsThisMonth || 0;
+
+      // Reset counter if new month
+      if (seller.staffInfo.listingMonthYear !== currentMonthYear) {
+        listingsThisMonth = 0;
+        seller.staffInfo.listingMonthYear         = currentMonthYear;
+        seller.staffInfo.productListingsThisMonth = 0;
+      }
+
+      if (listingsThisMonth >= plan.productLimit) {
+        return res.status(403).json({
+          success: false,
+          message: `You've reached your monthly product limit of ${plan.productLimit} on the ${plan.name} plan. Upgrade your plan or wait until next month.`,
+          limit: plan.productLimit,
+          used:  listingsThisMonth,
+        });
+      }
+
+      // Check price range if set
+      const price = Number(req.body.price);
+      if (!isNaN(price)) {
+        if (plan.minProductPrice > 0 && price < plan.minProductPrice) {
+          return res.status(400).json({
+            success: false,
+            message: `Your plan requires a minimum listing price of ${plan.minProductPrice.toLocaleString()} ETB.`,
+          });
+        }
+        if (plan.maxProductPrice > 0 && price > plan.maxProductPrice) {
+          return res.status(400).json({
+            success: false,
+            message: `Your plan allows a maximum listing price of ${plan.maxProductPrice.toLocaleString()} ETB.`,
+          });
+        }
+      }
+    }
+    // ── End plan checks ────────────────────────────────────────────
 
     const { name, description, price, category, brand, stock } = req.body;
     if (!name || !price || !category) {
@@ -142,6 +198,14 @@ export const sellerSubmitProduct = async (req, res) => {
       approvalStatus: "pending",
       submittedBy: req.user._id,
     });
+
+    // Increment monthly listing counter
+    if (plan) {
+      const currentMonthYear = new Date().toISOString().slice(0, 7);
+      seller.staffInfo.listingMonthYear         = currentMonthYear;
+      seller.staffInfo.productListingsThisMonth = (seller.staffInfo.productListingsThisMonth || 0) + 1;
+      await seller.save();
+    }
 
     res.status(201).json({ success: true, message: "Product submitted for approval", product });
   } catch (err) {

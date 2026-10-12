@@ -43,6 +43,8 @@ import adminUserRoutes      from "./routes/adminUserRoutes.js";
 import adminDashboardRoutes from "./routes/adminDashboardRoutes.js";
 import adminPaymentRoutes   from "./routes/adminPaymentRoutes.js";
 import adminReportRoutes    from "./routes/adminReportRoutes.js";
+import sellerPlanRoutes     from "./routes/sellerPlanRoutes.js";
+import meetingRoutes        from "./routes/meetingRoutes.js";
 
 // ══════════════════════════════════════════════════════════════
 // STARTUP ENVIRONMENT CHECK
@@ -101,6 +103,8 @@ app.use("/api/admin/users",        adminUserRoutes);
 app.use("/api/admin/dashboard",    adminDashboardRoutes);
 app.use("/api/admin/payments",     adminPaymentRoutes);
 app.use("/api/admin/reports",      adminReportRoutes);
+app.use("/api/seller-plans",       sellerPlanRoutes);
+app.use("/api/meetings",           meetingRoutes);
 
 // ── Static uploads ──────────────────────────────────────────────
 app.use("/uploads", express.static("uploads"));

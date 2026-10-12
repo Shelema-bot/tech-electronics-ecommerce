@@ -3,7 +3,7 @@ import {
   FaHome, FaBox, FaList, FaShoppingCart,
   FaUsers, FaCreditCard, FaUserCog,
   FaCheckCircle, FaClipboardCheck, FaEnvelope,
-  FaChartBar, FaTag, FaMoneyBillWave,
+  FaChartBar, FaTag, FaMoneyBillWave, FaCalendarAlt,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -14,25 +14,30 @@ const ALL_STAFF    = [...WITH_CASHIER, "seller"];
 
 const ALL_MENU = [
   // Core — everyone
-  { path: "/admin",              name: "Dashboard",       icon: <FaHome />,           roles: ALL_STAFF },
+  { path: "/admin",                  name: "Dashboard",       icon: <FaHome />,           roles: ALL_STAFF },
   // Products
-  { path: "/admin/products",     name: "Products",        icon: <FaBox />,            roles: [...ALL_ADMIN,"seller"] },
-  { path: "/admin/categories",   name: "Categories",      icon: <FaList />,           roles: ALL_ADMIN },
+  { path: "/admin/products",         name: "Products",        icon: <FaBox />,            roles: [...ALL_ADMIN,"seller"] },
+  { path: "/admin/categories",       name: "Categories",      icon: <FaList />,           roles: ALL_ADMIN },
   // Orders & Payments
-  { path: "/admin/orders",       name: "Orders",          icon: <FaShoppingCart />,   roles: WITH_CASHIER },
-  { path: "/admin/customers",    name: "Customers",       icon: <FaUsers />,          roles: ALL_ADMIN },
-  { path: "/admin/payments",     name: "Payments",        icon: <FaCreditCard />,     roles: WITH_CASHIER },
+  { path: "/admin/orders",           name: "Orders",          icon: <FaShoppingCart />,   roles: WITH_CASHIER },
+  { path: "/admin/customers",        name: "Customers",       icon: <FaUsers />,          roles: ALL_ADMIN },
+  { path: "/admin/payments",         name: "Payments",        icon: <FaCreditCard />,     roles: WITH_CASHIER },
   // Finance only
-  { path: "/admin/reports",      name: "Reports",         icon: <FaChartBar />,       roles: WITH_FINANCE },
-  { path: "/admin/coupons",      name: "Coupons",         icon: <FaTag />,            roles: ALL_ADMIN },
+  { path: "/admin/reports",          name: "Reports",         icon: <FaChartBar />,       roles: WITH_FINANCE },
+  { path: "/admin/coupons",          name: "Coupons",         icon: <FaTag />,            roles: ALL_ADMIN },
   // Communication
-  { path: "/admin/contacts",     name: "Messages",        icon: <FaEnvelope />,       roles: ALL_ADMIN },
-  // Staff management (owner/super_admin/admin)
-  { path: "/admin/staff",        name: "Staff",           icon: <FaUserCog />,        roles: ALL_ADMIN },
-  { path: "/admin/seller-verify",name: "Seller Verify",   icon: <FaCheckCircle />,    roles: ALL_ADMIN },
-  { path: "/admin/product-approval", name: "Approvals",   icon: <FaClipboardCheck />, roles: ALL_ADMIN },
+  { path: "/admin/contacts",         name: "Messages",        icon: <FaEnvelope />,       roles: ALL_ADMIN },
+  // Staff management
+  { path: "/admin/staff",            name: "Staff",           icon: <FaUserCog />,        roles: ALL_ADMIN },
+  { path: "/admin/seller-verify",    name: "Seller Verify",   icon: <FaCheckCircle />,    roles: ALL_ADMIN },
+  { path: "/admin/product-approval", name: "Approvals",       icon: <FaClipboardCheck />, roles: ALL_ADMIN },
+  // Seller subscription plans (admin)
+  { path: "/admin/seller-plans",     name: "Seller Plans",    icon: <FaMoneyBillWave />,  roles: ALL_ADMIN },
+  // Meetings (admin schedules, seller views)
+  { path: "/admin/meetings",         name: "Meetings",        icon: <FaCalendarAlt />,    roles: [...ALL_ADMIN,"seller"] },
   // Seller only
-  { path: "/admin/my-products",  name: "My Products",     icon: <FaBox />,            roles: ["seller"] },
+  { path: "/admin/my-products",      name: "My Products",     icon: <FaBox />,            roles: ["seller"] },
+  { path: "/admin/my-plan",          name: "My Plan",         icon: <FaMoneyBillWave />,  roles: ["seller"] },
 ];
 
 const ROLE_BADGE = {

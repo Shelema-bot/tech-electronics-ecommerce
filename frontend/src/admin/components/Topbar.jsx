@@ -25,6 +25,9 @@ const pageMap = {
   "/admin/product-approval":  "Product Approval",
   "/admin/my-products":       "My Products",
   "/admin/coupons":           "Coupons",
+  "/admin/seller-plans":      "Seller Plans",
+  "/admin/meetings":          "Meetings",
+  "/admin/my-plan":           "My Plan",
 };
 
 const ROLE_COLOR = {

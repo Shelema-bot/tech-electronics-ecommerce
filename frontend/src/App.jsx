@@ -55,8 +55,11 @@ import StaffManagement from "./admin/Staff/StaffManagement";
 import SellerVerification from "./admin/Staff/SellerVerification";
 import ProductApproval from "./admin/Staff/ProductApproval";
 import MyProducts from "./admin/Staff/MyProducts";
+import MyPlan from "./admin/Staff/MyPlan";
 import BecomeSeller from "./pages/BecomeSeller/BecomeSeller";
 import Coupons from "./admin/Coupons/Coupons";
+import SellerPlans from "./admin/SellerPlans/SellerPlans";
+import Meetings from "./admin/Meetings/Meetings";
 
 function App() {
   return (
@@ -147,7 +150,10 @@ function App() {
         <Route path="/admin/seller-verify"    element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><SellerVerification /></AdminRoute>} />
         <Route path="/admin/product-approval" element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><ProductApproval /></AdminRoute>} />
         <Route path="/admin/my-products"      element={<AdminRoute><MyProducts /></AdminRoute>} />
+        <Route path="/admin/my-plan"          element={<AdminRoute><MyPlan /></AdminRoute>} />
         <Route path="/admin/coupons"          element={<AdminRoute><Coupons /></AdminRoute>} />
+        <Route path="/admin/seller-plans"     element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><SellerPlans /></AdminRoute>} />
+        <Route path="/admin/meetings"         element={<AdminRoute requiredRoles={["owner","super_admin","admin","seller"]}><Meetings /></AdminRoute>} />
 
         {/* Become a seller */}
         <Route path="/become-seller" element={

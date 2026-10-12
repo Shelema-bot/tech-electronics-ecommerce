@@ -33,6 +33,21 @@ const userSchema = new mongoose.Schema(
       },
       verificationNote: { type: String, default: "" },
       appliedAt: { type: Date },
+
+      // ── Seller subscription plan ─────────────────────────
+      plan:            { type: mongoose.Schema.Types.ObjectId, ref: "SellerPlan", default: null },
+      planAssignedAt:  { type: Date },
+      planExpiresAt:   { type: Date },
+      subscriptionStatus: {
+        type: String,
+        enum: ["none","trial","active","overdue","suspended"],
+        default: "none",
+      },
+      // Monthly product listing counter (reset each billing cycle)
+      productListingsThisMonth: { type: Number, default: 0 },
+      listingMonthYear:         { type: String, default: "" }, // "2026-10" format — reset trigger
+      totalRevenue:             { type: Number, default: 0 },  // lifetime sales revenue
+      totalOrders:              { type: Number, default: 0 },  // lifetime order count
     },
 
     // ── Auth ─────────────────────────────────────

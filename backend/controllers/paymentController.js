@@ -52,7 +52,25 @@ export const createPayment = asyncHandler(async (req, res) => {
 
   // ── CHAPA ─────────────────────────────────────────────────────────────────
   if (method.type === "chapa") {
-    const tx_ref = "TX-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
+    // Check if a Chapa payment already exists for this order that is still pending
+    const existingPayment = await Payment.findOne({
+      order: orderId,
+      methodType: "chapa",
+      status: { $in: ["Pending", "Awaiting Payment"] },
+    });
+
+    // If an existing pending Chapa payment exists, reuse its tx_ref
+    // (avoids "tx_ref already exists" from Chapa on retry)
+    let tx_ref;
+    if (existingPayment && existingPayment.tx_ref) {
+      tx_ref = existingPayment.tx_ref;
+    } else {
+      // Generate a truly unique tx_ref: timestamp + order ID suffix + crypto random
+      const orderIdSuffix = orderId.toString().slice(-6);
+      const randomPart = Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 5);
+      tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
+    }
+
     const names = req.user.name.trim().split(" ");
 
     const chapaData = await initializeChapaPayment({
@@ -68,13 +86,19 @@ export const createPayment = asyncHandler(async (req, res) => {
       return res.status(500).json({ success: false, message: "Chapa did not return a checkout URL" });
     }
 
-    const payment = await Payment.create({
-      order: orderId, user: req.user._id, amount, currency: "ETB",
-      methodCode: method.code, methodName: method.name, methodType: "chapa",
-      tx_ref, status: "Pending",
-    });
-    addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Pending");
-    await payment.save();
+    // Reuse existing payment record or create a new one
+    let payment;
+    if (existingPayment && existingPayment.tx_ref === tx_ref) {
+      payment = existingPayment;
+    } else {
+      payment = await Payment.create({
+        order: orderId, user: req.user._id, amount, currency: "ETB",
+        methodCode: method.code, methodName: method.name, methodType: "chapa",
+        tx_ref, status: "Pending",
+      });
+      addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Pending");
+      await payment.save();
+    }
 
     return res.json({ success: true, type: "chapa", checkout_url: checkoutUrl, tx_ref, paymentId: payment._id });
   }

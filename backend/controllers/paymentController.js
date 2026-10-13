@@ -43,6 +43,14 @@ export const createPayment = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: "Not authorized for this order" });
   }
 
+  // ── Guard: order already paid ──────────────────────────────────────────────
+  if (order.isPaid) {
+    return res.status(409).json({
+      success: false,
+      message: "This order has already been paid. No further payment is required.",
+    });
+  }
+
   // Amount comes from order, never from frontend
   const amount = order.totalPrice;
 
@@ -50,22 +58,20 @@ export const createPayment = asyncHandler(async (req, res) => {
   const method = await PaymentMethod.findOne({ code: methodCode, enabled: true });
   if (!method) return res.status(400).json({ success: false, message: "Payment method not available" });
 
+  // ── Check for ANY existing payment for this order ────────────────────────────
+  const existingPayment = await Payment.findOne({ order: orderId }).sort({ createdAt: -1 });
+
   // ── CHAPA ─────────────────────────────────────────────────────────────────
   if (method.type === "chapa") {
-    // Check if a Chapa payment already exists for this order that is still pending
-    const existingPayment = await Payment.findOne({
-      order: orderId,
-      methodType: "chapa",
-      status: { $in: ["Pending", "Awaiting Payment"] },
-    });
-
-    // If an existing pending Chapa payment exists, reuse its tx_ref
-    // (avoids "tx_ref already exists" from Chapa on retry)
+    // Reuse pending payment's tx_ref; generate fresh one otherwise
     let tx_ref;
-    if (existingPayment && existingPayment.tx_ref) {
+    const canReuse = existingPayment
+      && existingPayment.tx_ref
+      && ["Pending", "Awaiting Payment"].includes(existingPayment.status);
+
+    if (canReuse) {
       tx_ref = existingPayment.tx_ref;
     } else {
-      // Generate a truly unique tx_ref: timestamp + order ID suffix + crypto random
       const orderIdSuffix = orderId.toString().slice(-6);
       const randomPart = Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 5);
       tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
@@ -73,31 +79,77 @@ export const createPayment = asyncHandler(async (req, res) => {
 
     const names = req.user.name.trim().split(" ");
 
-    const chapaData = await initializeChapaPayment({
-      amount,
-      email: req.user.email,
-      first_name: names[0] || "Customer",
-      last_name:  names.slice(1).join(" ") || "User",
-      tx_ref,
-    });
+    // Call Chapa — catch errors explicitly so we return a meaningful response
+    let chapaData;
+    try {
+      chapaData = await initializeChapaPayment({
+        amount,
+        email: req.user.email,
+        first_name: names[0] || "Customer",
+        last_name:  names.slice(1).join(" ") || "User",
+        tx_ref,
+      });
+    } catch (chapaErr) {
+      // If Chapa rejects because tx_ref already exists, generate a new one and retry once
+      const chapaMsg = chapaErr?.response?.data?.message || chapaErr?.message || "";
+      if (chapaMsg.toLowerCase().includes("tx_ref") && canReuse) {
+        // The reused tx_ref was rejected by Chapa — generate a fresh one
+        const orderIdSuffix = orderId.toString().slice(-6);
+        const randomPart = Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 5);
+        tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
+        try {
+          chapaData = await initializeChapaPayment({
+            amount,
+            email: req.user.email,
+            first_name: names[0] || "Customer",
+            last_name:  names.slice(1).join(" ") || "User",
+            tx_ref,
+          });
+        } catch (retryErr) {
+          logger.error(`Chapa retry failed: ${retryErr?.response?.data?.message || retryErr?.message}`);
+          return res.status(502).json({
+            success: false,
+            message: "Payment provider error. Please try again or choose a different payment method.",
+          });
+        }
+      } else {
+        logger.error(`Chapa init failed: ${chapaMsg}`);
+        return res.status(502).json({
+          success: false,
+          message: chapaMsg || "Failed to initialize payment with the provider.",
+        });
+      }
+    }
 
     const checkoutUrl = chapaData?.data?.checkout_url || chapaData?.checkout_url;
     if (!checkoutUrl) {
-      return res.status(500).json({ success: false, message: "Chapa did not return a checkout URL" });
+      return res.status(502).json({ success: false, message: "Payment provider did not return a checkout URL" });
     }
 
-    // Reuse existing payment record or create a new one
+    // Create or reuse the Payment record — handle duplicate key gracefully
     let payment;
-    if (existingPayment && existingPayment.tx_ref === tx_ref) {
+    if (canReuse && existingPayment.tx_ref === tx_ref) {
       payment = existingPayment;
     } else {
-      payment = await Payment.create({
-        order: orderId, user: req.user._id, amount, currency: "ETB",
-        methodCode: method.code, methodName: method.name, methodType: "chapa",
-        tx_ref, status: "Pending",
-      });
-      addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Pending");
-      await payment.save();
+      try {
+        payment = await Payment.create({
+          order: orderId, user: req.user._id, amount, currency: "ETB",
+          methodCode: method.code, methodName: method.name, methodType: "chapa",
+          tx_ref, status: "Pending",
+        });
+        addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Pending");
+        await payment.save();
+      } catch (createErr) {
+        // E11000 duplicate key — find the existing record and reuse it
+        if (createErr.code === 11000) {
+          payment = await Payment.findOne({ tx_ref }) || existingPayment;
+          if (!payment) {
+            return res.status(500).json({ success: false, message: "Payment record conflict. Please try again." });
+          }
+        } else {
+          throw createErr;
+        }
+      }
     }
 
     return res.json({ success: true, type: "chapa", checkout_url: checkoutUrl, tx_ref, paymentId: payment._id });
@@ -105,13 +157,28 @@ export const createPayment = asyncHandler(async (req, res) => {
 
   // ── CASH ON DELIVERY ──────────────────────────────────────────────────────
   if (method.type === "cash_on_delivery") {
-    const payment = await Payment.create({
-      order: orderId, user: req.user._id, amount, currency: "ETB",
-      methodCode: method.code, methodName: method.name, methodType: "cash_on_delivery",
-      status: "Awaiting Payment",
-    });
-    addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment", "Cash on Delivery");
-    await payment.save();
+    // Reuse existing COD payment if one exists for this order
+    let payment;
+    if (existingPayment && existingPayment.methodType === "cash_on_delivery") {
+      payment = existingPayment;
+    } else {
+      try {
+        payment = await Payment.create({
+          order: orderId, user: req.user._id, amount, currency: "ETB",
+          methodCode: method.code, methodName: method.name, methodType: "cash_on_delivery",
+          status: "Awaiting Payment",
+        });
+        addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment", "Cash on Delivery");
+        await payment.save();
+      } catch (createErr) {
+        if (createErr.code === 11000) {
+          payment = await Payment.findOne({ order: orderId, methodType: "cash_on_delivery" });
+          if (!payment) throw createErr;
+        } else {
+          throw createErr;
+        }
+      }
+    }
 
     // Update order status
     order.status = "Processing";
@@ -123,13 +190,28 @@ export const createPayment = asyncHandler(async (req, res) => {
 
   // ── MANUAL (Telebirr, CBE, BOA, etc.) ────────────────────────────────────
   if (method.type === "manual") {
-    const payment = await Payment.create({
-      order: orderId, user: req.user._id, amount, currency: "ETB",
-      methodCode: method.code, methodName: method.name, methodType: "manual",
-      status: "Awaiting Payment",
-    });
-    addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment");
-    await payment.save();
+    let payment;
+    if (existingPayment && existingPayment.methodType === "manual"
+        && ["Awaiting Payment", "Pending Verification"].includes(existingPayment.status)) {
+      payment = existingPayment;
+    } else {
+      try {
+        payment = await Payment.create({
+          order: orderId, user: req.user._id, amount, currency: "ETB",
+          methodCode: method.code, methodName: method.name, methodType: "manual",
+          status: "Awaiting Payment",
+        });
+        addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment");
+        await payment.save();
+      } catch (createErr) {
+        if (createErr.code === 11000) {
+          payment = await Payment.findOne({ order: orderId, methodType: "manual" });
+          if (!payment) throw createErr;
+        } else {
+          throw createErr;
+        }
+      }
+    }
 
     order.paymentMethod = method.name;
     await order.save();

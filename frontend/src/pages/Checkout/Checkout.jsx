@@ -99,6 +99,9 @@ function Checkout() {
     if (!localStorage.getItem("token")) { toast.warning("Please login before checkout"); navigate("/login"); return; }
     if (!selectedMethod) { toast.warning("Please select a payment method"); return; }
 
+    // Guard: prevent double submission even if the button isn't disabled fast enough
+    if (loading) return;
+
     try {
       setLoading(true);
 
@@ -146,6 +149,14 @@ function Checkout() {
 
     } catch (err) {
       const msg = err.response?.data?.message || err.message || "Checkout failed";
+
+      // If the order was already paid, redirect to orders instead of showing error
+      if (err.response?.status === 409 && msg.toLowerCase().includes("already been paid")) {
+        toast.info("This order has already been paid.");
+        navigate("/my-orders");
+        return;
+      }
+
       toast.error(msg);
     } finally {
       setLoading(false);

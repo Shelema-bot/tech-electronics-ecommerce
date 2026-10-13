@@ -11,8 +11,11 @@ const METHOD_ICONS = {
   cod:              "💵",
   cash_on_delivery: "💵",
   telebirr:         "📱",
+  cbe_birr:         "🏦",
   cbe:              "🏦",
   boa:              "🏛️",
+  awash:            "🏦",
+  manual:           "📱",
 };
 
 function Checkout() {
@@ -49,17 +52,17 @@ function Checkout() {
 
   // Load payment methods from backend
   useEffect(() => {
-    API.get("/payment-methods")
+    API.get("/payments/methods")
       .then(res => {
         const ms = res.data.methods || [];
         setMethods(ms);
         if (ms.length > 0) setSelectedMethod(ms[0].code);
       })
       .catch(() => {
-        // Fallback to defaults if backend unavailable
+        // Fallback if backend unavailable
         const fallback = [
-          { _id:"chapa",  code:"chapa",  name:"Chapa Payment",    type:"chapa",            enabled:true, requiresScreenshot:false, requiresReference:false },
-          { _id:"cod",    code:"cod",    name:"Cash on Delivery",  type:"cash_on_delivery", enabled:true, requiresScreenshot:false, requiresReference:false },
+          { _id:"chapa", code:"chapa", name:"Chapa Payment",   type:"chapa",            enabled:true, requiresScreenshot:false, requiresReference:false },
+          { _id:"cod",   code:"cod",   name:"Cash on Delivery", type:"cash_on_delivery", enabled:true, requiresScreenshot:false, requiresReference:false },
         ];
         setMethods(fallback);
         setSelectedMethod("chapa");

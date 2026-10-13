@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import API from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 import AccountLayout from "../../components/AccountLayout/AccountLayout";
@@ -70,9 +71,9 @@ function BecomeSeller() {
         <div className="seller-status-icon">✅</div>
         <h2>Verified Seller!</h2>
         <p>You're approved. Go to your admin panel to start listing products.</p>
-        <a href="/admin" style={{ display:"inline-block", marginTop:16, padding:"11px 28px", background:"#16a34a", color:"white", borderRadius:8, fontWeight:700, textDecoration:"none" }}>
+        <Link to="/admin" style={{ display:"inline-block", marginTop:16, padding:"11px 28px", background:"#16a34a", color:"white", borderRadius:8, fontWeight:700, textDecoration:"none" }}>
           Go to Seller Dashboard
-        </a>
+        </Link>
       </div>
     );
     if (status === "rejected") return (

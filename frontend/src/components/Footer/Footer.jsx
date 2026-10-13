@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./Footer.css";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   FaFacebookF, FaTelegramPlane, FaInstagram,
   FaLinkedinIn, FaTiktok, FaYoutube,
@@ -10,6 +11,7 @@ import { usePreference, COUNTRIES, LANGUAGES, CURRENCIES } from "../../context/P
 
 const Footer = () => {
   const [categories, setCategories] = useState([]);
+  const { t } = useTranslation();
   const { country, setCountry, language, setLanguage, currency, setCurrency } = usePreference();
 
   useEffect(() => {
@@ -25,10 +27,7 @@ const Footer = () => {
         {/* Brand */}
         <div className="footer-brand">
           <h2>Tech &amp; Electronic</h2>
-          <p>
-            Your trusted destination for the latest technology and electronics.
-            Quality products, best prices, exceptional service.
-          </p>
+          <p>{t("footer.tagline", "Your trusted destination for the latest technology and electronics. Quality products, best prices, exceptional service.")}</p>
           <div className="footer-social">
             <a href="https://facebook.com" target="_blank" rel="noreferrer" className="social-icon facebook"><FaFacebookF /></a>
             <a href="https://t.me/ijoolleeortodoksii" target="_blank" rel="noreferrer" className="social-icon telegram"><FaTelegramPlane /></a>
@@ -41,12 +40,12 @@ const Footer = () => {
 
         {/* Shop */}
         <div className="footer-col">
-          <h3>Shop</h3>
+          <h3>{t("footer.shop", "Shop")}</h3>
           <ul>
-            <li><Link to="/products">All Products</Link></li>
-            <li><Link to="/products">New Arrivals</Link></li>
-            <li><Link to="/products">Best Sellers</Link></li>
-            <li><Link to="/products">Deals &amp; Offers</Link></li>
+            <li><Link to="/products">{t("footer.allProducts","All Products")}</Link></li>
+            <li><Link to="/products">{t("footer.newArrivals","New Arrivals")}</Link></li>
+            <li><Link to="/products">{t("footer.bestSellers","Best Sellers")}</Link></li>
+            <li><Link to="/products">{t("footer.deals","Deals & Offers")}</Link></li>
             {categories.map((cat) => (
               <li key={cat._id}>
                 <Link to={`/products?category=${encodeURIComponent(cat.name)}`}>{cat.name}</Link>
@@ -57,26 +56,26 @@ const Footer = () => {
 
         {/* Customer Service */}
         <div className="footer-col">
-          <h3>Customer Service</h3>
+          <h3>{t("footer.customerService","Customer Service")}</h3>
           <ul>
-            <li><Link to="/contact">Contact Us</Link></li>
-            <li><Link to="/shipping-info">Shipping Information</Link></li>
-            <li><Link to="/returns">Returns &amp; Refunds</Link></li>
-            <li><Link to="/my-orders">Track My Order</Link></li>
-            <li><Link to="/faq">FAQ</Link></li>
-            <li><Link to="/help">Help Center</Link></li>
+            <li><Link to="/contact">{t("footer.contactUs","Contact Us")}</Link></li>
+            <li><Link to="/shipping-info">{t("footer.shipping","Shipping Information")}</Link></li>
+            <li><Link to="/returns">{t("footer.returns","Returns & Refunds")}</Link></li>
+            <li><Link to="/my-orders">{t("footer.trackOrder","Track My Order")}</Link></li>
+            <li><Link to="/faq">{t("footer.faq","FAQ")}</Link></li>
+            <li><Link to="/help">{t("footer.helpCenter","Help Center")}</Link></li>
           </ul>
         </div>
 
         {/* My Account + Contact */}
         <div className="footer-col">
-          <h3>My Account</h3>
+          <h3>{t("footer.myAccount","My Account")}</h3>
           <ul>
-            <li><Link to="/login">Sign In</Link></li>
-            <li><Link to="/register">Register</Link></li>
-            <li><Link to="/my-orders">My Orders</Link></li>
-            <li><Link to="/wishlist">Wishlist</Link></li>
-            <li><Link to="/profile">Account Settings</Link></li>
+            <li><Link to="/login">{t("footer.signIn","Sign In")}</Link></li>
+            <li><Link to="/register">{t("footer.register","Register")}</Link></li>
+            <li><Link to="/my-orders">{t("account.myOrders","My Orders")}</Link></li>
+            <li><Link to="/wishlist">{t("account.wishlist","Wishlist")}</Link></li>
+            <li><Link to="/profile">{t("footer.accountSettings","Account Settings")}</Link></li>
           </ul>
 
           <h3 style={{ marginTop: "24px" }}>Connect With Us</h3>
@@ -98,7 +97,7 @@ const Footer = () => {
 
       {/* Bottom bar */}
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} Tech &amp; Electronic E-Commerce. All Rights Reserved.</span>
+        <span>© {new Date().getFullYear()} Tech &amp; Electronic E-Commerce. {t("footer.rights","All Rights Reserved.").replace("© {{year}} Tech & Electronic E-Commerce. ","")}</span>
         <span className="footer-bottom-links">
           <Link to="/privacy">Privacy Policy</Link>
           <Link to="/terms">Terms &amp; Conditions</Link>
@@ -110,7 +109,7 @@ const Footer = () => {
       {/* Locale bar */}
       <div className="footer-locale-bar">
         <div className="footer-locale-inner">
-          <span className="footer-locale-label">🌍 Your preferences:</span>
+          <span className="footer-locale-label">{t("footer.yourPreferences","🌍 Your preferences:")}</span>
 
           {/* Country */}
           <div className="footer-locale-select">
@@ -158,7 +157,7 @@ const Footer = () => {
             </select>
           </div>
 
-          <span className="footer-locale-note">Prices are approximate conversions from ETB.</span>
+          <span className="footer-locale-note">{t("footer.pricesApprox","Prices are approximate conversions from ETB.")}</span>
         </div>
       </div>
     </footer>

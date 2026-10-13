@@ -5,6 +5,7 @@ import { useCart } from "../../context/CartContext";
 import { useWishlist } from "../../context/WishlistContext";
 import { useToast } from "../../context/ToastContext";
 import { usePreference } from "../../context/PreferenceContext";
+import { useTranslation } from "react-i18next";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./LatestProducts.css";
 
@@ -32,6 +33,7 @@ function LatestProducts() {
   const toast = useToast();
   const navigate = useNavigate();
   const { fmt } = usePreference();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchLatest = async () => {
@@ -85,13 +87,13 @@ function LatestProducts() {
       <section className="latest-section">
         <div className="latest-header">
           <div className="latest-header-left">
-            <span className="latest-tag">NEW ARRIVALS</span>
-            <h2>Latest Products</h2>
+            <span className="latest-tag">{t("product.newArrivals", "NEW ARRIVALS")}</span>
+            <h2>{t("product.latestProducts", "Latest Products")}</h2>
           </div>
         </div>
         <div className="latest-loading">
           <div className="loading-spinner" />
-          <span>Loading products...</span>
+          <span>{t("product.loading", "Loading products...")}</span>
         </div>
       </section>
     );
@@ -105,12 +107,12 @@ function LatestProducts() {
       {/* Header */}
       <div className="latest-header">
         <div className="latest-header-left">
-          <span className="latest-tag">FEATURED</span>
-          <h2>Latest Products</h2>
-          <p>One pick from each category — discover what's new</p>
+          <span className="latest-tag">{t("product.newArrivals", "FEATURED")}</span>
+          <h2>{t("product.latestProducts", "Latest Products")}</h2>
+          <p>{t("product.latestSubtitle", "One pick from each category — discover what's new")}</p>
         </div>
         <Link to="/products" className="latest-view-all">
-          View All Products →
+          {t("product.viewAll", "View All Products →")}
         </Link>
       </div>
 
@@ -134,10 +136,10 @@ function LatestProducts() {
 
               {/* Stock badge */}
               {product.stock <= 5 && product.stock > 0 && (
-                <span className="lp-badge low">Low Stock</span>
+                <span className="lp-badge low">{t("product.lowStock", "⚠ Only {{count}} left", { count: product.stock })}</span>
               )}
               {product.stock === 0 && (
-                <span className="lp-badge out">Out of Stock</span>
+                <span className="lp-badge out">{t("product.outOfStock", "Out of Stock")}</span>
               )}
 
               {/* Image */}
@@ -166,10 +168,10 @@ function LatestProducts() {
                     disabled={product.stock === 0}
                     onClick={() => {
                       addToCart(product);
-                      toast.success(`${product.name} added to cart`);
+                      toast.success(`${product.name} ${t("product.addedToCart", "added to cart")}`);
                     }}
                   >
-                    {product.stock === 0 ? "Out of Stock" : "Add to Cart"}
+                    {product.stock === 0 ? t("product.outOfStock","Out of Stock") : t("product.addToCart","Add to Cart")}
                   </button>
                 </div>
               </div>
@@ -182,7 +184,7 @@ function LatestProducts() {
       {/* CTA */}
       <div className="latest-cta">
         <button className="latest-cta-btn" onClick={() => navigate("/products")}>
-          Browse All Products
+          {t("product.browseAll", "Browse All Products")}
         </button>
       </div>
 

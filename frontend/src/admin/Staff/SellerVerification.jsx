@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import API from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./SellerVerification.css";
 
 function SellerVerification() {
@@ -100,7 +101,7 @@ function SellerVerification() {
                   {seller.staffInfo?.nationalIdImage && (
                     <div className="verify-id-img">
                       <img
-                        src={seller.staffInfo.nationalIdImage}
+                        src={getImageUrl(seller.staffInfo.nationalIdImage)}
                         alt="National ID"
                       />
                     </div>

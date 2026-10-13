@@ -3,23 +3,40 @@ import { useNavigate } from "react-router-dom";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
 import { useToast } from "../../context/ToastContext";
+import { getImageUrl } from "../../utils/imageUrl";
 import "./Category.css";
 
-import laptopImg    from "../../assets/category/laptops.png";
-import accessoryImg from "../../assets/category/smart-accessor.jpg";
-import watchImg     from "../../assets/category/smart-watch.jpg";
+import laptopImg     from "../../assets/category/laptops.png";
+import accessoryImg  from "../../assets/category/smart-accessor.jpg";
+import watchImg      from "../../assets/category/smart-watch.jpg";
 import smartphoneImg from "../../assets/category/smart-phone.jpg";
-import gamingImg    from "../../assets/category/gaming.jpg";
-import networkImg   from "../../assets/category/network.jpg";
+import gamingImg     from "../../assets/category/gaming.jpg";
+import networkImg    from "../../assets/category/network.jpg";
 
-const categoryImages = {
-  Laptops: laptopImg,
-  Smartphones: smartphoneImg,
-  Gaming: gamingImg,
-  Network: networkImg,
-  "Smart Accessories": accessoryImg,
-  "Smart Watch": watchImg,
+const LOCAL_IMAGES = {
+  Laptops:            laptopImg,
+  Smartphones:        smartphoneImg,
+  Gaming:             gamingImg,
+  Network:            networkImg,
+  "Smart Accessories":accessoryImg,
+  "Smart Watch":      watchImg,
 };
+
+const FALLBACK_ICONS = {
+  "Headphones & Audio": "🎧",
+  Tablets:              "📟",
+  Drones:               "🚁",
+  "Printers & Scanners":"🖨️",
+  "Smart Home":         "🏠",
+  Cameras:              "📷",
+};
+
+// Resolve image: DB cloud image → local asset → icon fallback
+function getCatImage(cat) {
+  if (cat.image) return { type: "url", src: getImageUrl(cat.image) };
+  if (LOCAL_IMAGES[cat.name]) return { type: "url", src: LOCAL_IMAGES[cat.name] };
+  return { type: "icon", src: FALLBACK_ICONS[cat.name] || "📦" };
+}
 
 function Category() {
   const [categories, setCategories] = useState([]);
@@ -82,13 +99,15 @@ function Category() {
         </div>
       ) : (
         <div className="category-list">
-          {categories.map((cat) => (
+          {categories.map((cat) => {
+            const img = getCatImage(cat);
+            return (
             <div className="category-card" key={cat._id}>
               <div className="category-image-container">
-                {categoryImages[cat.name] ? (
-                  <img src={categoryImages[cat.name]} alt={cat.name} className="category-image" />
+                {img.type === "url" ? (
+                  <img src={img.src} alt={cat.name} className="category-image" />
                 ) : (
-                  <div className="no-image">No Image</div>
+                  <div className="cat-icon-thumb">{img.src}</div>
                 )}
               </div>
               <div className="category-content">
@@ -99,7 +118,8 @@ function Category() {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </AdminLayout>

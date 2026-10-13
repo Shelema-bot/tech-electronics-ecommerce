@@ -26,6 +26,16 @@
     "customers": "Happy Customers",
     "support": "Support"
   },
+  "trust": {
+    "shipping":     "Free Shipping",
+    "shippingDesc": "On orders over ETB 5,000",
+    "payment":      "Secure Payment",
+    "paymentDesc":  "100% secure payment",
+    "returns":      "30-Day Returns",
+    "returnsDesc":  "Money back guarantee",
+    "support":      "24/7 Support",
+    "supportDesc":  "Dedicated support team"
+  },
   "product": {
     "addToCart": "Add to Cart",
     "outOfStock": "Out of Stock",
@@ -58,7 +68,10 @@
     "latestProducts": "Latest Products",
     "latestSubtitle": "One pick from each category — discover what's new",
     "viewAll": "View All Products →",
-    "browseAll": "Browse All Products"
+    "browseAll": "Browse All Products",
+    "shopByCategory": "Shop By Category",
+    "browseCategories": "Browse {{count}} categories of latest tech",
+    "addedToCart": "added to cart"
   },
   "cart": {
     "title": "Shopping Cart",

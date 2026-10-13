@@ -103,3 +103,14 @@
 @media (max-width: 400px) {
   .category-container { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* Icon fallback when no image is available */
+.cat-icon-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}

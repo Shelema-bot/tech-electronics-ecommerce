@@ -26,6 +26,16 @@
     "customers": "ደስተኛ ደንበኞች",
     "support": "ድጋፍ"
   },
+  "trust": {
+    "shipping":     "ነጻ ማጓጓዝ",
+    "shippingDesc": "ከ5,000 ብር በላይ ለሆኑ ትዕዛዞች",
+    "payment":      "ደህንነቱ የተጠበቀ ክፍያ",
+    "paymentDesc":  "100% ደህንነቱ የተጠበቀ",
+    "returns":      "30 ቀን ተመላሽ",
+    "returnsDesc":  "ገንዘብ ተመላሽ ዋስትና",
+    "support":      "24/7 ድጋፍ",
+    "supportDesc":  "ወሰን የሌለው ድጋፍ ቡድን"
+  },
   "product": {
     "addToCart": "ወደ ጋሪ ጨምር",
     "outOfStock": "ክምችት አልተኖረም",
@@ -58,7 +68,10 @@
     "latestProducts": "የቅርብ ጊዜ ምርቶች",
     "latestSubtitle": "ከእያንዳንዱ ምድብ አንድ ምርጫ — አዲሱን ያግኙ",
     "viewAll": "ሁሉም ምርቶች ይመልከቱ →",
-    "browseAll": "ሁሉም ምርቶች ይፈልጉ"
+    "browseAll": "ሁሉም ምርቶች ይፈልጉ",
+    "shopByCategory": "በምድብ ግዙ",
+    "browseCategories": "{{count}} ምድቦችን ያስሱ",
+    "addedToCart": "ወደ ጋሪ ተጨምሯል"
   },
   "cart": {
     "title": "የግዢ ጋሪ",

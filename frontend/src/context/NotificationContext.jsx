@@ -59,8 +59,16 @@ export function NotificationProvider({ children }) {
     } catch {}
   };
 
+  const clearAll = async () => {
+    try {
+      await API.delete("/notifications/clear-all");
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {}
+  };
+
   return (
-    <NotificationContext.Provider value={{ notifications, unreadCount, loading, fetchNotifications, markRead, markAllRead, deleteNotif }}>
+    <NotificationContext.Provider value={{ notifications, unreadCount, loading, fetchNotifications, markRead, markAllRead, deleteNotif, clearAll }}>
       {children}
     </NotificationContext.Provider>
   );

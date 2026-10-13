@@ -1,6 +1,7 @@
 import Meeting from "../models/Meeting.js";
 import User    from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
+import { createNotification } from "./notificationController.js";
 
 // ── CREATE meeting (owner/admin) ────────────────────────────────────
 export const createMeeting = asyncHandler(async (req, res) => {
@@ -43,6 +44,21 @@ export const createMeeting = asyncHandler(async (req, res) => {
 
   await meeting.populate("organizer", "name email");
   await meeting.populate("invitees.user", "name email");
+
+  // Notify all invitees
+  const dateStr = new Date(scheduledAt).toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric", hour:"2-digit", minute:"2-digit" });
+  const notifTargets = meeting.targetAll
+    ? (await User.find({ role:"seller", "staffInfo.verificationStatus":"verified", isActive:true }).select("_id")).map(u => u._id)
+    : meeting.invitees.map(i => i.user);
+
+  notifTargets.forEach(uid => {
+    createNotification(
+      uid,
+      `Meeting Scheduled: ${meeting.title}`,
+      `You've been invited to a meeting on ${dateStr}. Check your meetings for details.`,
+      "system", "/admin/my-plan", "📅"
+    );
+  });
 
   res.status(201).json({ success: true, message: "Meeting scheduled", meeting });
 });

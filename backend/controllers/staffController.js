@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import Product from "../models/Product.js";
+import { createNotification, notifyAdmins } from "./notificationController.js";
 
 // ── GET ALL STAFF (super_admin only) ─────────────
 export const getAllStaff = async (req, res) => {
@@ -83,6 +84,24 @@ export const verifySeller = async (req, res) => {
     if (status === "rejected") user.role = "customer";
 
     await user.save();
+
+    // Notify the seller of the decision
+    if (status === "verified") {
+      createNotification(
+        user._id,
+        "🎉 Seller Application Approved!",
+        "Congratulations! Your seller application has been approved. You can now submit products for sale.",
+        "verification", "/admin/my-products", "✅"
+      );
+    } else {
+      createNotification(
+        user._id,
+        "Seller Application Rejected",
+        `Your seller application was not approved. Reason: ${note || "No reason provided."}`,
+        "verification", "/become-seller", "❌"
+      );
+    }
+
     res.json({ success: true, message: `Seller ${status}`, user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -111,6 +130,14 @@ export const applyAsSeller = async (req, res) => {
     }
 
     await user.save();
+
+    // Notify admins about new seller application
+    notifyAdmins(
+      "New Seller Application",
+      `${user.name} has submitted a seller application. Please review and verify.`,
+      "verification", "/admin/seller-verify", "🏪"
+    );
+
     res.json({ success: true, message: "Seller application submitted. Awaiting verification.", user });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

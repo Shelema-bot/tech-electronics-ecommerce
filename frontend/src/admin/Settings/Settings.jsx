@@ -10,6 +10,7 @@ const TABS = [
   { key: "profile",     label: "Profile",         icon: "👤" },
   { key: "password",    label: "Change Password",  icon: "🔒" },
   { key: "preferences", label: "Preferences",      icon: "🌍" },
+  { key: "promos",      label: "Promo Banner",     icon: "📢" },
 ];
 
 function Settings() {
@@ -25,6 +26,23 @@ function Settings() {
   const [showPw, setShowPw]     = useState({ current: false, new: false, confirm: false });
 
   const { country, setCountry, language, setLanguage, currency, setCurrency, fmt } = usePreference();
+
+  // ── Promo banner state ───────────────────────────────────────
+  const loadPromos = () => {
+    try {
+      const saved = localStorage.getItem("store_promos");
+      if (saved) { const p = JSON.parse(saved); if (Array.isArray(p) && p.length > 0) return p; }
+    } catch {}
+    return [
+      { id:1, text:"🚚 <strong>Free Shipping</strong> on all orders over ETB 5,000!" },
+      { id:2, text:"🔒 <strong>100% Secure</strong> Payment — Shop with confidence" },
+      { id:3, text:"📞 <strong>24/7 Support</strong> — Call us: <strong>+251 974 007 772</strong>" },
+      { id:4, text:"🎁 <strong>New Arrivals</strong> every week — Check out the latest tech!" },
+      { id:5, text:"💳 Pay with <strong>Telebirr, CBE Birr, BOA</strong> or Cash on Delivery" },
+    ];
+  };
+  const [promos,    setPromos]    = useState(loadPromos);
+  const [promoText, setPromoText] = useState("");
 
   useEffect(() => { fetchProfile(); }, []);
 
@@ -372,6 +390,114 @@ function Settings() {
               ✓ Preferences are saved instantly to your browser and applied across the entire store.
             </div>
 
+          </div>
+        )}
+
+        {/* ══ Promo Banner tab ══ */}
+        {tab === "promos" && (
+          <div className="set-card">
+            <div className="set-pref-intro">
+              <span className="set-pref-intro-icon">📢</span>
+              <div>
+                <div style={{ fontWeight:800, color:"#0f172a", fontSize:15 }}>Promo Banner Manager</div>
+                <div style={{ fontSize:13, color:"#64748b", marginTop:3 }}>
+                  These messages rotate in the announcement bar at the top of the storefront. Add, reorder, or remove them.
+                </div>
+              </div>
+            </div>
+
+            <div className="set-divider" />
+
+            {/* Add new promo */}
+            <div style={{ marginBottom:20 }}>
+              <label style={{ fontSize:13, fontWeight:600, color:"#374151", display:"block", marginBottom:5 }}>
+                Add New Promo Message (HTML supported for <strong>bold</strong>)
+              </label>
+              <div style={{ display:"flex", gap:8 }}>
+                <input
+                  value={promoText}
+                  onChange={e => setPromoText(e.target.value)}
+                  placeholder='e.g. 🔥 <strong>Flash Sale</strong> — 30% off Laptops this weekend!'
+                  style={{ flex:1, padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:14, outline:"none" }}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && promoText.trim()) {
+                      const updated = [...promos, { id: Date.now(), text: promoText.trim() }];
+                      setPromos(updated);
+                      localStorage.setItem("store_promos", JSON.stringify(updated));
+                      window.dispatchEvent(new Event("promosUpdated"));
+                      setPromoText("");
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!promoText.trim()) return;
+                    const updated = [...promos, { id: Date.now(), text: promoText.trim() }];
+                    setPromos(updated);
+                    localStorage.setItem("store_promos", JSON.stringify(updated));
+                    window.dispatchEvent(new Event("promosUpdated"));
+                    setPromoText("");
+                  }}
+                  style={{ padding:"9px 20px", background:"#16a34a", color:"white", border:"none", borderRadius:8, fontWeight:700, fontSize:14, cursor:"pointer", whiteSpace:"nowrap" }}
+                >
+                  + Add
+                </button>
+              </div>
+              <span style={{ fontSize:11, color:"#94a3b8", display:"block", marginTop:4 }}>
+                Press Enter or click Add. Changes apply to the storefront immediately.
+              </span>
+            </div>
+
+            {/* Promo list */}
+            <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+              {promos.map((p, i) => (
+                <div key={p.id} style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 14px", background:"#f8fafc", border:"1px solid #e2e8f0", borderRadius:10 }}>
+                  <span style={{ color:"#94a3b8", fontSize:13, fontWeight:700, minWidth:22 }}>{i+1}.</span>
+                  <span style={{ flex:1, fontSize:13, color:"#334155" }} dangerouslySetInnerHTML={{ __html: p.text }} />
+                  <div style={{ display:"flex", gap:4, flexShrink:0 }}>
+                    {i > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const a = [...promos]; [a[i-1], a[i]] = [a[i], a[i-1]];
+                          setPromos(a); localStorage.setItem("store_promos", JSON.stringify(a)); window.dispatchEvent(new Event("promosUpdated"));
+                        }}
+                        style={{ padding:"4px 8px", background:"#f1f5f9", border:"1px solid #e2e8f0", borderRadius:6, cursor:"pointer", fontSize:12 }}
+                      >↑</button>
+                    )}
+                    {i < promos.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const a = [...promos]; [a[i], a[i+1]] = [a[i+1], a[i]];
+                          setPromos(a); localStorage.setItem("store_promos", JSON.stringify(a)); window.dispatchEvent(new Event("promosUpdated"));
+                        }}
+                        style={{ padding:"4px 8px", background:"#f1f5f9", border:"1px solid #e2e8f0", borderRadius:6, cursor:"pointer", fontSize:12 }}
+                      >↓</button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = promos.filter((_, j) => j !== i);
+                        setPromos(updated); localStorage.setItem("store_promos", JSON.stringify(updated)); window.dispatchEvent(new Event("promosUpdated"));
+                      }}
+                      style={{ padding:"4px 8px", background:"transparent", color:"#dc2626", border:"1px solid #fecdd3", borderRadius:6, cursor:"pointer", fontSize:12 }}
+                    >✕</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {promos.length === 0 && (
+              <div style={{ textAlign:"center", padding:"32px", color:"#94a3b8", background:"#f8fafc", borderRadius:10, border:"1px dashed #e2e8f0" }}>
+                No promo messages yet. Add one above.
+              </div>
+            )}
+
+            <div className="set-pref-saved-note" style={{ marginTop:16 }}>
+              ✓ Changes are saved instantly and appear in the storefront banner immediately.
+            </div>
           </div>
         )}
 

@@ -60,6 +60,7 @@ import BecomeSeller from "./pages/BecomeSeller/BecomeSeller";
 import Coupons from "./admin/Coupons/Coupons";
 import SellerPlans from "./admin/SellerPlans/SellerPlans";
 import Meetings from "./admin/Meetings/Meetings";
+import AdminNotifications from "./admin/Notifications/AdminNotifications";
 
 function App() {
   return (
@@ -154,6 +155,7 @@ function App() {
         <Route path="/admin/coupons"          element={<AdminRoute><Coupons /></AdminRoute>} />
         <Route path="/admin/seller-plans"     element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><SellerPlans /></AdminRoute>} />
         <Route path="/admin/meetings"         element={<AdminRoute requiredRoles={["owner","super_admin","admin","seller"]}><Meetings /></AdminRoute>} />
+        <Route path="/admin/notifications"    element={<AdminRoute><AdminNotifications /></AdminRoute>} />
 
         {/* Become a seller */}
         <Route path="/become-seller" element={

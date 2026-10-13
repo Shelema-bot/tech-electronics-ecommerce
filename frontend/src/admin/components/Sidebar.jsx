@@ -3,7 +3,7 @@ import {
   FaHome, FaBox, FaList, FaShoppingCart,
   FaUsers, FaCreditCard, FaUserCog,
   FaCheckCircle, FaClipboardCheck, FaEnvelope,
-  FaChartBar, FaTag, FaMoneyBillWave, FaCalendarAlt,
+  FaChartBar, FaTag, FaMoneyBillWave, FaCalendarAlt, FaBell,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -35,6 +35,8 @@ const ALL_MENU = [
   { path: "/admin/seller-plans",     name: "Seller Plans",    icon: <FaMoneyBillWave />,  roles: ALL_ADMIN },
   // Meetings (admin schedules, seller views)
   { path: "/admin/meetings",         name: "Meetings",        icon: <FaCalendarAlt />,    roles: [...ALL_ADMIN,"seller"] },
+  // Notifications — all staff
+  { path: "/admin/notifications",    name: "Notifications",   icon: <FaBell />,           roles: ALL_STAFF },
   // Seller only
   { path: "/admin/my-products",      name: "My Products",     icon: <FaBox />,            roles: ["seller"] },
   { path: "/admin/my-plan",          name: "My Plan",         icon: <FaMoneyBillWave />,  roles: ["seller"] },

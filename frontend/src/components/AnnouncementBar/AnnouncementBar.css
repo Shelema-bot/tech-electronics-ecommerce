@@ -1,34 +1,82 @@
+/* ════════════════════════════════════════
+   ANNOUNCEMENT BAR — rotating promos
+════════════════════════════════════════ */
+
 .announcement-bar {
   width: 100%;
-  background: linear-gradient(90deg, #15803d 0%, #16a34a 100%);
+  background: linear-gradient(90deg, #0f172a 0%, #1e3a8a 60%, #2563eb 100%);
   color: white;
   text-align: center;
-  padding: 9px 48px 9px 16px;
+  padding: 10px 120px;
   font-size: 13px;
   position: relative;
   z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 40px;
+  overflow: hidden;
 }
 
-.ann-text { letter-spacing: 0.01em; }
+/* Text animation */
+.ann-text {
+  letter-spacing: 0.01em;
+  display: inline-block;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+.ann-fade-in  { opacity: 1;   transform: translateY(0); }
+.ann-fade-out { opacity: 0;   transform: translateY(-6px); }
 
+/* Dot indicators */
+.ann-dots {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.ann-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.35);
+  border: none; cursor: pointer; padding: 0;
+  transition: background 0.2s, transform 0.2s;
+}
+.ann-dot.active {
+  background: white;
+  transform: scale(1.3);
+}
+
+/* Arrows */
+.ann-arrow {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  border: none; color: white;
+  font-size: 20px; line-height: 1;
+  cursor: pointer; padding: 2px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.ann-arrow:hover { background: rgba(255,255,255,0.28); }
+.ann-arrow-left  { left: 10px; }
+.ann-arrow-right { right: 36px; }
+
+/* Close button */
 .ann-close {
   position: absolute;
-  right: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  border: none;
-  color: rgba(255,255,255,0.8);
-  cursor: pointer;
-  font-size: 14px;
-  line-height: 1;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: color 0.2s;
+  right: 12px; top: 50%; transform: translateY(-50%);
+  background: transparent; border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer; font-size: 14px; padding: 2px 6px;
+  border-radius: 4px; transition: color 0.2s;
 }
-
 .ann-close:hover { color: white; }
 
-@media (max-width: 600px) {
-  .announcement-bar { font-size: 11px; padding: 8px 36px 8px 10px; }
+@media (max-width: 640px) {
+  .announcement-bar { font-size: 11px; padding: 9px 60px; }
+  .ann-arrow { display: none; }
 }

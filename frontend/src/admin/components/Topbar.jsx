@@ -28,6 +28,7 @@ const pageMap = {
   "/admin/seller-plans":      "Seller Plans",
   "/admin/meetings":          "Meetings",
   "/admin/my-plan":           "My Plan",
+  "/admin/notifications":     "Notifications",
 };
 
 const ROLE_COLOR = {

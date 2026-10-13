@@ -1,4 +1,13 @@
 import Order from "../models/Order.js";
+import { createNotification } from "./notificationController.js";
+
+const STATUS_MESSAGES = {
+  Processing: { msg: "Your order is now being processed.",       icon: "⚙️" },
+  Shipped:    { msg: "Your order has been shipped and is on its way!", icon: "🚚" },
+  Delivered:  { msg: "Your order has been delivered. Enjoy!",    icon: "✅" },
+  Cancelled:  { msg: "Your order has been cancelled.",           icon: "❌" },
+  Pending:    { msg: "Your order is pending.",                   icon: "⏳" },
+};
 
 
 
@@ -173,10 +182,19 @@ export const updateOrderStatus = async(req,res)=>{
         order.status =
         req.body.status || order.status;
 
-
-
         const updatedOrder =
         await order.save();
+
+        // Notify customer about status change
+        const sm = STATUS_MESSAGES[updatedOrder.status] || {};
+        if (sm.msg && order.user) {
+          createNotification(
+            order.user,
+            `Order Update: ${updatedOrder.status}`,
+            `${sm.msg} Order #${order._id.toString().slice(-8)}.`,
+            "order", "/my-orders", sm.icon || "📦"
+          );
+        }
 
 
 

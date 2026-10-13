@@ -4,6 +4,7 @@ import Order from "../models/Order.js";
 import User from "../models/User.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import logger from "../utils/logger.js";
+import { createNotification, notifyAdmins } from "./notificationController.js";
 
 const addAudit = (payment, action, userId, fromStatus, toStatus, note = "") => {
   payment.auditLog.push({ action, performedBy: userId, fromStatus, toStatus, note, timestamp: new Date() });
@@ -77,6 +78,13 @@ export const approvePayment = asyncHandler(async (req, res) => {
   }
 
   logger.info(`Payment approved by admin: ${payment._id} (${req.user.email})`);
+  // Notify customer
+  createNotification(
+    payment.user,
+    "Payment Approved ✅",
+    `Your payment of ${Number(payment.amount).toLocaleString()} ETB has been approved and your order is being processed.`,
+    "payment", "/payment-history", "✅"
+  );
   res.json({ success: true, message: "Payment approved and marked as Paid", payment });
 });
 
@@ -109,6 +117,13 @@ export const rejectPayment = asyncHandler(async (req, res) => {
   }
 
   logger.info(`Payment rejected by admin: ${payment._id} reason: ${reason}`);
+  // Notify customer
+  createNotification(
+    payment.user,
+    "Payment Rejected ❌",
+    `Your payment was rejected. Reason: ${reason}. Please resubmit or contact support.`,
+    "payment", "/payment-history", "❌"
+  );
   res.json({ success: true, message: "Payment rejected", payment });
 });
 

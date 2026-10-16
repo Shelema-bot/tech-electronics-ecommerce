@@ -212,7 +212,8 @@ export const createPayment = asyncHandler(async (req, res) => {
         tx_ref,
       });
     } catch (chapaErr) {
-      const chapaMsg = chapaErr?.response?.data?.message || chapaErr?.message || "";
+      const rawMsg = chapaErr?.response?.data?.message || chapaErr?.response?.data || chapaErr?.message || "";
+      const chapaMsg = typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg);
       if (chapaMsg.toLowerCase().includes("tx_ref") && canReuse) {
         // Regenerate fresh tx_ref and retry
         const orderIdSuffix = orderId.toString().slice(-6);

@@ -2,15 +2,26 @@ import axios from "axios";
 
 const CHAPA_URL = "https://api.chapa.co/v1";
 
-const getBackendUrl = () => {
+export const getBackendUrl = () => {
   const url = process.env.BACKEND_URL || "https://tech-electronics-backend.onrender.com";
   return url.replace(/\/+$/, "");
 };
 
-const getFrontendUrl = () => {
+export const getFrontendUrl = () => {
   const url = process.env.FRONTEND_URL || "https://tech-electronics-ecommerce-frontend.vercel.app";
   return url.replace(/\/+$/, "");
 };
+
+export const isChapaConfigured = () => {
+  const key = process.env.CHAPA_SECRET_KEY;
+  return Boolean(
+    key &&
+    key.trim() &&
+    !key.includes("your_chapa_secret_key") &&
+    key !== "your_chapa_secret_key"
+  );
+};
+
 
 // ================================
 // Initialize Chapa Payment

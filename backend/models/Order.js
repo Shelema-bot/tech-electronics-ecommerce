@@ -79,6 +79,11 @@ const orderSchema = new mongoose.Schema(
     paidAt: {
       type: Date,
     },
+    alreadyStockDecremented: {
+      type: Boolean,
+      default: false,
+    },
+
 
     paymentResult: {
       id:     { type: String },

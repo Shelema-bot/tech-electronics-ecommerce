@@ -163,4 +163,12 @@ const startServer = async () => {
   }
 };
 
+process.on("unhandledRejection", (reason, promise) => {
+  logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  logger.error("Uncaught Exception thrown:", error);
+});
+
 startServer();

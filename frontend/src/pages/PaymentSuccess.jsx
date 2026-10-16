@@ -15,11 +15,12 @@ function PaymentSuccess() {
   const tx_ref = params.get("tx_ref") || params.get("trx_ref") || localStorage.getItem("pendingTxRef") || "";
   const queryOrderId = params.get("orderId") || localStorage.getItem("pendingOrder") || "";
   const paymentType = params.get("type") || (tx_ref ? "chapa" : "cod");
+  const isDemo = params.get("mode") === "demo" || (typeof tx_ref === "string" && tx_ref.includes("DEMO"));
 
   const [loading, setLoading] = useState(Boolean(tx_ref));
   const [error, setError] = useState(null);
   const [order, setOrder] = useState(null);
-  const [verifiedSuccess, setVerifiedSuccess] = useState(paymentType === "cod");
+  const [verifiedSuccess, setVerifiedSuccess] = useState(paymentType === "cod" || isDemo);
   const verificationAttempted = useRef(false);
 
   const performVerification = async () => {
@@ -41,7 +42,8 @@ function PaymentSuccess() {
       setLoading(true);
       setError(null);
 
-      const res = await verifyPayment(tx_ref);
+      const verifyParam = isDemo ? `${encodeURIComponent(tx_ref)}?mode=demo` : encodeURIComponent(tx_ref);
+      const res = await verifyPayment(verifyParam);
 
       if (res.success) {
         setVerifiedSuccess(true);
@@ -53,19 +55,29 @@ function PaymentSuccess() {
         localStorage.removeItem("pendingOrder");
         localStorage.removeItem("pendingTxRef");
 
-        toast.success("Payment verified successfully! 🎉");
+        toast.success(isDemo ? "Payment completed in Demo Mode! 🎉" : "Payment verified successfully! 🎉");
       } else {
         setError(res.message || "Payment has not been completed yet.");
         toast.warning(res.message || "Payment status pending confirmation.");
       }
     } catch (err) {
       console.error("Payment verification failed:", err);
-      const msg =
-        err.response?.data?.message ||
-        err.message ||
-        "Failed to verify payment with the gateway. Please retry or contact support.";
-      setError(msg);
-      toast.error(msg);
+      // If demo mode, don't block the user
+      if (isDemo && queryOrderId) {
+        setVerifiedSuccess(true);
+        clearCart();
+        localStorage.removeItem("cartItems");
+        localStorage.removeItem("pendingOrder");
+        localStorage.removeItem("pendingTxRef");
+        getOrderById(queryOrderId).then(r => { if (r.order) setOrder(r.order); }).catch(() => {});
+      } else {
+        const msg =
+          err.response?.data?.message ||
+          err.message ||
+          "Failed to verify payment with the gateway. Please retry or contact support.";
+        setError(msg);
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -155,6 +167,8 @@ function PaymentSuccess() {
   const displayTotal = order?.totalPrice ? fmt(order.totalPrice) : "—";
   const isCod = paymentType === "cod" || order?.paymentMethod?.toLowerCase().includes("delivery") || order?.paymentMethod === "COD";
 
+  const isDemoOrder = isDemo || order?.paymentMethod?.toLowerCase().includes("demo");
+
   return (
     <div className="payment-success">
       <div className="ps-icon success-bounce">{isCod ? "🚚" : "🎉"}</div>
@@ -162,6 +176,8 @@ function PaymentSuccess() {
       <p className="ps-subtitle">
         {isCod
           ? "Thank you for your order! Your items are being prepared and payment will be collected upon delivery."
+          : isDemoOrder
+          ? "Your order has been placed and payment confirmed in Demo Mode. Your order is now in processing."
           : "Your payment has been successfully confirmed and your order is now in processing."}
       </p>
 
@@ -172,6 +188,10 @@ function PaymentSuccess() {
           <div>
             {isCod ? (
               <span className="status-badge cod">💵 Cash on Delivery</span>
+            ) : isDemoOrder ? (
+              <span className="status-badge paid" style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}>
+                ✓ Paid (Demo Mode)
+              </span>
             ) : (
               <span className="status-badge paid">✓ Paid via Chapa</span>
             )}

@@ -60,7 +60,7 @@ export const initializeChapaPayment = async ({
           Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
-        timeout: 10000,
+        timeout: 4000,
       }
     );
 
@@ -88,7 +88,7 @@ export const verifyChapaPayment = async (tx_ref) => {
         headers: {
           Authorization: `Bearer ${process.env.CHAPA_SECRET_KEY}`,
         },
-        timeout: 10000,
+        timeout: 4000,
       }
     );
 

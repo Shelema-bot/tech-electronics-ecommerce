@@ -8,7 +8,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import dns from "dns";
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
+if (process.env.NODE_ENV !== "production" && process.env.OVERRIDE_DNS === "true") {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+}
 
 import express from "express";
 import cors    from "cors";

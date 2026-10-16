@@ -38,7 +38,7 @@ router.get("/verify",           verifyPayment);
 router.post("/webhook",         chapaWebhook);
 
 // Payment initialization
-router.post("/initialize",      optionalProtect, initializePayment);
+router.post("/initialize",      optionalProtect, createPayment);
 router.post("/",                optionalProtect, createPayment);
 
 // Customer payment management

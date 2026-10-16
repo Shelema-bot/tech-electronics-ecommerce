@@ -658,8 +658,5 @@ export const getPaymentById = asyncHandler(async (req, res) => {
 // INITIALIZE PAYMENT (Chapa or other gateways)
 // POST /api/payment/initialize  { orderId, methodCode, customer }
 // ──────────────────────────────────────────────────────────────────────────────
-export const initializePayment = asyncHandler(async (req, res) => {
-  req.body.methodCode = req.body.methodCode || "chapa";
-  return createPayment(req, res);
-});
+export const initializePayment = createPayment;
 

@@ -586,7 +586,7 @@ export const chapaWebhook = asyncHandler(async (req, res) => {
 export const submitPaymentProof = asyncHandler(async (req, res) => {
   const payment = await Payment.findById(req.params.id);
   if (!payment) return res.status(404).json({ success: false, message: "Payment not found" });
-  if (payment.user.toString() !== req.user._id.toString()) {
+  if (payment.user && req.user && payment.user.toString() !== req.user._id.toString()) {
     return res.status(403).json({ success: false, message: "Not authorized" });
   }
 
@@ -607,7 +607,9 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
   if (proofFile)    payment.paymentProof = proofFile.path;  // Cloudinary URL
   payment.proofSubmittedAt     = new Date();
   payment.status               = "Pending Verification";
-  addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", transactionReference);
+  if (req.user?._id) {
+    addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", transactionReference);
+  }
   await payment.save();
 
   logger.info(`Payment proof submitted: ${payment._id}`);
@@ -638,8 +640,8 @@ export const getPaymentById = asyncHandler(async (req, res) => {
 
   if (!payment) return res.status(404).json({ success: false, message: "Payment not found" });
 
-  const isOwner = payment.user.toString() === req.user._id.toString();
-  const isAdmin = ["admin","super_admin","cashier"].includes(req.user.role);
+  const isOwner = payment.user && req.user ? payment.user.toString() === req.user._id.toString() : false;
+  const isAdmin = req.user && ["admin","super_admin","cashier"].includes(req.user.role);
   if (!isOwner && !isAdmin) {
     return res.status(403).json({ success: false, message: "Not authorized" });
   }

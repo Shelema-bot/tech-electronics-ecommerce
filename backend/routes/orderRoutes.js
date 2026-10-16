@@ -25,17 +25,25 @@ const router = express.Router();
 
 
 
+// Optional auth middleware for guest/customer order creation
+const optionalProtect = async (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    return protect(req, res, next);
+  }
+  next();
+};
+
 // ===============================
 // CUSTOMER ROUTES
 // ===============================
 
-
-// Create order
+// Create order (supports authenticated users and guest checkout)
 router.post(
     "/",
-    protect,
+    optionalProtect,
     createOrder
 );
+
 
 
 

@@ -121,8 +121,8 @@ function Settings() {
         {/* ── Header ── */}
         <div className="set-header">
           <div>
-            <h1 className="set-title">Settings</h1>
-            <p className="set-sub">Manage your admin account and preferences</p>
+            <h1 className="set-title">System Settings</h1>
+            <p className="set-sub">Manage your admin account, preferences, and store configuration</p>
           </div>
         </div>
 

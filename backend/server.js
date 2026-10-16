@@ -83,6 +83,7 @@ if (process.env.NODE_ENV !== "production") {
 app.use("/api/auth",       authRateLimit,    authRoutes);
 app.use("/api/products",                     productRoutes);
 app.use("/api/orders",                       orderRoutes);
+app.use("/api/payment",    paymentRateLimit, paymentRoutes);
 app.use("/api/payments",   paymentRateLimit, paymentRoutes);
 app.use("/api/categories",                   categoryRoutes);
 app.use("/api/users",                        userRoutes);

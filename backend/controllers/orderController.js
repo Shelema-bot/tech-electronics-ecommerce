@@ -7,50 +7,96 @@ import { createNotification, notifyAdmins } from "./notificationController.js";
 // Create Order (Customer)
 // ===============================
 export const createOrder = async (req, res) => {
-
   try {
+    const {
+      orderItems,
+      shippingAddress,
+      paymentMethod,
+      itemsPrice,
+      shippingPrice,
+      taxPrice,
+      totalPrice,
+      guestCustomer,
+    } = req.body;
+
+    if (!orderItems || orderItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No order items in this order",
+      });
+    }
+
+    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || !shippingAddress.city) {
+      return res.status(400).json({
+        success: false,
+        message: "Full shipping address (fullName, phone, address, city) is required",
+      });
+    }
+
+    const calculatedTotal = totalPrice || (Number(itemsPrice || 0) + Number(shippingPrice || 0) + Number(taxPrice || 0));
+
+    const userId = req.user ? req.user._id : null;
+    const guest = guestCustomer || (!userId ? {
+      name:  shippingAddress.fullName,
+      phone: shippingAddress.phone,
+      email: req.body.email || "",
+    } : null);
 
     const order = await Order.create({
-      ...req.body,
-      user: req.user._id,
-      status: "Pending"
+      user: userId,
+      guestCustomer: guest,
+      orderItems,
+      shippingAddress,
+      paymentMethod: paymentMethod || "Cash on Delivery",
+      paymentStatus: "Pending",
+      status: "Pending",
+      itemsPrice: Number(itemsPrice) || calculatedTotal,
+      shippingPrice: Number(shippingPrice) || 0,
+      taxPrice: Number(taxPrice) || 0,
+      totalPrice: Number(calculatedTotal),
+      isPaid: false,
     });
 
-    // Send emails + notifications in background
-    const user = await User.findById(req.user._id).select("name email");
-    if (user) {
-      sendOrderConfirmation(order, user.email, user.name);
-      notifyAdminNewOrder(order, user.name);
-      // Notify customer
+    // Send emails & in-app notifications in background without blocking response
+    const customerEmail = req.user?.email || guest?.email;
+    const customerName  = req.user?.name  || guest?.name || shippingAddress.fullName;
+
+    if (customerEmail) {
+      sendOrderConfirmation(order, customerEmail, customerName).catch(() => {});
+      notifyAdminNewOrder(order, customerName).catch(() => {});
+    }
+
+    if (req.user?._id) {
       createNotification(
         req.user._id,
         "Order Placed Successfully 🛒",
         `Your order #${order._id.toString().slice(-8)} has been placed and is being processed.`,
-        "order", "/my-orders", "🛒"
-      );
-      // Notify admins
-      notifyAdmins(
-        "New Order Received",
-        `${user.name} placed a new order worth ${order.totalPrice?.toLocaleString()} ETB.`,
-        "order", "/admin/orders", "🛒"
-      );
+        "order",
+        "/my-orders",
+        "🛒"
+      ).catch(() => {});
     }
 
-    res.status(201).json({
+    notifyAdmins(
+      "New Order Received",
+      `${customerName} placed a new order worth ${Number(order.totalPrice).toLocaleString()} ETB.`,
+      "order",
+      "/admin/orders",
+      "🛒"
+    ).catch(() => {});
+
+    return res.status(201).json({
       success: true,
       message: "Order placed successfully",
-      order
+      order,
     });
-
-  } catch(error) {
-
-    res.status(500).json({
+  } catch (error) {
+    console.error("CREATE ORDER ERROR:", error);
+    return res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message || "Failed to create order",
     });
-
   }
-
 };
 
 export const payOrder = async(req,res)=>{

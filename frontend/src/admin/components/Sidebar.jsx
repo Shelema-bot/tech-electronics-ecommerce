@@ -4,6 +4,7 @@ import {
   FaUsers, FaCreditCard, FaUserCog,
   FaCheckCircle, FaClipboardCheck, FaEnvelope,
   FaChartBar, FaTag, FaMoneyBillWave, FaCalendarAlt, FaBell,
+  FaCog,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
@@ -37,6 +38,8 @@ const ALL_MENU = [
   { path: "/admin/meetings",         name: "Meetings",        icon: <FaCalendarAlt />,    roles: [...ALL_ADMIN,"seller"] },
   // Notifications — all staff
   { path: "/admin/notifications",    name: "Notifications",   icon: <FaBell />,           roles: ALL_STAFF },
+  // System settings — all admin staff
+  { path: "/admin/settings",         name: "System Settings", icon: <FaCog />,            roles: ALL_STAFF },
   // Seller only
   { path: "/admin/my-products",      name: "My Products",     icon: <FaBox />,            roles: ["seller"] },
   { path: "/admin/my-plan",          name: "My Plan",         icon: <FaMoneyBillWave />,  roles: ["seller"] },

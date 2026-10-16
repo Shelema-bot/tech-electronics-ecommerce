@@ -1,11 +1,13 @@
 import Payment from "../models/Payment.js";
 import PaymentMethod from "../models/PaymentMethod.js";
 import Order from "../models/Order.js";
+import Product from "../models/Product.js";
 import User from "../models/User.js";
 import { initializeChapaPayment, verifyChapaPayment } from "../services/chapaService.js";
 import { sendPaymentConfirmation } from "../utils/sendEmail.js";
 import logger from "../utils/logger.js";
 import asyncHandler from "../utils/asyncHandler.js";
+
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 const addAudit = (payment, action, userId, fromStatus, toStatus, note = "") => {
@@ -25,84 +27,119 @@ export const getEnabledPaymentMethods = asyncHandler(async (req, res) => {
 
 // ──────────────────────────────────────────────────────────────────────────────
 // INITIALIZE / CREATE PAYMENT
-// POST /api/payments
-// Body: { orderId, methodCode }
+// POST /api/payment/initialize OR POST /api/payments
+// Body: { orderId, methodCode, customer }
 // AMOUNT IS ALWAYS READ FROM THE ORDER — frontend amount is ignored.
 // ──────────────────────────────────────────────────────────────────────────────
 export const createPayment = asyncHandler(async (req, res) => {
-  const { orderId, methodCode } = req.body;
+  const { orderId, methodCode = "chapa", customer } = req.body;
 
-  if (!orderId || !methodCode) {
-    return res.status(400).json({ success: false, message: "orderId and methodCode are required" });
+  if (!orderId) {
+    return res.status(400).json({ success: false, message: "orderId is required" });
   }
 
-  // Fetch order — verify it belongs to this user
+  // Fetch order
   const order = await Order.findById(orderId);
   if (!order) return res.status(404).json({ success: false, message: "Order not found" });
-  if (order.user.toString() !== req.user._id.toString()) {
+
+  // If order has user and request has authenticated user, verify ownership (unless admin)
+  if (
+    order.user &&
+    req.user &&
+    order.user.toString() !== req.user._id.toString() &&
+    !["admin", "super_admin", "owner"].includes(req.user.role)
+  ) {
     return res.status(403).json({ success: false, message: "Not authorized for this order" });
   }
 
   // ── Guard: order already paid ──────────────────────────────────────────────
-  if (order.isPaid) {
+  if (order.isPaid || order.paymentStatus === "Paid") {
     return res.status(409).json({
       success: false,
       message: "This order has already been paid. No further payment is required.",
     });
   }
 
-  // Amount comes from order, never from frontend
-  const amount = order.totalPrice;
+  // Amount comes from order, never untrusted frontend
+  const amount = Number(order.totalPrice);
+  const normalizedCode = (methodCode || "chapa").toLowerCase();
 
-  // Fetch payment method config
-  const method = await PaymentMethod.findOne({ code: methodCode, enabled: true });
-  if (!method) return res.status(400).json({ success: false, message: "Payment method not available" });
+  // Fetch payment method config from DB or fallback
+  let method = await PaymentMethod.findOne({ code: normalizedCode, enabled: true });
+  if (!method) {
+    if (normalizedCode === "chapa") {
+      method = { code: "chapa", name: "Chapa Payment", type: "chapa" };
+    } else if (normalizedCode === "cod" || normalizedCode === "cash_on_delivery") {
+      method = { code: "cod", name: "Cash on Delivery", type: "cash_on_delivery" };
+    }
+  }
 
-  // ── Check for ANY existing payment for this order ────────────────────────────
+  if (!method) {
+    return res.status(400).json({ success: false, message: `Payment method '${methodCode}' not available` });
+  }
+
+  // Check for ANY existing payment record for this order
   const existingPayment = await Payment.findOne({ order: orderId }).sort({ createdAt: -1 });
 
-  // ── CHAPA ─────────────────────────────────────────────────────────────────
-  if (method.type === "chapa") {
-    // Reuse pending payment's tx_ref; generate fresh one otherwise
+  // ── CHAPA ONLINE GATEWAY ───────────────────────────────────────────────────
+  if (method.type === "chapa" || normalizedCode === "chapa") {
     let tx_ref;
-    const canReuse = existingPayment
-      && existingPayment.tx_ref
-      && ["Pending", "Awaiting Payment"].includes(existingPayment.status);
+    const canReuse =
+      existingPayment &&
+      existingPayment.tx_ref &&
+      ["Pending", "Awaiting Payment"].includes(existingPayment.status);
 
     if (canReuse) {
       tx_ref = existingPayment.tx_ref;
+    } else if (order.transactionRef) {
+      tx_ref = order.transactionRef;
     } else {
       const orderIdSuffix = orderId.toString().slice(-6);
-      const randomPart = Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 5);
+      const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
       tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
     }
 
-    const names = req.user.name.trim().split(" ");
+    // Customer name & email resolution
+    const rawName =
+      req.user?.name ||
+      customer?.name ||
+      order.shippingAddress?.fullName ||
+      order.guestCustomer?.name ||
+      "Customer";
+    const email =
+      req.user?.email ||
+      customer?.email ||
+      order.guestCustomer?.email ||
+      req.body.email ||
+      "customer@example.com";
 
-    // Call Chapa — catch errors explicitly so we return a meaningful response
+    const nameParts = rawName.trim().split(" ");
+    const first_name = nameParts[0] || "Customer";
+    const last_name = nameParts.slice(1).join(" ") || "User";
+
+    // Call Chapa
     let chapaData;
     try {
       chapaData = await initializeChapaPayment({
         amount,
-        email: req.user.email,
-        first_name: names[0] || "Customer",
-        last_name:  names.slice(1).join(" ") || "User",
+        email,
+        first_name,
+        last_name,
         tx_ref,
       });
     } catch (chapaErr) {
-      // If Chapa rejects because tx_ref already exists, generate a new one and retry once
       const chapaMsg = chapaErr?.response?.data?.message || chapaErr?.message || "";
       if (chapaMsg.toLowerCase().includes("tx_ref") && canReuse) {
-        // The reused tx_ref was rejected by Chapa — generate a fresh one
+        // Regenerate fresh tx_ref and retry
         const orderIdSuffix = orderId.toString().slice(-6);
-        const randomPart = Math.random().toString(36).slice(2, 8) + Math.random().toString(36).slice(2, 5);
+        const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
         tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
         try {
           chapaData = await initializeChapaPayment({
             amount,
-            email: req.user.email,
-            first_name: names[0] || "Customer",
-            last_name:  names.slice(1).join(" ") || "User",
+            email,
+            first_name,
+            last_name,
             tx_ref,
           });
         } catch (retryErr) {
@@ -126,49 +163,73 @@ export const createPayment = asyncHandler(async (req, res) => {
       return res.status(502).json({ success: false, message: "Payment provider did not return a checkout URL" });
     }
 
-    // Create or reuse the Payment record — handle duplicate key gracefully
+    // Save transactionRef & status to the MongoDB Order
+    order.transactionRef = tx_ref;
+    order.paymentMethod  = "Chapa";
+    order.paymentStatus  = "Pending";
+    await order.save();
+
+    // Create or reuse the Payment record in MongoDB
     let payment;
     if (canReuse && existingPayment.tx_ref === tx_ref) {
       payment = existingPayment;
     } else {
       try {
         payment = await Payment.create({
-          order: orderId, user: req.user._id, amount, currency: "ETB",
-          methodCode: method.code, methodName: method.name, methodType: "chapa",
-          tx_ref, status: "Pending",
+          order: orderId,
+          user: order.user || req.user?._id,
+          amount,
+          currency: "ETB",
+          methodCode: "chapa",
+          methodName: method.name || "Chapa Payment",
+          methodType: "chapa",
+          tx_ref,
+          status: "Pending",
         });
-        addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Pending");
+        if (req.user?._id) addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Pending");
         await payment.save();
       } catch (createErr) {
-        // E11000 duplicate key — find the existing record and reuse it
         if (createErr.code === 11000) {
-          payment = await Payment.findOne({ tx_ref }) || existingPayment;
-          if (!payment) {
-            return res.status(500).json({ success: false, message: "Payment record conflict. Please try again." });
-          }
+          payment = (await Payment.findOne({ tx_ref })) || existingPayment;
         } else {
           throw createErr;
         }
       }
     }
 
-    return res.json({ success: true, type: "chapa", checkout_url: checkoutUrl, tx_ref, paymentId: payment._id });
+    return res.json({
+      success: true,
+      type: "chapa",
+      checkout_url: checkoutUrl,
+      tx_ref,
+      orderId: order._id,
+      paymentId: payment?._id,
+    });
   }
 
-  // ── CASH ON DELIVERY ──────────────────────────────────────────────────────
-  if (method.type === "cash_on_delivery") {
-    // Reuse existing COD payment if one exists for this order
+  // ── CASH ON DELIVERY (COD) ────────────────────────────────────────────────
+  if (method.type === "cash_on_delivery" || normalizedCode === "cod") {
+    order.paymentMethod = "Cash on Delivery";
+    order.paymentStatus = "Pending";
+    order.status        = "Processing";
+    await order.save();
+
     let payment;
     if (existingPayment && existingPayment.methodType === "cash_on_delivery") {
       payment = existingPayment;
     } else {
       try {
         payment = await Payment.create({
-          order: orderId, user: req.user._id, amount, currency: "ETB",
-          methodCode: method.code, methodName: method.name, methodType: "cash_on_delivery",
+          order: orderId,
+          user: order.user || req.user?._id,
+          amount,
+          currency: "ETB",
+          methodCode: "cod",
+          methodName: "Cash on Delivery",
+          methodType: "cash_on_delivery",
           status: "Awaiting Payment",
         });
-        addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment", "Cash on Delivery");
+        if (req.user?._id) addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment", "Cash on Delivery");
         await payment.save();
       } catch (createErr) {
         if (createErr.code === 11000) {
@@ -180,28 +241,41 @@ export const createPayment = asyncHandler(async (req, res) => {
       }
     }
 
-    // Update order status
-    order.status = "Processing";
-    order.paymentMethod = method.name;
-    await order.save();
-
-    return res.json({ success: true, type: "cash_on_delivery", paymentId: payment._id, message: "Order placed. Pay on delivery." });
+    return res.json({
+      success: true,
+      type: "cash_on_delivery",
+      orderId: order._id,
+      paymentId: payment?._id,
+      message: "Order placed successfully. Payment will be collected on delivery.",
+    });
   }
 
-  // ── MANUAL (Telebirr, CBE, BOA, etc.) ────────────────────────────────────
+  // ── MANUAL (Telebirr, CBE, BOA, etc.) ─────────────────────────────────────
   if (method.type === "manual") {
+    order.paymentMethod = method.name;
+    order.paymentStatus = "Pending";
+    await order.save();
+
     let payment;
-    if (existingPayment && existingPayment.methodType === "manual"
-        && ["Awaiting Payment", "Pending Verification"].includes(existingPayment.status)) {
+    if (
+      existingPayment &&
+      existingPayment.methodType === "manual" &&
+      ["Awaiting Payment", "Pending Verification"].includes(existingPayment.status)
+    ) {
       payment = existingPayment;
     } else {
       try {
         payment = await Payment.create({
-          order: orderId, user: req.user._id, amount, currency: "ETB",
-          methodCode: method.code, methodName: method.name, methodType: "manual",
+          order: orderId,
+          user: order.user || req.user?._id,
+          amount,
+          currency: "ETB",
+          methodCode: method.code,
+          methodName: method.name,
+          methodType: "manual",
           status: "Awaiting Payment",
         });
-        addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment");
+        if (req.user?._id) addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment");
         await payment.save();
       } catch (createErr) {
         if (createErr.code === 11000) {
@@ -213,16 +287,20 @@ export const createPayment = asyncHandler(async (req, res) => {
       }
     }
 
-    order.paymentMethod = method.name;
-    await order.save();
-
     return res.json({
-      success: true, type: "manual", paymentId: payment._id,
+      success: true,
+      type: "manual",
+      paymentId: payment._id,
+      orderId: order._id,
       method: {
-        name: method.name, accountName: method.accountName,
-        accountNumber: method.accountNumber, phoneNumber: method.phoneNumber,
-        bankName: method.bankName, instructions: method.instructions,
-        qrCode: method.qrCode, requiresScreenshot: method.requiresScreenshot,
+        name: method.name,
+        accountName: method.accountName,
+        accountNumber: method.accountNumber,
+        phoneNumber: method.phoneNumber,
+        bankName: method.bankName,
+        instructions: method.instructions,
+        qrCode: method.qrCode,
+        requiresScreenshot: method.requiresScreenshot,
         requiresReference: method.requiresReference,
       },
     });
@@ -232,40 +310,159 @@ export const createPayment = asyncHandler(async (req, res) => {
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
-// CHAPA VERIFY (called after redirect from Chapa)
-// GET /api/payments/verify?tx_ref=...
+// CHAPA VERIFY (called after redirect from Chapa or directly by frontend)
+// GET /api/payment/verify/:tx_ref  OR  GET /api/payments/verify?tx_ref=...
 // ──────────────────────────────────────────────────────────────────────────────
 export const verifyPayment = asyncHandler(async (req, res) => {
-  const { tx_ref } = req.query;
-  if (!tx_ref) return res.status(400).json({ success: false, message: "tx_ref required" });
+  const tx_ref = req.params.tx_ref || req.query.tx_ref;
+  if (!tx_ref) {
+    return res.status(400).json({ success: false, message: "Transaction reference (tx_ref) is required" });
+  }
 
-  const chapaData = await verifyChapaPayment(tx_ref);
-  const payment   = await Payment.findOne({ tx_ref });
-  if (!payment) return res.status(404).json({ success: false, message: "Payment record not found" });
+  // Find order and payment
+  let order = await Order.findOne({ transactionRef: tx_ref }).populate("orderItems.product");
+  let payment = await Payment.findOne({ tx_ref });
+
+  if (!order && payment?.order) {
+    order = await Order.findById(payment.order).populate("orderItems.product");
+  }
+
+  if (!order) {
+    return res.status(404).json({ success: false, message: "Order not found for transaction reference" });
+  }
+
+  // Idempotency check: if already paid, return without duplicating stock decrement
+  if (order.isPaid || order.paymentStatus === "Paid") {
+    return res.json({
+      success: true,
+      message: "Payment already verified",
+      order,
+      alreadyVerified: true,
+    });
+  }
+
+  // Call Chapa verify endpoint
+  let chapaData;
+  try {
+    chapaData = await verifyChapaPayment(tx_ref);
+  } catch (err) {
+    logger.error(`Gateway verification error for tx_ref ${tx_ref}: ${err.message}`);
+    return res.status(502).json({
+      success: false,
+      message: "Payment verification service error. Please try again.",
+      error: err.message,
+    });
+  }
 
   const isSuccess =
     (chapaData?.status === "success" && chapaData?.data?.status === "success") ||
     chapaData?.data?.status === "success";
 
   if (isSuccess) {
-    const prev = payment.status;
-    payment.status = "Paid";
-    payment.paidAt = new Date();
-    addAudit(payment, "CHAPA_VERIFIED", payment.user, prev, "Paid");
-    await payment.save();
+    // 1. Update Order status
+    order.paymentStatus = "Paid";
+    order.isPaid        = true;
+    order.paidAt        = new Date();
+    order.status        = "Processing";
+    order.paymentResult = {
+      id: tx_ref,
+      status: "Paid",
+    };
+    await order.save();
 
-    const order = await Order.findById(payment.order);
-    if (order) { order.isPaid = true; order.paidAt = new Date(); order.status = "Processing"; await order.save(); }
+    // 2. Decrement stock for purchased products
+    if (order.orderItems && order.orderItems.length > 0) {
+      for (const item of order.orderItems) {
+        const prodId = item.product?._id || item.product;
+        if (prodId) {
+          const qty = Math.max(1, item.quantity || 1);
+          await Product.findByIdAndUpdate(prodId, {
+            $inc: { stock: -qty },
+          }).catch((err) => {
+            logger.warn(`Could not decrement stock for product ${prodId}: ${err.message}`);
+          });
+        }
+      }
+    }
 
-    const user = await User.findById(payment.user).select("name email");
-    if (user) sendPaymentConfirmation(payment, user.email, user.name).catch(() => {});
+    // 3. Update Payment model
+    if (payment) {
+      const prev = payment.status;
+      payment.status = "Paid";
+      payment.paidAt = new Date();
+      addAudit(payment, "CHAPA_VERIFIED", payment.user || order.user, prev, "Paid", tx_ref);
+      await payment.save();
+    }
 
-    logger.info(`Chapa payment verified: ${tx_ref}`);
-    return res.json({ success: true, message: "Payment verified successfully" });
+    // 4. Send email & in-app notifications
+    const targetUserId = order.user || payment?.user;
+    const customerEmail = order.guestCustomer?.email;
+    const customerName  = order.guestCustomer?.name || order.shippingAddress?.fullName;
+
+    if (targetUserId) {
+      const user = await User.findById(targetUserId).select("name email");
+      if (user) {
+        sendPaymentConfirmation(
+          payment || { amount: order.totalPrice, currency: "ETB", _id: tx_ref },
+          user.email,
+          user.name
+        ).catch(() => {});
+      }
+    } else if (customerEmail) {
+      sendPaymentConfirmation(
+        payment || { amount: order.totalPrice, currency: "ETB", _id: tx_ref },
+        customerEmail,
+        customerName
+      ).catch(() => {});
+    }
+
+    logger.info(`Chapa payment verified successfully: ${tx_ref} for Order ${order._id}`);
+    return res.json({
+      success: true,
+      message: "Payment verified successfully",
+      order,
+    });
   }
 
-  return res.json({ success: false, message: "Payment not completed yet", chapaStatus: chapaData?.data?.status });
+  // Handle explicit failure from Chapa
+  if (chapaData?.data?.status === "failed") {
+    order.paymentStatus = "Failed";
+    await order.save();
+    if (payment) {
+      payment.status = "Failed";
+      await payment.save();
+    }
+    return res.status(400).json({
+      success: false,
+      message: "Payment transaction failed with the provider",
+      chapaStatus: "failed",
+      order,
+    });
+  }
+
+  return res.json({
+    success: false,
+    message: "Payment not completed yet",
+    chapaStatus: chapaData?.data?.status || "pending",
+    order,
+  });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// CHAPA WEBHOOK (asynchronous server-to-server confirmation)
+// POST /api/payment/webhook
+// ──────────────────────────────────────────────────────────────────────────────
+export const chapaWebhook = asyncHandler(async (req, res) => {
+  const tx_ref = req.body?.tx_ref || req.body?.trx_ref || req.query?.tx_ref;
+  if (!tx_ref) {
+    return res.status(400).json({ success: false, message: "tx_ref required in webhook" });
+  }
+
+  logger.info(`Received Chapa webhook for tx_ref: ${tx_ref}`);
+  req.params.tx_ref = tx_ref;
+  return verifyPayment(req, res);
+});
+
 
 // ──────────────────────────────────────────────────────────────────────────────
 // SUBMIT MANUAL PAYMENT PROOF
@@ -337,12 +534,11 @@ export const getPaymentById = asyncHandler(async (req, res) => {
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
-// LEGACY: initialize Chapa (kept for backward compatibility with old checkout)
-// POST /api/payments/initialize  { orderId, amount }
+// INITIALIZE PAYMENT (Chapa or other gateways)
+// POST /api/payment/initialize  { orderId, methodCode, customer }
 // ──────────────────────────────────────────────────────────────────────────────
 export const initializePayment = asyncHandler(async (req, res) => {
-  const { orderId } = req.body;
-  // Delegate to createPayment with methodCode "chapa"
-  req.body.methodCode = "chapa";
+  req.body.methodCode = req.body.methodCode || "chapa";
   return createPayment(req, res);
 });
+

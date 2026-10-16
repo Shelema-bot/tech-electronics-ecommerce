@@ -1,8 +1,12 @@
 import axios from "axios";
 
+const rawBaseUrl = import.meta.env.VITE_API_URL || "https://tech-electronics-backend.onrender.com/api";
+const baseURL = rawBaseUrl.replace(/\/+$/, "");
+
 const API = axios.create({
-  baseURL: "https://tech-electronics-backend.onrender.com/api"
+  baseURL,
 });
+
 
 // Attach JWT token automatically — no console logging of secrets
 API.interceptors.request.use(

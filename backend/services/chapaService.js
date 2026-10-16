@@ -2,21 +2,21 @@ import axios from "axios";
 
 const CHAPA_URL = "https://api.chapa.co/v1";
 
-const BACKEND_URL =
-  process.env.BACKEND_URL ||
-  "https://tech-electronics-backend.onrender.com";
+const getBackendUrl = () => {
+  const url = process.env.BACKEND_URL || "https://tech-electronics-backend.onrender.com";
+  return url.replace(/\/+$/, "");
+};
 
-const FRONTEND_URL =
-  process.env.FRONTEND_URL ||
-  "https://tech-electronics-ecommerce-frontend.onrender.com";
-
+const getFrontendUrl = () => {
+  const url = process.env.FRONTEND_URL || "https://tech-electronics-ecommerce-frontend.vercel.app";
+  return url.replace(/\/+$/, "");
+};
 
 // ================================
 // Initialize Chapa Payment
 // Returns the parsed Chapa JSON body:
 // { message, status, data: { checkout_url } }
 // ================================
-
 export const initializeChapaPayment = async ({
   amount,
   email,
@@ -25,20 +25,23 @@ export const initializeChapaPayment = async ({
   tx_ref,
 }) => {
   try {
+    const backendUrl = getBackendUrl();
+    const frontendUrl = getFrontendUrl();
+
     const response = await axios.post(
       `${CHAPA_URL}/transaction/initialize`,
       {
         amount: Number(amount),
         currency: "ETB",
-        email,
-        first_name,
-        last_name,
+        email: email || "customer@example.com",
+        first_name: first_name || "Customer",
+        last_name:  last_name || "User",
         tx_ref,
-        callback_url: `${BACKEND_URL}/api/payments/verify?tx_ref=${tx_ref}`,
-        return_url: `${FRONTEND_URL}/payment-success?tx_ref=${tx_ref}`,
+        callback_url: `${backendUrl}/api/payment/verify/${tx_ref}`,
+        return_url: `${frontendUrl}/payment-success?tx_ref=${tx_ref}`,
         customization: {
-          title: "Tech Store",
-          description: "Secure payment",
+          title: "Tech Electronics Store",
+          description: `Order Payment for ${tx_ref}`,
         },
       },
       {
@@ -49,12 +52,10 @@ export const initializeChapaPayment = async ({
       }
     );
 
-    // response.data is the Chapa JSON body
     console.log("Chapa Init Raw:", JSON.stringify(response.data, null, 2));
     return response.data;
-
   } catch (error) {
-    console.log(
+    console.error(
       "Chapa Initialize Error:",
       error.response?.data || error.message
     );
@@ -62,13 +63,11 @@ export const initializeChapaPayment = async ({
   }
 };
 
-
 // ================================
 // Verify Chapa Payment
 // Returns the parsed Chapa JSON body:
 // { message, status, data: { status: "success"|"failed" } }
 // ================================
-
 export const verifyChapaPayment = async (tx_ref) => {
   try {
     const response = await axios.get(
@@ -82,12 +81,12 @@ export const verifyChapaPayment = async (tx_ref) => {
 
     console.log("Chapa Verify Raw:", JSON.stringify(response.data, null, 2));
     return response.data;
-
   } catch (error) {
-    console.log(
+    console.error(
       "Chapa Verify Error:",
       error.response?.data || error.message
     );
     throw error;
   }
 };
+

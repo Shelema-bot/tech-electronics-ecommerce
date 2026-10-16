@@ -8,25 +8,37 @@ import {
   submitPaymentProof,
   getMyPayments,
   getPaymentById,
-  initializePayment,   // legacy backward-compat
+  initializePayment,
+  chapaWebhook,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
+// Optional auth middleware for guest / authenticated customer checkout
+const optionalProtect = async (req, res, next) => {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    return protect(req, res, next);
+  }
+  next();
+};
+
 // Public — loaded by checkout page
 router.get("/methods", getEnabledPaymentMethods);
 
-// Authenticated customer routes
-router.post("/",                protect, createPayment);
+// Chapa callback / return verification (public — called on return from gateway)
+router.get("/verify/:tx_ref",   verifyPayment);
+router.get("/verify",           verifyPayment);
+router.post("/webhook",         chapaWebhook);
+
+// Payment initialization
+router.post("/initialize",      optionalProtect, initializePayment);
+router.post("/",                optionalProtect, createPayment);
+
+// Customer payment management
 router.get("/my",               protect, getMyPayments);
 router.get("/my-payments",      protect, getMyPayments);   // legacy alias
 router.get("/:id",              protect, getPaymentById);
 router.post("/:id/proof",       protect, upload.single("paymentProof"), submitPaymentProof);
 
-// Chapa callback/return verification (no auth — called by Chapa)
-router.get("/verify",           verifyPayment);
-
-// Legacy Chapa initialize (backward compat with old checkout)
-router.post("/initialize",      protect, initializePayment);
-
 export default router;
+

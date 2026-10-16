@@ -81,8 +81,10 @@ function App() {
         <Route path="/register" element={<><Navbar /><Register /><Footer /></>} />
         <Route path="/forgot-password" element={<><Navbar /><ForgotPassword /><Footer /></>} />
         <Route path="/reset-password" element={<><Navbar /><ResetPassword /><Footer /></>} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
+        <Route path="/payment-success" element={<><Navbar /><PaymentSuccess /><Footer /></>} />
+        <Route path="/order-success"   element={<><Navbar /><PaymentSuccess /><Footer /></>} />
         <Route path="/payment-result"  element={<><Navbar /><PaymentResult /><Footer /></>} />
+
         <Route path="/help" element={<><Navbar /><Help /><Footer /></>} />
         <Route path="/terms" element={<><Navbar /><Terms /><Footer /></>} />
         <Route path="/privacy" element={<><Navbar /><Privacy /><Footer /></>} />

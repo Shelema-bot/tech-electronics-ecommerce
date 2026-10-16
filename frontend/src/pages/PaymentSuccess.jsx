@@ -1,53 +1,241 @@
-import { useEffect, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import API from "../api/axios";
+import { useToast } from "../context/ToastContext";
+import { usePreference } from "../context/PreferenceContext";
+import { verifyPayment, getOrderById } from "../services/paymentService";
 import "./PaymentSuccess.css";
 
-/**
- * PaymentSuccess — Chapa return URL handler.
- * Verifies the payment with the backend, clears cart, then
- * redirects to the typed PaymentResult page.
- * 
- * DO NOT show "Payment Successful" here — only redirect after backend verification.
- */
 function PaymentSuccess() {
   const { clearCart } = useCart();
+  const toast = useToast();
+  const { fmt } = usePreference();
   const [params] = useSearchParams();
-  const navigate  = useNavigate();
-  const verified  = useRef(false);
+
+  const tx_ref = params.get("tx_ref") || params.get("trx_ref") || localStorage.getItem("pendingTxRef") || "";
+  const queryOrderId = params.get("orderId") || localStorage.getItem("pendingOrder") || "";
+  const paymentType = params.get("type") || (tx_ref ? "chapa" : "cod");
+
+  const [loading, setLoading] = useState(Boolean(tx_ref));
+  const [error, setError] = useState(null);
+  const [order, setOrder] = useState(null);
+  const [verifiedSuccess, setVerifiedSuccess] = useState(paymentType === "cod");
+  const verificationAttempted = useRef(false);
+
+  const performVerification = async () => {
+    if (!tx_ref) {
+      if (queryOrderId) {
+        // Fetch order details for COD or direct order confirmation
+        try {
+          const res = await getOrderById(queryOrderId);
+          if (res.order) setOrder(res.order);
+        } catch (e) {
+          console.warn("Could not load order details:", e.message);
+        }
+      }
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const res = await verifyPayment(tx_ref);
+
+      if (res.success) {
+        setVerifiedSuccess(true);
+        if (res.order) setOrder(res.order);
+
+        // Clear cart ONLY after payment succeeds
+        clearCart();
+        localStorage.removeItem("cartItems");
+        localStorage.removeItem("pendingOrder");
+        localStorage.removeItem("pendingTxRef");
+
+        toast.success("Payment verified successfully! 🎉");
+      } else {
+        setError(res.message || "Payment has not been completed yet.");
+        toast.warning(res.message || "Payment status pending confirmation.");
+      }
+    } catch (err) {
+      console.error("Payment verification failed:", err);
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to verify payment with the gateway. Please retry or contact support.";
+      setError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (verified.current) return;
-    verified.current = true;
+    if (verificationAttempted.current) return;
+    verificationAttempted.current = true;
 
-    const verify = async () => {
-      const tx    = params.get("tx_ref");
-      const order = localStorage.getItem("pendingOrder") || "";
-
-      try {
-        if (tx) {
-          await API.get(`/payments/verify?tx_ref=${tx}`);
-        }
-      } catch (e) {
-        console.log("Payment verification error:", e.message);
-      } finally {
-        localStorage.removeItem("pendingOrder");
-        clearCart();
-        // Redirect to typed result page
-        navigate(`/payment-result?type=chapa&orderId=${order}`, { replace: true });
+    if (paymentType === "cod") {
+      clearCart();
+      localStorage.removeItem("cartItems");
+      if (queryOrderId) {
+        getOrderById(queryOrderId)
+          .then((res) => { if (res.order) setOrder(res.order); })
+          .catch(() => {})
+          .finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-    };
-
-    verify();
+    } else {
+      performVerification();
+    }
   }, []);
+
+  // ── Loading state ──
+  if (loading) {
+    return (
+      <div className="payment-success">
+        <div className="ps-spinner" />
+        <h2 style={{ fontSize: 24, fontWeight: 700, color: "#1e293b", margin: "16px 0 8px" }}>
+          Verifying Payment...
+        </h2>
+        <p style={{ color: "#64748b", maxWidth: 400 }}>
+          Please wait while we confirm your transaction with Chapa. Do not close or refresh this page.
+        </p>
+      </div>
+    );
+  }
+
+  // ── Verification Error / Incomplete State ──
+  if (error || !verifiedSuccess) {
+    return (
+      <div className="payment-success">
+        <div className="ps-icon">⚠️</div>
+        <h1 className="ps-title" style={{ color: "#dc2626" }}>Payment Not Confirmed</h1>
+        <p className="ps-subtitle">
+          We could not verify your payment at this moment. Your shopping cart has been preserved.
+        </p>
+
+        <div className="ps-error-box">
+          <div className="ps-error-title">Status Notice</div>
+          <div className="ps-error-desc">{error || "Payment transaction is pending or could not be verified."}</div>
+          {tx_ref && (
+            <div style={{ fontSize: 13, wordBreak: "break-all", fontFamily: "monospace", color: "#64748b" }}>
+              Reference: <strong>{tx_ref}</strong>
+            </div>
+          )}
+        </div>
+
+        <div className="ps-actions">
+          {tx_ref && (
+            <button
+              onClick={() => {
+                verificationAttempted.current = false;
+                performVerification();
+              }}
+              className="ps-btn primary"
+              style={{ cursor: "pointer", border: "none" }}
+            >
+              🔄 Retry Verification
+            </button>
+          )}
+          <Link to="/checkout" className="ps-btn secondary">
+            ← Return to Checkout
+          </Link>
+          <Link to="/contact" className="ps-btn secondary" style={{ border: "1px solid #cbd5e1", color: "#475569" }}>
+            Contact Support
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Success State & Receipt ──
+  const displayOrderId = order?._id || queryOrderId || "Confirmed";
+  const displayTotal = order?.totalPrice ? fmt(order.totalPrice) : "—";
+  const isCod = paymentType === "cod" || order?.paymentMethod?.toLowerCase().includes("delivery") || order?.paymentMethod === "COD";
 
   return (
     <div className="payment-success">
-      <div className="ps-spinner" />
-      <p style={{ color: "#64748b", marginTop: 12 }}>Verifying your payment...</p>
+      <div className="ps-icon success-bounce">{isCod ? "🚚" : "🎉"}</div>
+      <h1 className="ps-title">{isCod ? "Order Placed Successfully!" : "Payment Verified!"}</h1>
+      <p className="ps-subtitle">
+        {isCod
+          ? "Thank you for your order! Your items are being prepared and payment will be collected upon delivery."
+          : "Your payment has been successfully confirmed and your order is now in processing."}
+      </p>
+
+      {/* Receipt card */}
+      <div className="ps-detail-box">
+        <div className="ps-detail-row">
+          <span>Payment Status</span>
+          <div>
+            {isCod ? (
+              <span className="status-badge cod">💵 Cash on Delivery</span>
+            ) : (
+              <span className="status-badge paid">✓ Paid via Chapa</span>
+            )}
+          </div>
+        </div>
+
+        <div className="ps-detail-row">
+          <span>Order ID</span>
+          <strong>#{displayOrderId.toString().slice(-10)}</strong>
+        </div>
+
+        {tx_ref && !isCod && (
+          <div className="ps-detail-row">
+            <span>Transaction Ref</span>
+            <strong>{tx_ref}</strong>
+          </div>
+        )}
+
+        {order?.totalPrice && (
+          <div className="ps-detail-row">
+            <span>Total Amount</span>
+            <strong style={{ fontSize: 16, color: "#15803d" }}>{displayTotal}</strong>
+          </div>
+        )}
+
+        {order?.shippingAddress && (
+          <div className="ps-detail-row">
+            <span>Delivery To</span>
+            <strong style={{ fontFamily: "inherit", fontWeight: 600 }}>
+              {order.shippingAddress.fullName} — {order.shippingAddress.city}, {order.shippingAddress.address}
+            </strong>
+          </div>
+        )}
+
+        {/* Items summary */}
+        {order?.orderItems && order.orderItems.length > 0 && (
+          <div className="ps-items-list">
+            <div className="ps-items-title">Ordered Items ({order.orderItems.length})</div>
+            {order.orderItems.map((item, idx) => (
+              <div key={idx} className="ps-item-row">
+                <span className="ps-item-name">{item.name} × {item.quantity}</span>
+                <strong>{fmt(Number(item.price) * (item.quantity || 1))}</strong>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <p className="ps-thanks">
+        A confirmation has been recorded. You can track this order in your <b>Order History</b>.
+      </p>
+
+      {/* Action buttons */}
+      <div className="ps-actions">
+        <Link to="/my-orders" className="ps-btn primary">
+          📦 View My Orders
+        </Link>
+        <Link to="/products" className="ps-btn secondary">
+          🛍️ Continue Shopping
+        </Link>
+      </div>
     </div>
   );
 }
 
 export default PaymentSuccess;
+

@@ -93,64 +93,122 @@ function Checkout() {
 
   const currentMethod = methods.find(m => m.code === selectedMethod);
 
+  const validateShipping = () => {
+    if (!shipping.fullName?.trim()) {
+      toast.warning("Please enter your full name");
+      return false;
+    }
+    if (!shipping.phone?.trim()) {
+      toast.warning("Please enter your phone number");
+      return false;
+    }
+    const cleanPhone = shipping.phone.trim().replace(/[\s-]/g, "");
+    if (cleanPhone.length < 8) {
+      toast.warning("Please enter a valid phone number (at least 8 digits)");
+      return false;
+    }
+    if (!shipping.address?.trim()) {
+      toast.warning("Please enter your street delivery address");
+      return false;
+    }
+    if (!shipping.city?.trim()) {
+      toast.warning("Please enter your city");
+      return false;
+    }
+    return true;
+  };
+
   const placeOrder = async (e) => {
     e.preventDefault();
     if (cartItems.length === 0) { toast.warning("Your cart is empty"); return; }
     if (!localStorage.getItem("token")) { toast.warning("Please login before checkout"); navigate("/login"); return; }
     if (!selectedMethod) { toast.warning("Please select a payment method"); return; }
 
-    // Guard: prevent double submission even if the button isn't disabled fast enough
+    if (!validateShipping()) return;
+
+    // Guard: prevent double submission while request is in flight
     if (loading) return;
 
     try {
       setLoading(true);
 
-      // Create order
+      // Create order with 'Pending' status in MongoDB
       const orderRes = await API.post("/orders", {
         orderItems: cartItems.map(item => ({
-          product: item._id, name: item.name, image: item.images?.[0],
-          price: item.price, quantity: item.quantity,
+          product: item._id,
+          name: item.name,
+          image: item.images?.[0] || "",
+          price: Number(item.price),
+          quantity: Number(item.quantity) || 1,
         })),
-        shippingAddress: { ...shipping },
-        paymentMethod: currentMethod?.name || selectedMethod,
-        itemsPrice: cartTotal, shippingPrice: 0, taxPrice: 0, totalPrice: cartTotal,
+        shippingAddress: {
+          fullName: shipping.fullName.trim(),
+          phone: shipping.phone.trim(),
+          address: shipping.address.trim(),
+          city: shipping.city.trim(),
+          postalCode: shipping.postalCode?.trim() || "",
+          country: shipping.country?.trim() || "Ethiopia",
+        },
+        paymentMethod: currentMethod?.name || (selectedMethod === "chapa" ? "Chapa" : selectedMethod === "cod" ? "Cash on Delivery" : selectedMethod),
+        itemsPrice: cartTotal,
+        shippingPrice: 0,
+        taxPrice: 0,
+        totalPrice: finalTotal,
       });
 
       const orderId = orderRes.data.order?._id || orderRes.data._id;
-      if (!orderId) throw new Error("Order ID was not returned");
+      if (!orderId) throw new Error("Order ID was not returned by server");
 
-      setOrderAmount(cartTotal);
+      setOrderAmount(finalTotal);
 
-      // Create payment
-      const payRes = await API.post("/payments", { orderId, methodCode: selectedMethod });
+      // Initialize payment with the backend
+      const payRes = await API.post("/payment/initialize", {
+        orderId,
+        methodCode: selectedMethod,
+        customer: {
+          name: shipping.fullName.trim(),
+          phone: shipping.phone.trim(),
+        },
+      });
 
+      // ── CHAPA ONLINE GATEWAY ──
       if (payRes.data.type === "chapa") {
-        // Redirect to Chapa
+        if (!payRes.data.checkout_url) {
+          throw new Error("Payment gateway did not return a checkout URL.");
+        }
+        // Save pending order info in localStorage so it can be verified upon return
         localStorage.setItem("pendingOrder", orderId);
-        clearCart();
+        if (payRes.data.tx_ref) {
+          localStorage.setItem("pendingTxRef", payRes.data.tx_ref);
+        }
+        // DO NOT clearCart() here — only clear cart on /payment-success after payment is verified!
         window.location.href = payRes.data.checkout_url;
         return;
       }
 
-      if (payRes.data.type === "cash_on_delivery") {
+      // ── CASH ON DELIVERY (COD) ──
+      if (payRes.data.type === "cash_on_delivery" || selectedMethod === "cod") {
         clearCart();
-        navigate(`/payment-result?type=cod&orderId=${orderId}`);
+        localStorage.removeItem("cartItems");
+        toast.success("Order placed successfully! Pay on delivery.");
+        navigate(`/payment-success?type=cod&orderId=${orderId}`);
         return;
       }
 
+      // ── MANUAL TRANSFER (CBE Birr, Telebirr, etc.) ──
       if (payRes.data.type === "manual") {
-        // Show proof submission step
         setPaymentId(payRes.data.paymentId);
         setMethodInfo(payRes.data.method);
         clearCart();
+        localStorage.removeItem("cartItems");
         setProofStep(true);
         return;
       }
 
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || "Checkout failed";
+      const msg = err.response?.data?.message || err.message || "Checkout failed. Please check your connection and try again.";
 
-      // If the order was already paid, redirect to orders instead of showing error
+      // If the order was already paid, redirect to orders
       if (err.response?.status === 409 && msg.toLowerCase().includes("already been paid")) {
         toast.info("This order has already been paid.");
         navigate("/my-orders");
@@ -162,6 +220,7 @@ function Checkout() {
       setLoading(false);
     }
   };
+
 
   const submitProof = async (e) => {
     e.preventDefault();
@@ -435,13 +494,33 @@ function Checkout() {
               )}
             </div>
 
-            <button type="submit" className={`checkout-button ${currentMethod?.code === "chapa" ? "chapa" : "cod"}`} disabled={loading}>
-              {loading ? "Processing…" : currentMethod?.type === "chapa"
-                ? `Pay ${fmt(finalTotal)} via Chapa`
-                : currentMethod?.type === "cash_on_delivery"
-                ? `Place Order — ${fmt(finalTotal)} (Cash on Delivery)`
+            <button
+              type="submit"
+              className={`checkout-button ${currentMethod?.code === "chapa" ? "chapa" : "cod"}`}
+              disabled={loading}
+            >
+              {loading ? (
+                <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      border: "2px solid rgba(255,255,255,0.4)",
+                      borderTopColor: "#ffffff",
+                      borderRadius: "50%",
+                      display: "inline-block",
+                      animation: "spin 0.8s linear infinite",
+                    }}
+                  />
+                  Processing Order...
+                </span>
+              ) : currentMethod?.type === "chapa"
+                ? `Pay ${fmt(finalTotal)} via Chapa 💳`
+                : currentMethod?.type === "cash_on_delivery" || selectedMethod === "cod"
+                ? `Place Order — ${fmt(finalTotal)} (Cash on Delivery) 🚚`
                 : `Place Order — ${fmt(finalTotal)} (${currentMethod?.name || "Manual Payment"})`}
             </button>
+
           </form>
 
           {/* Order summary */}

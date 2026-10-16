@@ -17,7 +17,7 @@ const pageMap = {
   "/admin/customers":         "Customers",
   "/admin/payments":          "Payments",
   "/admin/reports":           "Reports",
-  "/admin/settings":          "Settings",
+  "/admin/settings":          "System Settings",
   "/admin/profile":           "My Profile",
   "/admin/contacts":          "Messages",
   "/admin/staff":             "Staff Management",

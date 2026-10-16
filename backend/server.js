@@ -15,7 +15,8 @@ import cors    from "cors";
 
 // ── Config ─────────────────────────────────────────────────────
 import connectDB  from "./config/db.js";
-import corsOptions from "./config/cors.js";
+import corsOptions, { isOriginAllowed } from "./config/cors.js";
+
 
 // ── Utils / Middleware ──────────────────────────────────────────
 import logger       from "./utils/logger.js";
@@ -64,10 +65,28 @@ requiredEnv.forEach((key) => {
 // ══════════════════════════════════════════════════════════════
 const app = express();
 
-// ── Security / Parsing ──────────────────────────────────────────
+// ── Security / CORS / Preflight ──────────────────────────────────
 app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions)); // Enable pre-flight across-the-board
+
+// Explicit CORS headers safety net (ensures headers are present even on errors/404s)
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && isOriginAllowed(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin");
+  }
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
 
 // ── Request logger (dev) ────────────────────────────────────────
 if (process.env.NODE_ENV !== "production") {

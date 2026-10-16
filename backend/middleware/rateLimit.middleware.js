@@ -20,7 +20,12 @@ const windows = new Map();
  */
 const createRateLimiter = ({ windowMs = 15 * 60 * 1000, max = 100, message = "Too many requests. Please try again later." }) => {
   return (req, res, next) => {
-    const ip  = req.ip || req.connection.remoteAddress || "unknown";
+    // Never rate-limit preflight OPTIONS requests!
+    if (req.method === "OPTIONS") {
+      return next();
+    }
+
+    const ip  = req.ip || req.connection?.remoteAddress || "unknown";
     const key = `${ip}:${req.path}`;
     const now = Date.now();
 
@@ -52,7 +57,7 @@ const createRateLimiter = ({ windowMs = 15 * 60 * 1000, max = 100, message = "To
 /** Strict limiter for authentication endpoints (login, register, password reset) */
 export const authRateLimit = createRateLimiter({
   windowMs: 15 * 60 * 1000,  // 15 minutes
-  max: 10,
+  max: 20,
   message: "Too many login attempts. Please wait 15 minutes before trying again.",
 });
 
@@ -63,11 +68,12 @@ export const apiRateLimit = createRateLimiter({
   message: "Too many requests. Please slow down.",
 });
 
-/** Payment endpoints — extra strict */
+/** Payment endpoints — allows normal checkout retries and cart adjustments */
 export const paymentRateLimit = createRateLimiter({
   windowMs: 60 * 1000,  // 1 minute
-  max: 5,
+  max: 60,
   message: "Too many payment requests. Please wait before trying again.",
 });
 
 export default createRateLimiter;
+

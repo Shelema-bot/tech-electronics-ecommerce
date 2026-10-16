@@ -17,7 +17,15 @@ import logger from "../utils/logger.js";
 const errorHandler = (err, req, res, next) => {
   const isProd = process.env.NODE_ENV === "production";
 
+  // Ensure CORS headers are attached so browser displays actual error instead of generic CORS block
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+  }
+
   // ── Log every error ──────────────────────────────────────────
+
   logger.error(`${req.method} ${req.originalUrl} — ${err.message}`);
   if (!isProd) console.error(err.stack);
 

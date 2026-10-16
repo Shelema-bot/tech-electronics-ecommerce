@@ -25,6 +25,7 @@ function Checkout() {
   const { fmt }  = usePreference();
 
   const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState(null);
   const [methods, setMethods]           = useState([]);
   const [methodsLoading, setMethodsLoading] = useState(true);
   const [selectedMethod, setSelectedMethod] = useState(null);
@@ -120,6 +121,7 @@ function Checkout() {
 
   const placeOrder = async (e) => {
     e.preventDefault();
+    setError(null);
     if (cartItems.length === 0) { toast.warning("Your cart is empty"); return; }
     if (!localStorage.getItem("token")) { toast.warning("Please login before checkout"); navigate("/login"); return; }
     if (!selectedMethod) { toast.warning("Please select a payment method"); return; }
@@ -135,7 +137,7 @@ function Checkout() {
       // Create order with 'Pending' status in MongoDB
       const orderRes = await API.post("/orders", {
         orderItems: cartItems.map(item => ({
-          product: item._id,
+          product: item._id || item.product || item.id,
           name: item.name,
           image: item.images?.[0] || "",
           price: Number(item.price),
@@ -181,7 +183,8 @@ function Checkout() {
         if (payRes.data.tx_ref) {
           localStorage.setItem("pendingTxRef", payRes.data.tx_ref);
         }
-        // DO NOT clearCart() here — only clear cart on /payment-success after payment is verified!
+        // Safety: reset loading after 6s in case browser navigation is interrupted
+        setTimeout(() => setLoading(false), 6000);
         window.location.href = payRes.data.checkout_url;
         return;
       }
@@ -206,7 +209,9 @@ function Checkout() {
       }
 
     } catch (err) {
+      console.error("Checkout Error:", err);
       const msg = err.response?.data?.message || err.message || "Checkout failed. Please check your connection and try again.";
+      setError(msg);
 
       // If the order was already paid, redirect to orders
       if (err.response?.status === 409 && msg.toLowerCase().includes("already been paid")) {
@@ -217,6 +222,7 @@ function Checkout() {
 
       toast.error(msg);
     } finally {
+      // Always reset loading so button never stays stuck on "Processing Order..."
       setLoading(false);
     }
   };
@@ -493,6 +499,27 @@ function Checkout() {
                 </div>
               )}
             </div>
+
+            {error && (
+              <div
+                style={{
+                  background: "#fef2f2",
+                  color: "#b91c1c",
+                  padding: "12px 16px",
+                  borderRadius: 8,
+                  marginBottom: 16,
+                  border: "1px solid #fecaca",
+                  fontSize: 14,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  lineHeight: 1.4,
+                }}
+              >
+                <span style={{ fontSize: 18 }}>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
 
             <button
               type="submit"

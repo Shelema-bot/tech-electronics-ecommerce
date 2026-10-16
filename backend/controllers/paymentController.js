@@ -44,7 +44,12 @@ export const createPayment = asyncHandler(async (req, res) => {
   }
 
   // Fetch order
-  const order = await Order.findById(orderId);
+  let order;
+  try {
+    order = await Order.findById(orderId);
+  } catch (_e) {
+    return res.status(404).json({ success: false, message: "Invalid order ID format" });
+  }
   if (!order) return res.status(404).json({ success: false, message: "Order not found" });
 
   // If order has user and request has authenticated user, verify ownership (unless admin)

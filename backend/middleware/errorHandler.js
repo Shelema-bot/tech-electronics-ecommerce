@@ -69,9 +69,9 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // ── Unknown / programming error ──────────────────────────────
-  return res.status(500).json({
+  return res.status(err.statusCode || 500).json({
     success: false,
-    message: isProd ? "Something went wrong. Please try again." : err.message,
+    message: err.message || "An unexpected error occurred",
     ...(!isProd && { stack: err.stack }),
   });
 };

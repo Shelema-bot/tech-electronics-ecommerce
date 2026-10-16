@@ -27,10 +27,17 @@ const router = express.Router();
 
 // Optional auth middleware for guest/customer order creation
 const optionalProtect = async (req, res, next) => {
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    return protect(req, res, next);
+  try {
+    if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+      const token = req.headers.authorization.split(" ")[1];
+      if (token && token !== "null" && token !== "undefined" && token.trim()) {
+        return protect(req, res, next);
+      }
+    }
+    next();
+  } catch (_err) {
+    next();
   }
-  next();
 };
 
 // ===============================

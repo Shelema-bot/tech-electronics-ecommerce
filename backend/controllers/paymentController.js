@@ -19,14 +19,117 @@ const addAudit = (payment, action, userId, fromStatus, toStatus, note = "") => {
   payment.auditLog.push({ action, performedBy: userId, fromStatus, toStatus, note, timestamp: new Date() });
 };
 
+// ── Default payment methods for Ethiopian mobile banking & cash on delivery ──
+export const DEFAULT_PAYMENT_METHODS = [
+  {
+    code: "chapa",
+    name: "Chapa Payment",
+    type: "chapa",
+    description: "Pay securely online with Chapa (Cards, Telebirr, CBE)",
+    enabled: true,
+    requiresScreenshot: false,
+    requiresReference: false,
+    displayOrder: 1,
+  },
+  {
+    code: "cbe_birr",
+    name: "CBE Birr",
+    type: "manual",
+    accountName: "Tech Electronics Store",
+    accountNumber: "1000456789012",
+    phoneNumber: "0911002233",
+    bankName: "Commercial Bank of Ethiopia",
+    instructions: "1. Open CBE Mobile Banking or CBE Birr app.\n2. Transfer total amount to Account: 1000456789012 (Tech Electronics Store).\n3. Put your Order ID in the payment description/remark.\n4. Take a screenshot of the receipt and submit below.",
+    description: "Commercial Bank of Ethiopia account / mobile transfer",
+    enabled: true,
+    requiresScreenshot: true,
+    requiresReference: true,
+    displayOrder: 2,
+  },
+  {
+    code: "telebirr",
+    name: "Telebirr",
+    type: "manual",
+    accountName: "Tech Electronics Store",
+    accountNumber: "0911002233",
+    phoneNumber: "0911002233",
+    bankName: "Telebirr",
+    instructions: "1. Open Telebirr app -> Send Money.\n2. Transfer to Phone/Account: 0911002233 (Tech Electronics Store).\n3. Put your Order ID in the remark.\n4. Submit the transaction reference and receipt screenshot below.",
+    description: "Direct transfer via Telebirr mobile wallet",
+    enabled: true,
+    requiresScreenshot: true,
+    requiresReference: true,
+    displayOrder: 3,
+  },
+  {
+    code: "boa",
+    name: "Bank of Abyssinia",
+    type: "manual",
+    accountName: "Tech Electronics Store",
+    accountNumber: "8899001122",
+    phoneNumber: "0911002233",
+    bankName: "Bank of Abyssinia",
+    instructions: "1. Open BoA Mobile Banking or deposit.\n2. Transfer to Account: 8899001122 (Tech Electronics Store).\n3. Put your Order ID in the transfer reason/note.\n4. Upload receipt screenshot or enter transaction reference below.",
+    description: "Bank of Abyssinia mobile banking transfer",
+    enabled: true,
+    requiresScreenshot: true,
+    requiresReference: true,
+    displayOrder: 4,
+  },
+  {
+    code: "awash",
+    name: "Awash Bank",
+    type: "manual",
+    accountName: "Tech Electronics Store",
+    accountNumber: "01320876543200",
+    phoneNumber: "0911002233",
+    bankName: "Awash Bank",
+    instructions: "1. Open Awash Mobile Banking or branch deposit.\n2. Transfer to Account: 01320876543200 (Tech Electronics Store).\n3. Put Order ID in the payment description.\n4. Submit receipt screenshot or transaction reference below.",
+    description: "Awash Bank mobile or branch transfer",
+    enabled: true,
+    requiresScreenshot: true,
+    requiresReference: true,
+    displayOrder: 5,
+  },
+  {
+    code: "cod",
+    name: "Cash on Delivery",
+    type: "cash_on_delivery",
+    description: "Pay in cash upon receipt of your order at delivery",
+    instructions: "Please prepare the exact order total in ETB when the courier delivers your package.",
+    enabled: true,
+    requiresScreenshot: false,
+    requiresReference: false,
+    displayOrder: 6,
+  },
+];
+
+export const normalizeMethodCode = (code = "") => {
+  const c = String(code).toLowerCase().trim().replace(/[\s-]+/g, "_");
+  if (c === "cbe" || c === "cbe_birr" || c.includes("cbe")) return "cbe_birr";
+  if (c === "telebirr" || c === "tele_birr" || c.includes("telebirr")) return "telebirr";
+  if (c === "boa" || c === "abyssinia" || c.includes("abyssinia")) return "boa";
+  if (c === "awash" || c.includes("awash")) return "awash";
+  if (c === "cod" || c === "cash_on_delivery" || c.includes("delivery") || c === "cash") return "cod";
+  if (c === "chapa") return "chapa";
+  return c;
+};
+
 // ──────────────────────────────────────────────────────────────────────────────
 // GET ENABLED PAYMENT METHODS (public — loaded by checkout page)
 // GET /api/payment-methods
 // ──────────────────────────────────────────────────────────────────────────────
 export const getEnabledPaymentMethods = asyncHandler(async (req, res) => {
-  const methods = await PaymentMethod.find({ enabled: true })
+  const dbMethods = await PaymentMethod.find({ enabled: true })
     .sort({ displayOrder: 1, createdAt: 1 })
     .select("-createdBy -updatedBy -__v");
+
+  const dbCodes = new Set(dbMethods.map(m => m.code.toLowerCase()));
+  const missingDefaults = DEFAULT_PAYMENT_METHODS.filter(d => !dbCodes.has(d.code.toLowerCase()));
+
+  const methods = [...dbMethods, ...missingDefaults];
+  methods.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
   res.json({ success: true, methods });
 });
 
@@ -72,20 +175,25 @@ export const createPayment = asyncHandler(async (req, res) => {
 
   // Amount comes from order, never untrusted frontend
   const amount = Number(order.totalPrice);
-  const normalizedCode = (methodCode || "chapa").toLowerCase();
+  const normalizedCode = normalizeMethodCode(methodCode);
 
-  // Fetch payment method config from DB or fallback
+  // Fetch payment method config from DB or fallback defaults
   let method = await PaymentMethod.findOne({ code: normalizedCode, enabled: true });
   if (!method) {
-    if (normalizedCode === "chapa") {
-      method = { code: "chapa", name: "Chapa Payment", type: "chapa" };
-    } else if (normalizedCode === "cod" || normalizedCode === "cash_on_delivery") {
-      method = { code: "cod", name: "Cash on Delivery", type: "cash_on_delivery" };
-    }
+    method = DEFAULT_PAYMENT_METHODS.find(
+      m => m.code === normalizedCode || normalizeMethodCode(m.code) === normalizedCode
+    );
   }
 
   if (!method) {
-    return res.status(400).json({ success: false, message: `Payment method '${methodCode}' not available` });
+    method = {
+      code: normalizedCode,
+      name: methodCode || "Manual Payment",
+      type: "manual",
+      instructions: "Please transfer the total amount to our merchant account and upload payment proof.",
+      requiresScreenshot: true,
+      requiresReference: true,
+    };
   }
 
   // Check for ANY existing payment record for this order
@@ -93,21 +201,10 @@ export const createPayment = asyncHandler(async (req, res) => {
 
   // ── CHAPA ONLINE GATEWAY ───────────────────────────────────────────────────
   if (method.type === "chapa" || normalizedCode === "chapa") {
-    let tx_ref;
-    const canReuse =
-      existingPayment &&
-      existingPayment.tx_ref &&
-      ["Pending", "Awaiting Payment"].includes(existingPayment.status);
-
-    if (canReuse) {
-      tx_ref = existingPayment.tx_ref;
-    } else if (order.transactionRef) {
-      tx_ref = order.transactionRef;
-    } else {
-      const orderIdSuffix = orderId.toString().slice(-6);
-      const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
-      tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
-    }
+    // Generate a fresh unique tx_ref on every placement to prevent duplicate key conflicts in MongoDB & gateway
+    const orderIdSuffix = orderId.toString().slice(-6);
+    const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
+    let tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
 
     // Customer name & email resolution
     const rawName =
@@ -132,7 +229,8 @@ export const createPayment = asyncHandler(async (req, res) => {
     // Helper to complete demo/fallback checkout smoothly
     const handleDemoApproval = async (reason = "Demo Mode") => {
       logger.info(`Processing safe fallback/demo payment (${reason}) for Order ${order._id}`);
-      const demoTxRef = `TX-${Date.now()}-${orderId.toString().slice(-6)}-DEMO`;
+      const demoRandom = Math.random().toString(36).substring(2, 7).toUpperCase();
+      const demoTxRef = `TX-${Date.now()}-${orderIdSuffix}-${demoRandom}-DEMO`;
 
       order.transactionRef = demoTxRef;
       order.paymentMethod  = "Chapa (Demo Mode)";
@@ -172,7 +270,18 @@ export const createPayment = asyncHandler(async (req, res) => {
             paidAt: new Date(),
           });
         } catch (err) {
-          logger.warn(`Could not create payment record: ${err.message}`);
+          if (err.code === 11000) {
+            payment = await Payment.findOne({ order: orderId });
+            if (payment) {
+              payment.status = "Paid";
+              payment.paidAt = new Date();
+              payment.tx_ref = demoTxRef;
+              payment.methodName = "Chapa (Demo Mode)";
+              await payment.save().catch(() => {});
+            }
+          } else {
+            logger.warn(`Could not create payment record: ${err.message}`);
+          }
         }
       } else {
         payment.status = "Paid";
@@ -214,11 +323,10 @@ export const createPayment = asyncHandler(async (req, res) => {
     } catch (chapaErr) {
       const rawMsg = chapaErr?.response?.data?.message || chapaErr?.response?.data || chapaErr?.message || "";
       const chapaMsg = typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg);
-      if (chapaMsg.toLowerCase().includes("tx_ref") && canReuse) {
+      if (chapaMsg.toLowerCase().includes("tx_ref")) {
         // Regenerate fresh tx_ref and retry
-        const orderIdSuffix = orderId.toString().slice(-6);
-        const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
-        tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
+        const retryRandom = Math.random().toString(36).substring(2, 7).toUpperCase();
+        tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${retryRandom}`;
         try {
           chapaData = await initializeChapaPayment({
             amount,
@@ -250,10 +358,24 @@ export const createPayment = asyncHandler(async (req, res) => {
     order.paymentStatus  = "Pending";
     await order.save();
 
-    // Create or reuse the Payment record in MongoDB
-    let payment;
-    if (canReuse && existingPayment.tx_ref === tx_ref) {
-      payment = existingPayment;
+    // Create or reuse the Payment record in MongoDB safely
+    let payment = existingPayment;
+    if (payment) {
+      payment.amount     = amount;
+      payment.currency   = "ETB";
+      payment.methodCode = "chapa";
+      payment.methodName = method.name || "Chapa Payment";
+      payment.methodType = "chapa";
+      payment.tx_ref     = tx_ref;
+      payment.status     = "Pending";
+      await payment.save().catch(async (err) => {
+        if (err.code === 11000) {
+          const retryRand = Math.random().toString(36).substring(2, 7).toUpperCase();
+          tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${retryRand}`;
+          payment.tx_ref = tx_ref;
+          await payment.save().catch(() => {});
+        }
+      });
     } else {
       try {
         payment = await Payment.create({
@@ -271,7 +393,16 @@ export const createPayment = asyncHandler(async (req, res) => {
         await payment.save();
       } catch (createErr) {
         if (createErr.code === 11000) {
-          payment = (await Payment.findOne({ tx_ref })) || existingPayment;
+          payment = (await Payment.findOne({ order: orderId })) || (await Payment.findOne({ tx_ref }));
+          if (payment) {
+            payment.tx_ref = tx_ref;
+            payment.status = "Pending";
+            payment.amount = amount;
+            payment.methodCode = "chapa";
+            payment.methodName = method.name || "Chapa Payment";
+            payment.methodType = "chapa";
+            await payment.save().catch(() => {});
+          }
         } else {
           throw createErr;
         }
@@ -295,9 +426,14 @@ export const createPayment = asyncHandler(async (req, res) => {
     order.status        = "Processing";
     await order.save();
 
-    let payment;
-    if (existingPayment && existingPayment.methodType === "cash_on_delivery") {
-      payment = existingPayment;
+    let payment = existingPayment;
+    if (payment) {
+      payment.methodCode = "cod";
+      payment.methodName = "Cash on Delivery";
+      payment.methodType = "cash_on_delivery";
+      payment.status     = "Awaiting Payment";
+      payment.amount     = amount;
+      await payment.save();
     } else {
       try {
         payment = await Payment.create({
@@ -314,8 +450,17 @@ export const createPayment = asyncHandler(async (req, res) => {
         await payment.save();
       } catch (createErr) {
         if (createErr.code === 11000) {
-          payment = await Payment.findOne({ order: orderId, methodType: "cash_on_delivery" });
-          if (!payment) throw createErr;
+          payment = await Payment.findOne({ order: orderId });
+          if (payment) {
+            payment.methodCode = "cod";
+            payment.methodName = "Cash on Delivery";
+            payment.methodType = "cash_on_delivery";
+            payment.status     = "Awaiting Payment";
+            payment.amount     = amount;
+            await payment.save();
+          } else {
+            throw createErr;
+          }
         } else {
           throw createErr;
         }
@@ -337,13 +482,14 @@ export const createPayment = asyncHandler(async (req, res) => {
     order.paymentStatus = "Pending";
     await order.save();
 
-    let payment;
-    if (
-      existingPayment &&
-      existingPayment.methodType === "manual" &&
-      ["Awaiting Payment", "Pending Verification"].includes(existingPayment.status)
-    ) {
-      payment = existingPayment;
+    let payment = existingPayment;
+    if (payment) {
+      payment.methodCode = method.code;
+      payment.methodName = method.name;
+      payment.methodType = "manual";
+      payment.status     = "Awaiting Payment";
+      payment.amount     = amount;
+      await payment.save();
     } else {
       try {
         payment = await Payment.create({
@@ -360,8 +506,17 @@ export const createPayment = asyncHandler(async (req, res) => {
         await payment.save();
       } catch (createErr) {
         if (createErr.code === 11000) {
-          payment = await Payment.findOne({ order: orderId, methodType: "manual" });
-          if (!payment) throw createErr;
+          payment = await Payment.findOne({ order: orderId });
+          if (payment) {
+            payment.methodCode = method.code;
+            payment.methodName = method.name;
+            payment.methodType = "manual";
+            payment.status     = "Awaiting Payment";
+            payment.amount     = amount;
+            await payment.save();
+          } else {
+            throw createErr;
+          }
         } else {
           throw createErr;
         }
@@ -590,7 +745,15 @@ export const chapaWebhook = asyncHandler(async (req, res) => {
 // Body: multipart — transactionReference, customerNote + file upload
 // ──────────────────────────────────────────────────────────────────────────────
 export const submitPaymentProof = asyncHandler(async (req, res) => {
-  const payment = await Payment.findById(req.params.id);
+  let payment = null;
+  try {
+    payment = await Payment.findById(req.params.id);
+  } catch (_e) {}
+  if (!payment) {
+    try {
+      payment = await Payment.findOne({ order: req.params.id });
+    } catch (_e) {}
+  }
   if (!payment) return res.status(404).json({ success: false, message: "Payment not found" });
   if (payment.user && req.user && payment.user.toString() !== req.user._id.toString()) {
     return res.status(403).json({ success: false, message: "Not authorized" });
@@ -599,7 +762,10 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
   const { transactionReference, customerNote } = req.body;
   const proofFile = req.file;
 
-  const method = await PaymentMethod.findOne({ code: payment.methodCode });
+  const normalizedCode = normalizeMethodCode(payment.methodCode);
+  const method = (await PaymentMethod.findOne({ code: normalizedCode })) ||
+    DEFAULT_PAYMENT_METHODS.find(m => m.code === normalizedCode);
+
   if (method?.requiresReference && !transactionReference?.trim()) {
     return res.status(400).json({ success: false, message: "Transaction reference is required for this payment method" });
   }
@@ -610,13 +776,25 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
   const prev = payment.status;
   payment.transactionReference = transactionReference?.trim() || payment.transactionReference;
   payment.customerNote         = customerNote?.trim() || "";
-  if (proofFile)    payment.paymentProof = proofFile.path;  // Cloudinary URL
+  const proofUrl = proofFile ? (proofFile.path || proofFile.secure_url || proofFile.url || "") : "";
+  if (proofUrl) payment.paymentProof = proofUrl;
   payment.proofSubmittedAt     = new Date();
   payment.status               = "Pending Verification";
   if (req.user?._id) {
     addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", transactionReference);
   }
   await payment.save();
+
+  // Also update Order with receiptImage and transactionRef
+  if (payment.order) {
+    const order = await Order.findById(payment.order);
+    if (order) {
+      if (proofUrl) order.receiptImage = proofUrl;
+      if (transactionReference?.trim()) order.transactionRef = transactionReference.trim();
+      order.paymentStatus = "Pending";
+      await order.save().catch(() => {});
+    }
+  }
 
   logger.info(`Payment proof submitted: ${payment._id}`);
   res.json({ success: true, message: "Payment proof submitted. Awaiting admin verification.", payment });

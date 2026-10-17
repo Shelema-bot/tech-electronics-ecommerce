@@ -17,6 +17,7 @@ export const createOrder = async (req, res) => {
       taxPrice,
       totalPrice,
       guestCustomer,
+      receiptImage,
     } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -26,19 +27,31 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    if (!shippingAddress || !shippingAddress.fullName || !shippingAddress.phone || !shippingAddress.address || !shippingAddress.city) {
+    const shipping = shippingAddress || {};
+    const formattedShipping = {
+      fullName:   (shipping.fullName || req.user?.name || "Customer").toString().trim(),
+      phone:      (shipping.phone || "N/A").toString().trim(),
+      address:    (shipping.address || "N/A").toString().trim(),
+      city:       (shipping.city || "Addis Ababa").toString().trim(),
+      postalCode: (shipping.postalCode || "").toString().trim(),
+      country:    (shipping.country || "Ethiopia").toString().trim(),
+    };
+
+    if (!shipping.fullName && !req.user?.name) {
       return res.status(400).json({
         success: false,
-        message: "Full shipping address (fullName, phone, address, city) is required",
+        message: "Full name is required for shipping",
       });
     }
 
-    const calculatedTotal = totalPrice || (Number(itemsPrice || 0) + Number(shippingPrice || 0) + Number(taxPrice || 0));
+    const calculatedTotal = totalPrice !== undefined
+      ? Number(totalPrice)
+      : (Number(itemsPrice || 0) + Number(shippingPrice || 0) + Number(taxPrice || 0));
 
     const userId = req.user ? req.user._id : null;
     const guest = guestCustomer || (!userId ? {
-      name:  shippingAddress.fullName,
-      phone: shippingAddress.phone,
+      name:  formattedShipping.fullName,
+      phone: formattedShipping.phone,
       email: req.body.email || "",
     } : null);
 
@@ -46,7 +59,7 @@ export const createOrder = async (req, res) => {
       user: userId,
       guestCustomer: guest,
       orderItems,
-      shippingAddress,
+      shippingAddress: formattedShipping,
       paymentMethod: paymentMethod || "Cash on Delivery",
       paymentStatus: "Pending",
       status: "Pending",
@@ -55,6 +68,7 @@ export const createOrder = async (req, res) => {
       taxPrice: Number(taxPrice) || 0,
       totalPrice: Number(calculatedTotal),
       isPaid: false,
+      receiptImage: receiptImage || "",
     });
 
     // Send emails & in-app notifications in background without blocking response
@@ -88,7 +102,9 @@ export const createOrder = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Order placed successfully",
+      _id: order._id,
       order,
+      ...order.toObject(),
     });
   } catch (error) {
     console.error("CREATE ORDER ERROR:", error);

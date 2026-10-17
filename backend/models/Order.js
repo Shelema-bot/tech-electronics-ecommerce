@@ -39,7 +39,7 @@ const orderSchema = new mongoose.Schema(
       country:    { type: String, default: "Ethiopia" },
     },
 
-    // Payment method: "Chapa", "COD", "Cash on Delivery", "Stripe", or manual methods
+    // Payment method: "Chapa", "COD", "Cash on Delivery", "CBE Birr", "Telebirr", "Bank of Abyssinia", "Awash Bank", or custom
     paymentMethod: {
       type: String,
       default: "Cash on Delivery",
@@ -48,14 +48,19 @@ const orderSchema = new mongoose.Schema(
     // Payment status lifecycle
     paymentStatus: {
       type: String,
-      enum: ["Pending", "Paid", "Failed"],
+      enum: ["Pending", "Paid", "Failed", "Awaiting Payment", "Pending Verification"],
       default: "Pending",
     },
 
-    // Gateway transaction reference (tx_ref or payment intent ID)
-    transactionRef: {
+    // Receipt image URL for manual mobile/bank transfer screenshot
+    receiptImage: {
       type: String,
       default: "",
+    },
+
+    // Gateway transaction reference (tx_ref or customer reference)
+    transactionRef: {
+      type: String,
       trim: true,
     },
 

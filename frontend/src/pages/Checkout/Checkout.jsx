@@ -62,8 +62,12 @@ function Checkout() {
       .catch(() => {
         // Fallback if backend unavailable
         const fallback = [
-          { _id:"chapa", code:"chapa", name:"Chapa Payment",   type:"chapa",            enabled:true, requiresScreenshot:false, requiresReference:false },
-          { _id:"cod",   code:"cod",   name:"Cash on Delivery", type:"cash_on_delivery", enabled:true, requiresScreenshot:false, requiresReference:false },
+          { _id:"chapa",    code:"chapa",    name:"Chapa Payment",      type:"chapa",            enabled:true, requiresScreenshot:false, requiresReference:false, description:"Pay online with Chapa (Cards, Telebirr, CBE)" },
+          { _id:"cbe_birr", code:"cbe_birr", name:"CBE Birr",            type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Commercial Bank of Ethiopia transfer", accountName:"Tech Electronics Store", accountNumber:"1000456789012", bankName:"Commercial Bank of Ethiopia", instructions:"Transfer to CBE Account 1000456789012 (Tech Electronics Store) and upload receipt screenshot." },
+          { _id:"telebirr", code:"telebirr", name:"Telebirr",            type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Direct transfer via Telebirr mobile wallet", accountName:"Tech Electronics Store", accountNumber:"0911002233", phoneNumber:"0911002233", bankName:"Telebirr", instructions:"Send money to Telebirr phone 0911002233 (Tech Electronics Store) and submit receipt." },
+          { _id:"boa",      code:"boa",      name:"Bank of Abyssinia",  type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Bank of Abyssinia mobile banking transfer", accountName:"Tech Electronics Store", accountNumber:"8899001122", bankName:"Bank of Abyssinia", instructions:"Transfer to BoA Account 8899001122 (Tech Electronics Store) and submit receipt." },
+          { _id:"awash",    code:"awash",    name:"Awash Bank",         type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Awash Bank mobile or branch transfer", accountName:"Tech Electronics Store", accountNumber:"01320876543200", bankName:"Awash Bank", instructions:"Transfer to Awash Bank Account 01320876543200 (Tech Electronics Store) and submit receipt." },
+          { _id:"cod",      code:"cod",      name:"Cash on Delivery",    type:"cash_on_delivery", enabled:true, requiresScreenshot:false, requiresReference:false, description:"Pay with cash upon delivery" },
         ];
         setMethods(fallback);
         setSelectedMethod("chapa");
@@ -201,10 +205,13 @@ function Checkout() {
       // ── MANUAL TRANSFER (CBE Birr, Telebirr, etc.) ──
       if (payRes.data.type === "manual") {
         setPaymentId(payRes.data.paymentId);
+        if (payRes.data.paymentId) localStorage.setItem("pendingPaymentId", payRes.data.paymentId);
+        localStorage.setItem("pendingOrder", orderId);
         setMethodInfo(payRes.data.method);
         clearCart();
         localStorage.removeItem("cartItems");
         setProofStep(true);
+        toast.info("Order saved! Please follow the instructions below to complete your payment.");
         return;
       }
 
@@ -213,14 +220,14 @@ function Checkout() {
       const msg = err.response?.data?.message || err.message || "Checkout failed. Please check your connection and try again.";
       setError(msg);
 
-      // If the order was already paid, redirect to orders
-      if (err.response?.status === 409 && msg.toLowerCase().includes("already been paid")) {
-        toast.info("This order has already been paid.");
-        navigate("/my-orders");
-        return;
+      if (err.response?.status === 409) {
+        toast.error("This order was already processed or is pending. Please check your order history.");
+        if (msg.toLowerCase().includes("already been paid")) {
+          navigate("/my-orders");
+        }
+      } else {
+        toast.error(err.response?.data?.message || "Checkout failed. Please try again.");
       }
-
-      toast.error(msg);
     } finally {
       // Always reset loading so button never stays stuck on "Processing Order..."
       setLoading(false);
@@ -230,10 +237,11 @@ function Checkout() {
 
   const submitProof = async (e) => {
     e.preventDefault();
-    if (currentMethod?.requiresReference && !txRef.trim()) {
+    const activeMethod = methodInfo || currentMethod;
+    if (activeMethod?.requiresReference && !txRef.trim()) {
       toast.warning("Transaction reference is required"); return;
     }
-    if (currentMethod?.requiresScreenshot && !proofFile) {
+    if (activeMethod?.requiresScreenshot && !proofFile) {
       toast.warning("Payment screenshot is required"); return;
     }
 
@@ -244,11 +252,13 @@ function Checkout() {
       fd.append("customerNote", note);
       if (proofFile) fd.append("paymentProof", proofFile);
 
-      await API.post(`/payments/${paymentId}/proof`, fd, {
+      const targetId = paymentId || localStorage.getItem("pendingPaymentId") || localStorage.getItem("pendingOrder");
+      await API.post(`/payments/${targetId}/proof`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      navigate(`/payment-result?type=manual&paymentId=${paymentId}`);
+      toast.success("Payment proof submitted successfully!");
+      navigate(`/payment-result?type=manual&paymentId=${targetId}`);
     } catch (err) {
       toast.error(err.response?.data?.message || "Proof submission failed");
     } finally {

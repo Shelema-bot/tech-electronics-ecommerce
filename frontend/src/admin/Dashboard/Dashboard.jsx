@@ -45,10 +45,16 @@ function Dashboard() {
   const greeting    = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "undefined" || token === "null") {
+      setLoading(false);
+      return;
+    }
+    const headers = { Authorization: `Bearer ${token}` };
     Promise.all([
-      API.get("/admin/reports"),
-      API.get("/admin/orders").then(r => r.data.orders || []).catch(() => []),
-      API.get("/notifications").then(r => r.data.notifications || []).catch(() => []),
+      API.get("/admin/reports", { headers }),
+      API.get("/admin/orders", { headers }).then(r => r.data.orders || []).catch(() => []),
+      API.get("/notifications", { headers }).then(r => r.data.notifications || []).catch(() => []),
     ]).then(([rep, orders, notifs]) => {
       setReport(rep.data);
       setRecentOrders(orders.slice(0, 6));

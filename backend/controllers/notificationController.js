@@ -120,6 +120,20 @@ export const getNotificationStats = asyncHandler(async (req, res) => {
   res.json({ success: true, total, unread, byType });
 });
 
+// ── ADMIN: CLEAR / MARK ALL NOTIFICATIONS AS READ ─────────────────
+export const clearAdminNotifications = asyncHandler(async (req, res) => {
+  try {
+    if (req.query.action === "delete" || req.body?.action === "delete") {
+      await Notification.deleteMany({});
+    } else {
+      await Notification.updateMany({}, { $set: { isRead: true, read: true } });
+    }
+    res.status(200).json({ success: true, message: "Notifications cleared successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // ── INTERNAL UTILITY: create one notification ─────────────────────
 // Called by other controllers — never exposed directly as a route
 export const createNotification = async (

@@ -11,6 +11,7 @@ import {
   sendNotification,
   broadcastNotification,
   getNotificationStats,
+  clearAdminNotifications,
 } from "../controllers/notificationController.js";
 
 const router = express.Router();
@@ -24,9 +25,13 @@ router.patch("/:id/read",    protect, markRead);
 router.delete("/:id",        protect, deleteNotification);
 
 // Admin routes
-router.get("/admin/all",     protect, adminOrSuper, getAllNotificationsAdmin);
-router.get("/admin/stats",   protect, adminOrSuper, getNotificationStats);
-router.post("/send",         protect, adminOrSuper, sendNotification);
-router.post("/broadcast",    protect, adminOrSuper, broadcastNotification);
+router.put("/clear",                  protect, adminOrSuper, clearAdminNotifications);
+router.delete("/clear",               protect, adminOrSuper, clearAdminNotifications);
+router.put("/notifications/clear",    protect, adminOrSuper, clearAdminNotifications);
+router.delete("/notifications/clear", protect, adminOrSuper, clearAdminNotifications);
+router.get("/admin/all",              protect, adminOrSuper, getAllNotificationsAdmin);
+router.get("/admin/stats",            protect, adminOrSuper, getNotificationStats);
+router.post("/send",                  protect, adminOrSuper, sendNotification);
+router.post("/broadcast",             protect, adminOrSuper, broadcastNotification);
 
 export default router;

@@ -103,7 +103,7 @@ function Topbar({ collapsed, onToggle }) {
       <div className="topbar-right">
         {/* Notification bell */}
         <div className="topbar-notif-wrap">
-          <Link to="/admin/contacts" className="topbar-icon-btn" title="Messages" aria-label="Messages">
+          <Link to="/admin/notifications" className="topbar-icon-btn" title="Notifications" aria-label="Notifications">
             <FiBell />
           </Link>
         </div>

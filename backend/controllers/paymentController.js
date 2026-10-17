@@ -92,6 +92,21 @@ export const DEFAULT_PAYMENT_METHODS = [
     displayOrder: 5,
   },
   {
+    code: "dashen",
+    name: "Dashen Bank",
+    type: "manual",
+    accountName: "Tech Electronics Store",
+    accountNumber: "556677889900",
+    phoneNumber: "0911002233",
+    bankName: "Dashen Bank",
+    instructions: "1. Open Dashen Amole / Mobile Banking or visit a branch.\n2. Transfer to Account: 556677889900 (Tech Electronics Store).\n3. Put your Order ID in the transfer reason/note.\n4. Upload receipt screenshot or enter transaction reference below.",
+    description: "Dashen Bank / Amole mobile banking transfer",
+    enabled: true,
+    requiresScreenshot: true,
+    requiresReference: true,
+    displayOrder: 6,
+  },
+  {
     code: "cod",
     name: "Cash on Delivery",
     type: "cash_on_delivery",
@@ -100,7 +115,7 @@ export const DEFAULT_PAYMENT_METHODS = [
     enabled: true,
     requiresScreenshot: false,
     requiresReference: false,
-    displayOrder: 6,
+    displayOrder: 7,
   },
 ];
 
@@ -110,6 +125,7 @@ export const normalizeMethodCode = (code = "") => {
   if (c === "telebirr" || c === "tele_birr" || c.includes("telebirr")) return "telebirr";
   if (c === "boa" || c === "abyssinia" || c.includes("abyssinia")) return "boa";
   if (c === "awash" || c.includes("awash")) return "awash";
+  if (c === "dashen" || c.includes("dashen") || c.includes("amole")) return "dashen";
   if (c === "cod" || c === "cash_on_delivery" || c.includes("delivery") || c === "cash") return "cod";
   if (c === "chapa") return "chapa";
   return c;
@@ -753,6 +769,25 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
     try {
       payment = await Payment.findOne({ order: req.params.id });
     } catch (_e) {}
+  }
+  if (!payment) {
+    let order = null;
+    try {
+      order = await Order.findById(req.params.id);
+    } catch (_e) {}
+    if (order) {
+      const code = normalizeMethodCode(order.paymentMethod);
+      payment = await Payment.create({
+        order: order._id,
+        user: order.user || req.user?._id,
+        amount: order.totalPrice,
+        currency: "ETB",
+        methodCode: code,
+        methodName: order.paymentMethod,
+        methodType: "manual",
+        status: "Pending Verification",
+      });
+    }
   }
   if (!payment) return res.status(404).json({ success: false, message: "Payment not found" });
   if (payment.user && req.user && payment.user.toString() !== req.user._id.toString()) {

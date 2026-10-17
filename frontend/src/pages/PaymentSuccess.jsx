@@ -13,7 +13,7 @@ function PaymentSuccess() {
   const [params] = useSearchParams();
 
   const tx_ref = params.get("tx_ref") || params.get("trx_ref") || localStorage.getItem("pendingTxRef") || "";
-  const queryOrderId = params.get("orderId") || localStorage.getItem("pendingOrder") || "";
+  const queryOrderId = params.get("orderId") || params.get("id") || localStorage.getItem("pendingOrder") || "";
   const paymentType = params.get("type") || (tx_ref ? "chapa" : "cod");
   const isDemo = params.get("mode") === "demo" || (typeof tx_ref === "string" && tx_ref.includes("DEMO"));
 

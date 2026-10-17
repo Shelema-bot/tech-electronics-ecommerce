@@ -15,6 +15,7 @@ const METHOD_ICONS = {
   cbe:              "🏦",
   boa:              "🏛️",
   awash:            "🏦",
+  dashen:           "🏦",
   manual:           "📱",
 };
 
@@ -67,6 +68,7 @@ function Checkout() {
           { _id:"telebirr", code:"telebirr", name:"Telebirr",            type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Direct transfer via Telebirr mobile wallet", accountName:"Tech Electronics Store", accountNumber:"0911002233", phoneNumber:"0911002233", bankName:"Telebirr", instructions:"Send money to Telebirr phone 0911002233 (Tech Electronics Store) and submit receipt." },
           { _id:"boa",      code:"boa",      name:"Bank of Abyssinia",  type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Bank of Abyssinia mobile banking transfer", accountName:"Tech Electronics Store", accountNumber:"8899001122", bankName:"Bank of Abyssinia", instructions:"Transfer to BoA Account 8899001122 (Tech Electronics Store) and submit receipt." },
           { _id:"awash",    code:"awash",    name:"Awash Bank",         type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Awash Bank mobile or branch transfer", accountName:"Tech Electronics Store", accountNumber:"01320876543200", bankName:"Awash Bank", instructions:"Transfer to Awash Bank Account 01320876543200 (Tech Electronics Store) and submit receipt." },
+          { _id:"dashen",   code:"dashen",   name:"Dashen Bank",        type:"manual",           enabled:true, requiresScreenshot:true,  requiresReference:true,  description:"Dashen Bank / Amole mobile banking transfer", accountName:"Tech Electronics Store", accountNumber:"556677889900", bankName:"Dashen Bank", instructions:"Transfer to Dashen Bank Account 556677889900 (Tech Electronics Store) and submit receipt." },
           { _id:"cod",      code:"cod",      name:"Cash on Delivery",    type:"cash_on_delivery", enabled:true, requiresScreenshot:false, requiresReference:false, description:"Pay with cash upon delivery" },
         ];
         setMethods(fallback);
@@ -167,18 +169,36 @@ function Checkout() {
 
       setOrderAmount(finalTotal);
 
-      // Initialize payment with the backend
-      const payRes = await API.post("/payment/initialize", {
-        orderId,
-        methodCode: selectedMethod,
-        customer: {
-          name: shipping.fullName.trim(),
-          phone: shipping.phone.trim(),
-        },
-      });
+      // Initialize payment with backend (with graceful fallback for manual & COD)
+      let payRes = null;
+      try {
+        payRes = await API.post("/payment/initialize", {
+          orderId,
+          methodCode: selectedMethod,
+          customer: {
+            name: shipping.fullName.trim(),
+            phone: shipping.phone.trim(),
+          },
+        });
+      } catch (payErr) {
+        console.warn("Payment initialization warning:", payErr);
+        // For Chapa online gateway, payment initialization is required to get checkout url
+        if (selectedMethod === "chapa") {
+          throw payErr;
+        }
+        // For manual accounts and COD, order is already safely saved in MongoDB
+        payRes = {
+          data: {
+            type: selectedMethod === "cod" ? "cash_on_delivery" : "manual",
+            paymentId: orderId,
+            orderId,
+            method: currentMethod || { name: selectedMethod, code: selectedMethod },
+          },
+        };
+      }
 
       // ── CHAPA ONLINE GATEWAY ──
-      if (payRes.data.type === "chapa") {
+      if (payRes?.data?.type === "chapa") {
         if (!payRes.data.checkout_url) {
           throw new Error("Payment gateway did not return a checkout URL.");
         }
@@ -194,7 +214,7 @@ function Checkout() {
       }
 
       // ── CASH ON DELIVERY (COD) ──
-      if (payRes.data.type === "cash_on_delivery" || selectedMethod === "cod") {
+      if (payRes?.data?.type === "cash_on_delivery" || selectedMethod === "cod") {
         clearCart();
         localStorage.removeItem("cartItems");
         toast.success("Order placed successfully! Pay on delivery.");
@@ -202,12 +222,13 @@ function Checkout() {
         return;
       }
 
-      // ── MANUAL TRANSFER (CBE Birr, Telebirr, etc.) ──
-      if (payRes.data.type === "manual") {
-        setPaymentId(payRes.data.paymentId);
-        if (payRes.data.paymentId) localStorage.setItem("pendingPaymentId", payRes.data.paymentId);
+      // ── MANUAL TRANSFER (CBE Birr, Telebirr, BoA, Awash, Dashen, etc.) ──
+      if (payRes?.data?.type === "manual" || currentMethod?.type === "manual") {
+        const pId = payRes?.data?.paymentId || orderId;
+        setPaymentId(pId);
+        localStorage.setItem("pendingPaymentId", pId);
         localStorage.setItem("pendingOrder", orderId);
-        setMethodInfo(payRes.data.method);
+        setMethodInfo(payRes?.data?.method || currentMethod);
         clearCart();
         localStorage.removeItem("cartItems");
         setProofStep(true);
@@ -267,7 +288,8 @@ function Checkout() {
   };
 
   // ── Manual proof submission step ────────────────────────────────────────────
-  if (proofStep && methodInfo) {
+  const activeMethod = methodInfo || currentMethod;
+  if (proofStep && activeMethod) {
     return (
       <div className="checkout-page">
         <div className="checkout-container" style={{ maxWidth: 640 }}>
@@ -281,28 +303,28 @@ function Checkout() {
             <div className="pic-header">
               <span className="pic-icon">{METHOD_ICONS[selectedMethod] || "💳"}</span>
               <div>
-                <h2>Pay with {methodInfo.name}</h2>
+                <h2>Pay with {activeMethod.name}</h2>
                 <div className="pic-amount">Amount: <strong>{fmt(orderAmount)}</strong></div>
               </div>
             </div>
 
             <div className="pic-details">
-              {methodInfo.accountName   && <div className="pic-row"><span>Account Name</span><strong>{methodInfo.accountName}</strong></div>}
-              {methodInfo.accountNumber && <div className="pic-row"><span>Account Number</span><strong>{methodInfo.accountNumber}</strong></div>}
-              {methodInfo.phoneNumber   && <div className="pic-row"><span>Phone Number</span><strong>{methodInfo.phoneNumber}</strong></div>}
-              {methodInfo.bankName      && <div className="pic-row"><span>Bank</span><strong>{methodInfo.bankName}</strong></div>}
+              {activeMethod.accountName   && <div className="pic-row"><span>Account Name</span><strong>{activeMethod.accountName}</strong></div>}
+              {activeMethod.accountNumber && <div className="pic-row"><span>Account Number</span><strong>{activeMethod.accountNumber}</strong></div>}
+              {activeMethod.phoneNumber   && <div className="pic-row"><span>Phone Number</span><strong>{activeMethod.phoneNumber}</strong></div>}
+              {activeMethod.bankName      && <div className="pic-row"><span>Bank</span><strong>{activeMethod.bankName}</strong></div>}
             </div>
 
-            {methodInfo.instructions && (
+            {activeMethod.instructions && (
               <div className="pic-instructions">
                 <h4>Instructions</h4>
-                <pre>{methodInfo.instructions}</pre>
+                <pre>{activeMethod.instructions}</pre>
               </div>
             )}
 
-            {methodInfo.qrCode && (
+            {activeMethod.qrCode && (
               <div className="pic-qr">
-                <img src={methodInfo.qrCode} alt="Payment QR Code" />
+                <img src={activeMethod.qrCode} alt="Payment QR Code" />
               </div>
             )}
           </div>
@@ -311,7 +333,7 @@ function Checkout() {
           <form className="proof-form" onSubmit={submitProof}>
             <h3>Submit Payment Proof</h3>
 
-            {methodInfo.requiresReference && (
+            {activeMethod.requiresReference && (
               <div className="form-group">
                 <label>Transaction / Reference Number *</label>
                 <input
@@ -324,7 +346,7 @@ function Checkout() {
               </div>
             )}
 
-            {methodInfo.requiresScreenshot && (
+            {activeMethod.requiresScreenshot && (
               <div className="form-group">
                 <label>Payment Screenshot *</label>
                 <div className="file-upload-area">

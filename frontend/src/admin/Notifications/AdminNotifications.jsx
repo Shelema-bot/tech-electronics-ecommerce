@@ -124,6 +124,33 @@ export default function AdminNotifications() {
     finally { setSending(false); }
   };
 
+  const [clearing, setClearing] = useState(false);
+
+  const handleClearAdminNotifications = async (action = "read") => {
+    const confirmMsg =
+      action === "delete"
+        ? "Are you sure you want to delete all notifications? This cannot be undone."
+        : "Mark all notifications as read?";
+    if (!window.confirm(confirmMsg)) return;
+
+    try {
+      setClearing(true);
+      await API.put(`/notifications/clear?action=${action}`);
+      if (action === "delete") {
+        setHistory([]);
+      } else {
+        setHistory(prev => prev.map(n => ({ ...n, isRead: true, read: true })));
+      }
+      fetchStats();
+      toast.success(action === "delete" ? "All notifications cleared!" : "All notifications marked as read!");
+    } catch (err) {
+      console.error("Error clearing notifications:", err);
+      toast.error(err.response?.data?.message || "Could not clear notifications");
+    } finally {
+      setClearing(false);
+    }
+  };
+
   const inp = { padding:"9px 12px", border:"1px solid #e2e8f0", borderRadius:8, fontSize:14, outline:"none", width:"100%", boxSizing:"border-box", transition:"border-color 0.2s" };
   const lbl = { fontSize:13, fontWeight:600, color:"#374151", display:"block", marginBottom:5 };
 
@@ -132,10 +159,48 @@ export default function AdminNotifications() {
       <div className="an-page">
 
         {/* Header */}
-        <div className="an-header">
+        <div className="an-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
           <div>
             <h1 className="an-title">Notifications</h1>
             <p className="an-sub">Send notifications to users and monitor notification activity</p>
+          </div>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button
+              type="button"
+              onClick={() => handleClearAdminNotifications("read")}
+              disabled={clearing}
+              style={{
+                background: "#f1f5f9",
+                border: "1px solid #cbd5e1",
+                padding: "8px 14px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#475569",
+                cursor: clearing ? "not-allowed" : "pointer",
+                transition: "all 0.2s"
+              }}
+            >
+              ✓ Mark All Read
+            </button>
+            <button
+              type="button"
+              onClick={() => handleClearAdminNotifications("delete")}
+              disabled={clearing}
+              style={{
+                background: "#fee2e2",
+                border: "1px solid #fca5a5",
+                padding: "8px 14px",
+                borderRadius: "8px",
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "#dc2626",
+                cursor: clearing ? "not-allowed" : "pointer",
+                transition: "all 0.2s"
+              }}
+            >
+              🗑️ Clear All
+            </button>
           </div>
         </div>
 
@@ -316,6 +381,30 @@ export default function AdminNotifications() {
           {/* ── History tab ── */}
           {tab === "history" && (
             <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                <span style={{ fontSize: 13, color: "#64748b", fontWeight: 500 }}>
+                  Showing {history.length} notification(s)
+                </span>
+                {history.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleClearAdminNotifications("delete")}
+                    disabled={clearing}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid #fecaca",
+                      borderRadius: 6,
+                      color: "#dc2626",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      padding: "4px 10px",
+                    }}
+                  >
+                    🗑️ Wipe History
+                  </button>
+                )}
+              </div>
               {loadingH ? (
                 <div className="an-loading"><div className="an-spinner" /> Loading history…</div>
               ) : history.length === 0 ? (

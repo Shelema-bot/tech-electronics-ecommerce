@@ -812,6 +812,31 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: "Payment screenshot is required" });
   }
 
+  if (cleanTxId) {
+    const existingOrder = await Order.findOne({
+      _id: { $ne: payment.order },
+      $or: [
+        { transactionId: cleanTxId, isPaid: true },
+        { transactionRef: cleanTxId, isPaid: true },
+        { transactionId: cleanTxId, paymentStatus: "Paid" },
+        { transactionRef: cleanTxId, paymentStatus: "Paid" },
+        ...(payment.user ? [
+          { transactionId: cleanTxId, user: { $ne: payment.user } },
+          { transactionRef: cleanTxId, user: { $ne: payment.user } }
+        ] : [
+          { transactionId: cleanTxId },
+          { transactionRef: cleanTxId }
+        ])
+      ]
+    });
+    if (existingOrder) {
+      return res.status(400).json({
+        success: false,
+        message: "This Transaction ID has already been used for another order. Please check your transaction number.",
+      });
+    }
+  }
+
   const prev = payment.status;
   if (cleanTxId) {
     payment.transactionReference = cleanTxId;

@@ -78,6 +78,14 @@ function Checkout() {
       .finally(() => setMethodsLoading(false));
   }, []);
 
+  // Reset payment proof inputs and error when switching payment methods
+  useEffect(() => {
+    setTxRef("");
+    setReceiptImageUrl("");
+    setProofFile(null);
+    setError(null);
+  }, [selectedMethod]);
+
   const handleChange = (e) => setShipping({ ...shipping, [e.target.name]: e.target.value });
 
   const applyCoupon = async () => {
@@ -159,9 +167,9 @@ function Checkout() {
           country: shipping.country?.trim() || "Ethiopia",
         },
         paymentMethod: currentMethod?.name || (selectedMethod === "chapa" ? "Chapa" : selectedMethod === "cod" ? "Cash on Delivery" : selectedMethod),
-        transactionId: txRef.trim(),
-        transactionRef: txRef.trim(),
-        receiptImage: receiptImageUrl.trim(),
+        transactionId: txRef.trim() || undefined,
+        transactionRef: txRef.trim() || undefined,
+        receiptImage: receiptImageUrl.trim() || undefined,
         itemsPrice: cartTotal,
         shippingPrice: 0,
         taxPrice: 0,
@@ -281,8 +289,10 @@ function Checkout() {
         if (msg.toLowerCase().includes("already been paid")) {
           navigate("/my-orders");
         }
+      } else if (err.response?.status === 400) {
+        toast.error(msg);
       } else {
-        toast.error(err.response?.data?.message || "Checkout failed. Please try again.");
+        toast.error(msg);
       }
     } finally {
       // Always reset loading so button never stays stuck on "Processing Order..."
@@ -293,6 +303,7 @@ function Checkout() {
 
   const submitProof = async (e) => {
     e.preventDefault();
+    setError(null);
     const activeMethod = methodInfo || currentMethod;
     if (activeMethod?.requiresReference && !txRef.trim()) {
       toast.warning("Transaction reference / ID is required");
@@ -332,7 +343,9 @@ function Checkout() {
       navigate(`/order-success?id=${targetId}`);
     } catch (err) {
       console.error("Proof submission failed:", err);
-      toast.error(err.response?.data?.message || err.message || "Proof submission failed. Please try again.");
+      const msg = err.response?.data?.message || err.message || "Proof submission failed. Please check your transaction details and try again.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmittingProof(false);
       setLoading(false);
@@ -385,13 +398,33 @@ function Checkout() {
           <form className="proof-form" onSubmit={submitProof}>
             <h3>Submit Payment Proof</h3>
 
+            {error && (
+              <div
+                style={{
+                  background: "#fef2f2",
+                  color: "#b91c1c",
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  marginBottom: 14,
+                  border: "1px solid #fecaca",
+                  fontSize: 13,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+
             <div className="form-group">
               <label>Transaction ID / Reference Number *</label>
               <input
                 type="text"
                 placeholder="Enter your transaction reference / ID"
                 value={txRef}
-                onChange={e => setTxRef(e.target.value)}
+                onChange={e => { setTxRef(e.target.value); setError(null); }}
                 required
               />
             </div>
@@ -591,7 +624,7 @@ function Checkout() {
                           type="text"
                           placeholder="e.g. FT2348929 or Telebirr Trans ID"
                           value={txRef}
-                          onChange={e => setTxRef(e.target.value)}
+                          onChange={e => { setTxRef(e.target.value); setError(null); }}
                           style={{ width: "100%", padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 6, fontSize: 13, boxSizing: "border-box" }}
                         />
                       </div>

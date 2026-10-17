@@ -55,70 +55,30 @@ export const createOrder = async (req, res) => {
     const cleanReceipt = (receiptImage || "").toString().trim();
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
 
-    // ── DUPLICATE PREVENTION ───────────────────────────────────────────
-    // 1. Check if an order with this transactionId already exists
-    if (cleanTxId) {
-      const existingTxOrder = await Order.findOne({
+    // ── DUPLICATE TRANSACTION CHECK ───────────────────────────────────────
+    // Only check for duplicate transactionId if a transactionId is actually provided and not empty/null
+    if (cleanTxId !== "") {
+      const existingOrder = await Order.findOne({
         $or: [
-          { transactionId: cleanTxId },
-          { transactionRef: cleanTxId }
+          { transactionId: cleanTxId, isPaid: true },
+          { transactionRef: cleanTxId, isPaid: true },
+          { transactionId: cleanTxId, paymentStatus: "Paid" },
+          { transactionRef: cleanTxId, paymentStatus: "Paid" },
+          ...(userId ? [
+            { transactionId: cleanTxId, user: { $ne: userId } },
+            { transactionRef: cleanTxId, user: { $ne: userId } }
+          ] : [
+            { transactionId: cleanTxId },
+            { transactionRef: cleanTxId }
+          ])
         ]
       });
-      if (existingTxOrder) {
-        if (cleanReceipt && !existingTxOrder.receiptImage) {
-          existingTxOrder.receiptImage = cleanReceipt;
-          await existingTxOrder.save().catch(() => {});
-        }
-        return res.status(200).json({
-          success: true,
-          message: "An order with this transaction reference has already been received.",
-          isDuplicate: true,
-          _id: existingTxOrder._id,
-          order: existingTxOrder,
-          ...existingTxOrder.toObject(),
+
+      if (existingOrder) {
+        return res.status(400).json({
+          success: false,
+          message: "This Transaction ID has already been used for another order. Please check your transaction number."
         });
-      }
-    }
-
-    // 2. Check if identical order was submitted within the last 60 seconds
-    if (userId) {
-      const recentOrder = await Order.findOne({
-        user: userId,
-        createdAt: { $gte: oneMinuteAgo },
-        totalPrice: Number(calculatedTotal),
-      }).sort({ createdAt: -1 });
-
-      if (recentOrder) {
-        const isSameItems =
-          recentOrder.orderItems.length === orderItems.length &&
-          recentOrder.orderItems.every((item, idx) => {
-            const p1 = String(item.product?._id || item.product);
-            const p2 = String(orderItems[idx]?.product?._id || orderItems[idx]?.product || orderItems[idx]?.id);
-            return p1 === p2 && Number(item.quantity) === Number(orderItems[idx]?.quantity);
-          });
-
-        if (isSameItems) {
-          let updated = false;
-          if (cleanTxId && !recentOrder.transactionId) {
-            recentOrder.transactionId = cleanTxId;
-            recentOrder.transactionRef = cleanTxId;
-            updated = true;
-          }
-          if (cleanReceipt && !recentOrder.receiptImage) {
-            recentOrder.receiptImage = cleanReceipt;
-            updated = true;
-          }
-          if (updated) await recentOrder.save().catch(() => {});
-
-          return res.status(200).json({
-            success: true,
-            message: "Duplicate order submission prevented. Your order is already being processed.",
-            isDuplicate: true,
-            _id: recentOrder._id,
-            order: recentOrder,
-            ...recentOrder.toObject(),
-          });
-        }
       }
     }
 
@@ -128,7 +88,7 @@ export const createOrder = async (req, res) => {
       email: req.body.email || "",
     } : null);
 
-    const order = await Order.create({
+    const newOrderData = {
       user: userId,
       guestCustomer: guest,
       orderItems,
@@ -141,10 +101,16 @@ export const createOrder = async (req, res) => {
       taxPrice: Number(taxPrice) || 0,
       totalPrice: Number(calculatedTotal),
       isPaid: false,
-      receiptImage: cleanReceipt,
-      transactionId: cleanTxId,
-      transactionRef: cleanTxId,
-    });
+      receiptImage: cleanReceipt || "",
+    };
+
+    // Only attach transactionId / transactionRef if provided to prevent empty-string index collision
+    if (cleanTxId) {
+      newOrderData.transactionId = cleanTxId;
+      newOrderData.transactionRef = cleanTxId;
+    }
+
+    const order = await Order.create(newOrderData);
 
     // Send emails & in-app notifications in background without blocking response
     const customerEmail = req.user?.email || guest?.email;

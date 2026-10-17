@@ -62,7 +62,6 @@ const orderSchema = new mongoose.Schema(
     transactionId: {
       type: String,
       trim: true,
-      default: "",
     },
 
     // Gateway transaction reference (tx_ref or customer reference)
@@ -117,6 +116,9 @@ const orderSchema = new mongoose.Schema(
 
 // Keep transactionId and transactionRef in sync
 orderSchema.pre("save", function (next) {
+  if (this.transactionId === "") this.transactionId = undefined;
+  if (this.transactionRef === "") this.transactionRef = undefined;
+
   if (this.transactionId && !this.transactionRef) {
     this.transactionRef = this.transactionId;
   } else if (this.transactionRef && !this.transactionId) {

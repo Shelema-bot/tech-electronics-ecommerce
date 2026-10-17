@@ -53,35 +53,6 @@ export const createOrder = async (req, res) => {
     const userId = req.user ? req.user._id : null;
     const cleanTxId = (transactionId || transactionRef || "").toString().trim();
     const cleanReceipt = (receiptImage || "").toString().trim();
-    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-
-    // ── DUPLICATE TRANSACTION CHECK ───────────────────────────────────────
-    // Only check for duplicate transactionId if a transactionId is actually provided and not empty/null
-    if (cleanTxId !== "") {
-      const existingOrder = await Order.findOne({
-        $or: [
-          { transactionId: cleanTxId, isPaid: true },
-          { transactionRef: cleanTxId, isPaid: true },
-          { transactionId: cleanTxId, paymentStatus: "Paid" },
-          { transactionRef: cleanTxId, paymentStatus: "Paid" },
-          ...(userId ? [
-            { transactionId: cleanTxId, user: { $ne: userId } },
-            { transactionRef: cleanTxId, user: { $ne: userId } }
-          ] : [
-            { transactionId: cleanTxId },
-            { transactionRef: cleanTxId }
-          ])
-        ]
-      });
-
-      if (existingOrder) {
-        return res.status(400).json({
-          success: false,
-          message: "This Transaction ID has already been used for another order. Please check your transaction number."
-        });
-      }
-    }
-
     const guest = guestCustomer || (!userId ? {
       name:  formattedShipping.fullName,
       phone: formattedShipping.phone,

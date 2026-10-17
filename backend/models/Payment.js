@@ -29,7 +29,7 @@ const paymentSchema = new mongoose.Schema(
     },
 
     // ── Chapa fields (preserved from existing schema) ─────────────────────
-    tx_ref:    { type: String, sparse: true }, // sparse: allows multiple nulls
+    tx_ref:    { type: String },
     paidAt:    { type: Date },
 
     // ── Manual payment proof ──────────────────────────────────────────────
@@ -77,6 +77,6 @@ paymentSchema.index({ user: 1, createdAt: -1 });
 paymentSchema.index({ order: 1 });
 paymentSchema.index({ status: 1 });
 paymentSchema.index({ methodCode: 1 });
-paymentSchema.index({ tx_ref: 1 }, { sparse: true });
+paymentSchema.index({ tx_ref: 1 });
 
 export default mongoose.model("Payment", paymentSchema);

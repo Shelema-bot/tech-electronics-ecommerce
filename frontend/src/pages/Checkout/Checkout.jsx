@@ -78,6 +78,13 @@ function Checkout() {
       .finally(() => setMethodsLoading(false));
   }, []);
 
+  // Clear any stale cached references on checkout mount
+  useEffect(() => {
+    localStorage.removeItem("pendingTxRef");
+    localStorage.removeItem("pendingPaymentId");
+    localStorage.removeItem("pendingOrder");
+  }, []);
+
   // Reset payment proof inputs and error when switching payment methods
   useEffect(() => {
     setTxRef("");
@@ -191,19 +198,27 @@ function Checkout() {
       setOrderAmount(finalTotal);
 
       // If manual transfer and proof was already provided on checkout form
-      if ((selectedMethod !== "chapa" && selectedMethod !== "cod") && proofFile && txRef.trim()) {
+      if ((selectedMethod !== "chapa" && selectedMethod !== "cod") && (proofFile || receiptImageUrl.trim())) {
         try {
           const fd = new FormData();
-          fd.append("transactionReference", txRef.trim());
-          fd.append("transactionId", txRef.trim());
+          if (txRef.trim()) {
+            fd.append("transactionReference", txRef.trim());
+            fd.append("transactionId", txRef.trim());
+          }
           fd.append("customerNote", note.trim());
-          fd.append("paymentProof", proofFile);
-          fd.append("receiptImage", proofFile);
-          await API.post(`/payments/${orderId}/proof`, fd, {
+          if (receiptImageUrl.trim()) fd.append("receiptImage", receiptImageUrl.trim());
+          if (proofFile) {
+            fd.append("paymentProof", proofFile);
+            fd.append("receiptImage", proofFile);
+          }
+          await API.put(`/payments/${orderId}/proof`, fd, {
             headers: { "Content-Type": "multipart/form-data" },
           });
           clearCart();
           localStorage.removeItem("cartItems");
+          localStorage.removeItem("pendingPaymentId");
+          localStorage.removeItem("pendingOrder");
+          localStorage.removeItem("pendingTxRef");
           toast.success("Order placed and payment proof submitted! Awaiting verification.");
           navigate(`/order-success?id=${orderId}`);
           return;
@@ -304,12 +319,7 @@ function Checkout() {
   const submitProof = async (e) => {
     e.preventDefault();
     setError(null);
-    const activeMethod = methodInfo || currentMethod;
-    if (activeMethod?.requiresReference && !txRef.trim()) {
-      toast.warning("Transaction reference / ID is required");
-      return;
-    }
-    if (activeMethod?.requiresScreenshot && !proofFile && !receiptImageUrl.trim()) {
+    if (!proofFile && !receiptImageUrl.trim()) {
       toast.warning("Payment screenshot or receipt image URL is required");
       return;
     }
@@ -322,8 +332,10 @@ function Checkout() {
       if (!targetId) throw new Error("Order ID not found");
 
       const fd = new FormData();
-      fd.append("transactionReference", txRef.trim());
-      fd.append("transactionId", txRef.trim());
+      if (txRef.trim()) {
+        fd.append("transactionReference", txRef.trim());
+        fd.append("transactionId", txRef.trim());
+      }
       fd.append("customerNote", note.trim());
       if (receiptImageUrl.trim()) fd.append("receiptImage", receiptImageUrl.trim());
       if (proofFile) {
@@ -331,7 +343,7 @@ function Checkout() {
         fd.append("receiptImage", proofFile);
       }
 
-      await API.post(`/payments/${targetId}/proof`, fd, {
+      await API.put(`/payments/${targetId}/proof`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -340,6 +352,7 @@ function Checkout() {
       localStorage.removeItem("cartItems");
       localStorage.removeItem("pendingPaymentId");
       localStorage.removeItem("pendingOrder");
+      localStorage.removeItem("pendingTxRef");
       navigate(`/order-success?id=${targetId}`);
     } catch (err) {
       console.error("Proof submission failed:", err);
@@ -419,13 +432,12 @@ function Checkout() {
             )}
 
             <div className="form-group">
-              <label>Transaction ID / Reference Number *</label>
+              <label>Transaction ID / Reference Number (Optional)</label>
               <input
                 type="text"
-                placeholder="Enter your transaction reference / ID"
+                placeholder="Enter your transaction reference / ID (optional)"
                 value={txRef}
                 onChange={e => { setTxRef(e.target.value); setError(null); }}
-                required
               />
             </div>
 
@@ -618,11 +630,11 @@ function Checkout() {
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 4 }}>
-                          Transaction ID / Reference Number
+                          Transaction ID / Reference Number (Optional)
                         </label>
                         <input
                           type="text"
-                          placeholder="e.g. FT2348929 or Telebirr Trans ID"
+                          placeholder="e.g. FT2348929 or Telebirr Trans ID (optional)"
                           value={txRef}
                           onChange={e => { setTxRef(e.target.value); setError(null); }}
                           style={{ width: "100%", padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 6, fontSize: 13, boxSizing: "border-box" }}

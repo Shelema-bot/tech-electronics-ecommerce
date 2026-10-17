@@ -129,8 +129,6 @@ orderSchema.pre("save", function (next) {
 
 // Indexes
 orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ transactionRef: 1 }, { sparse: true });
-orderSchema.index({ transactionId: 1 }, { sparse: true });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ status: 1 });
 

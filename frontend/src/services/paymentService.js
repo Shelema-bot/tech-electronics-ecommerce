@@ -44,7 +44,7 @@ export const verifyPayment = async (tx_ref) => {
  * Submit manual payment receipt / proof
  */
 export const submitPaymentProof = async (paymentId, formData) => {
-  const response = await API.post(`/payments/${paymentId}/proof`, formData, {
+  const response = await API.put(`/payments/${paymentId}/proof`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;

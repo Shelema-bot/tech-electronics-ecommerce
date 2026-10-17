@@ -46,6 +46,8 @@ router.get("/my",               protect, getMyPayments);
 router.get("/my-payments",      protect, getMyPayments);   // legacy alias
 router.get("/:id",              protect, getPaymentById);
 router.post("/:id/proof",       optionalProtect, uploadProof, submitPaymentProof);
+router.put("/:id/proof",        optionalProtect, uploadProof, submitPaymentProof);
+router.patch("/:id/proof",      optionalProtect, uploadProof, submitPaymentProof);
 
 export default router;
 

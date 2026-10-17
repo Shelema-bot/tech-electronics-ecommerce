@@ -15,6 +15,10 @@ import asyncHandler from "../utils/asyncHandler.js";
 
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
+export const generateUniqueTxRef = (prefix = "tx") => {
+  return `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+};
+
 const addAudit = (payment, action, userId, fromStatus, toStatus, note = "") => {
   payment.auditLog.push({ action, performedBy: userId, fromStatus, toStatus, note, timestamp: new Date() });
 };
@@ -217,10 +221,8 @@ export const createPayment = asyncHandler(async (req, res) => {
 
   // ── CHAPA ONLINE GATEWAY ───────────────────────────────────────────────────
   if (method.type === "chapa" || normalizedCode === "chapa") {
-    // Generate a fresh unique tx_ref on every placement to prevent duplicate key conflicts in MongoDB & gateway
-    const orderIdSuffix = orderId.toString().slice(-6);
-    const randomPart = Math.random().toString(36).substring(2, 7).toUpperCase();
-    let tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${randomPart}`;
+    // Generate a fresh guaranteed-unique tx_ref to prevent duplicate key conflicts in MongoDB & gateway
+    let tx_ref = generateUniqueTxRef("tx");
 
     // Customer name & email resolution
     const rawName =
@@ -245,8 +247,7 @@ export const createPayment = asyncHandler(async (req, res) => {
     // Helper to complete demo/fallback checkout smoothly
     const handleDemoApproval = async (reason = "Demo Mode") => {
       logger.info(`Processing safe fallback/demo payment (${reason}) for Order ${order._id}`);
-      const demoRandom = Math.random().toString(36).substring(2, 7).toUpperCase();
-      const demoTxRef = `TX-${Date.now()}-${orderIdSuffix}-${demoRandom}-DEMO`;
+      const demoTxRef = generateUniqueTxRef("tx_demo");
 
       order.transactionRef = demoTxRef;
       order.paymentMethod  = "Chapa (Demo Mode)";
@@ -341,8 +342,7 @@ export const createPayment = asyncHandler(async (req, res) => {
       const chapaMsg = typeof rawMsg === "string" ? rawMsg : JSON.stringify(rawMsg);
       if (chapaMsg.toLowerCase().includes("tx_ref")) {
         // Regenerate fresh tx_ref and retry
-        const retryRandom = Math.random().toString(36).substring(2, 7).toUpperCase();
-        tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${retryRandom}`;
+        tx_ref = generateUniqueTxRef("tx");
         try {
           chapaData = await initializeChapaPayment({
             amount,
@@ -386,8 +386,7 @@ export const createPayment = asyncHandler(async (req, res) => {
       payment.status     = "Pending";
       await payment.save().catch(async (err) => {
         if (err.code === 11000) {
-          const retryRand = Math.random().toString(36).substring(2, 7).toUpperCase();
-          tx_ref = `TX-${Date.now()}-${orderIdSuffix}-${retryRand}`;
+          tx_ref = generateUniqueTxRef("tx");
           payment.tx_ref = tx_ref;
           await payment.save().catch(() => {});
         }
@@ -449,7 +448,8 @@ export const createPayment = asyncHandler(async (req, res) => {
       payment.methodType = "cash_on_delivery";
       payment.status     = "Awaiting Payment";
       payment.amount     = amount;
-      await payment.save();
+      if (!payment.tx_ref) payment.tx_ref = generateUniqueTxRef("tx_cod");
+      await payment.save().catch(() => {});
     } else {
       try {
         payment = await Payment.create({
@@ -460,6 +460,7 @@ export const createPayment = asyncHandler(async (req, res) => {
           methodCode: "cod",
           methodName: "Cash on Delivery",
           methodType: "cash_on_delivery",
+          tx_ref: generateUniqueTxRef("tx_cod"),
           status: "Awaiting Payment",
         });
         if (req.user?._id) addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment", "Cash on Delivery");
@@ -473,7 +474,8 @@ export const createPayment = asyncHandler(async (req, res) => {
             payment.methodType = "cash_on_delivery";
             payment.status     = "Awaiting Payment";
             payment.amount     = amount;
-            await payment.save();
+            if (!payment.tx_ref) payment.tx_ref = generateUniqueTxRef("tx_cod");
+            await payment.save().catch(() => {});
           } else {
             throw createErr;
           }
@@ -505,7 +507,8 @@ export const createPayment = asyncHandler(async (req, res) => {
       payment.methodType = "manual";
       payment.status     = "Awaiting Payment";
       payment.amount     = amount;
-      await payment.save();
+      if (!payment.tx_ref) payment.tx_ref = generateUniqueTxRef("tx_manual");
+      await payment.save().catch(() => {});
     } else {
       try {
         payment = await Payment.create({
@@ -516,6 +519,7 @@ export const createPayment = asyncHandler(async (req, res) => {
           methodCode: method.code,
           methodName: method.name,
           methodType: "manual",
+          tx_ref: generateUniqueTxRef("tx_manual"),
           status: "Awaiting Payment",
         });
         if (req.user?._id) addAudit(payment, "PAYMENT_CREATED", req.user._id, null, "Awaiting Payment");
@@ -529,7 +533,8 @@ export const createPayment = asyncHandler(async (req, res) => {
             payment.methodType = "manual";
             payment.status     = "Awaiting Payment";
             payment.amount     = amount;
-            await payment.save();
+            if (!payment.tx_ref) payment.tx_ref = generateUniqueTxRef("tx_manual");
+            await payment.save().catch(() => {});
           } else {
             throw createErr;
           }
@@ -757,40 +762,46 @@ export const chapaWebhook = asyncHandler(async (req, res) => {
 
 // ──────────────────────────────────────────────────────────────────────────────
 // SUBMIT MANUAL PAYMENT PROOF
-// POST /api/payments/:id/proof
-// Body: multipart — transactionReference, customerNote + file upload
+// POST/PUT/PATCH /api/payments/:id/proof
+// Body: multipart or JSON — transactionReference, customerNote + file upload
 // ──────────────────────────────────────────────────────────────────────────────
 export const submitPaymentProof = asyncHandler(async (req, res) => {
+  const targetId = req.params.id;
+  let order = null;
   let payment = null;
+
+  // Try finding order directly by targetId
   try {
-    payment = await Payment.findById(req.params.id);
+    order = await Order.findById(targetId);
   } catch (_e) {}
-  if (!payment) {
+
+  // If targetId is a Payment ID instead of Order ID
+  if (!order) {
     try {
-      payment = await Payment.findOne({ order: req.params.id });
+      payment = await Payment.findById(targetId);
+      if (payment?.order) {
+        order = await Order.findById(payment.order);
+      }
+    } catch (_e) {}
+  } else {
+    // If order was found, locate any existing payment for this order
+    try {
+      payment = await Payment.findOne({ order: order._id });
     } catch (_e) {}
   }
-  if (!payment) {
-    let order = null;
-    try {
-      order = await Order.findById(req.params.id);
-    } catch (_e) {}
-    if (order) {
-      const code = normalizeMethodCode(order.paymentMethod);
-      payment = await Payment.create({
-        order: order._id,
-        user: order.user || req.user?._id,
-        amount: order.totalPrice,
-        currency: "ETB",
-        methodCode: code,
-        methodName: order.paymentMethod,
-        methodType: "manual",
-        status: "Pending Verification",
-      });
-    }
+
+  if (!order && !payment) {
+    return res.status(404).json({ success: false, message: "Order not found" });
   }
-  if (!payment) return res.status(404).json({ success: false, message: "Payment not found" });
-  if (payment.user && req.user && payment.user.toString() !== req.user._id.toString()) {
+
+  // Authorization check
+  const orderOwnerId = order?.user?.toString() || payment?.user?.toString();
+  if (
+    orderOwnerId &&
+    req.user &&
+    orderOwnerId !== req.user._id.toString() &&
+    !["admin", "super_admin", "owner"].includes(req.user.role)
+  ) {
     return res.status(403).json({ success: false, message: "Not authorized" });
   }
 
@@ -801,72 +812,103 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
     ? (proofFile.path || proofFile.secure_url || proofFile.url || (proofFile.filename ? `/uploads/${proofFile.filename}` : "") || "")
     : (receiptImage || "").toString().trim();
 
-  const normalizedCode = normalizeMethodCode(payment.methodCode);
-  const method = (await PaymentMethod.findOne({ code: normalizedCode })) ||
-    DEFAULT_PAYMENT_METHODS.find(m => m.code === normalizedCode);
-
-  if (method?.requiresReference && !cleanTxId) {
-    return res.status(400).json({ success: false, message: "Transaction reference / ID is required for this payment method" });
-  }
-  if (method?.requiresScreenshot && !proofFile && !proofUrl) {
-    return res.status(400).json({ success: false, message: "Payment screenshot is required" });
+  // Primary requirement for manual proof: screenshot / receipt image
+  if (!proofFile && !proofUrl) {
+    return res.status(400).json({ success: false, message: "Payment screenshot or receipt image is required" });
   }
 
-  if (cleanTxId) {
-    const existingOrder = await Order.findOne({
-      _id: { $ne: payment.order },
-      $or: [
-        { transactionId: cleanTxId, isPaid: true },
-        { transactionRef: cleanTxId, isPaid: true },
-        { transactionId: cleanTxId, paymentStatus: "Paid" },
-        { transactionRef: cleanTxId, paymentStatus: "Paid" },
-        ...(payment.user ? [
-          { transactionId: cleanTxId, user: { $ne: payment.user } },
-          { transactionRef: cleanTxId, user: { $ne: payment.user } }
-        ] : [
-          { transactionId: cleanTxId },
-          { transactionRef: cleanTxId }
-        ])
-      ]
-    });
-    if (existingOrder) {
-      return res.status(400).json({
-        success: false,
-        message: "This Transaction ID has already been used for another order. Please check your transaction number.",
+  // Step 1: Update the existing Order document directly with $set
+  const orderId = order ? order._id : payment?.order;
+  if (orderId) {
+    const orderUpdate = {
+      paymentStatus: "Pending",
+      status: "Pending",
+    };
+    if (proofUrl) orderUpdate.receiptImage = proofUrl;
+    if (cleanTxId) {
+      orderUpdate.transactionId = cleanTxId;
+      orderUpdate.transactionRef = cleanTxId;
+    }
+
+    order = await Order.findByIdAndUpdate(
+      orderId,
+      { $set: orderUpdate },
+      { new: true }
+    );
+  }
+
+  // Step 2: Update existing Payment or safely create one with guaranteed unique tx_ref
+  const newTxRef = generateUniqueTxRef("tx");
+  if (payment) {
+    const prev = payment.status;
+    const paymentUpdate = {
+      status: "Pending Verification",
+      proofSubmittedAt: new Date(),
+      customerNote: customerNote?.trim() || payment.customerNote || "",
+    };
+    if (proofUrl) paymentUpdate.paymentProof = proofUrl;
+    if (cleanTxId) {
+      paymentUpdate.transactionReference = cleanTxId;
+      paymentUpdate.transactionId = cleanTxId;
+    }
+    if (!payment.tx_ref) {
+      paymentUpdate.tx_ref = newTxRef;
+    }
+
+    payment = await Payment.findByIdAndUpdate(
+      payment._id,
+      { $set: paymentUpdate },
+      { new: true }
+    );
+
+    if (req.user?._id) {
+      addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", cleanTxId);
+    }
+  } else if (orderId) {
+    try {
+      payment = await Payment.create({
+        order: orderId,
+        user: order?.user || req.user?._id || null,
+        amount: order?.totalPrice || 0,
+        currency: "ETB",
+        methodCode: normalizeMethodCode(order?.paymentMethod || "manual"),
+        methodName: order?.paymentMethod || "Manual Payment",
+        methodType: "manual",
+        tx_ref: newTxRef,
+        status: "Pending Verification",
+        paymentProof: proofUrl,
+        transactionId: cleanTxId,
+        transactionReference: cleanTxId,
+        proofSubmittedAt: new Date(),
+        customerNote: customerNote?.trim() || "",
       });
-    }
-  }
-
-  const prev = payment.status;
-  if (cleanTxId) {
-    payment.transactionReference = cleanTxId;
-    payment.transactionId        = cleanTxId;
-  }
-  payment.customerNote     = customerNote?.trim() || "";
-  if (proofUrl) payment.paymentProof = proofUrl;
-  payment.proofSubmittedAt = new Date();
-  payment.status           = "Pending Verification";
-  if (req.user?._id) {
-    addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", cleanTxId);
-  }
-  await payment.save();
-
-  // Also update Order with receiptImage, transactionId, and transactionRef
-  if (payment.order) {
-    const order = await Order.findById(payment.order);
-    if (order) {
-      if (proofUrl) order.receiptImage = proofUrl;
-      if (cleanTxId) {
-        order.transactionRef = cleanTxId;
-        order.transactionId  = cleanTxId;
+      if (req.user?._id) {
+        addAudit(payment, "PROOF_SUBMITTED", req.user._id, null, "Pending Verification", cleanTxId);
       }
-      order.paymentStatus = "Pending";
-      await order.save().catch(() => {});
+    } catch (_createErr) {
+      payment = await Payment.findOneAndUpdate(
+        { order: orderId },
+        {
+          $set: {
+            status: "Pending Verification",
+            paymentProof: proofUrl,
+            transactionId: cleanTxId,
+            transactionReference: cleanTxId,
+            proofSubmittedAt: new Date(),
+          }
+        },
+        { new: true }
+      );
     }
   }
 
-  logger.info(`Payment proof submitted: ${payment._id}`);
-  res.json({ success: true, message: "Payment proof submitted. Awaiting admin verification.", payment });
+  logger.info(`Payment proof submitted for order ${orderId}`);
+  return res.json({
+    success: true,
+    message: "Payment proof submitted successfully! Your order is pending verification.",
+    payment,
+    order,
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────────

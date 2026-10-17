@@ -5,10 +5,15 @@ import AdminFooter from "./AdminFooter";
 import "./AdminLayout.css";
 
 function AdminLayout({ children }) {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => typeof window !== "undefined" && window.innerWidth < 900);
 
   return (
     <div className="admin-layout">
+
+      {/* Mobile backdrop */}
+      {!collapsed && (
+        <div className="admin-mobile-overlay" onClick={() => setCollapsed(true)} />
+      )}
 
       {/* Sidebar */}
       <Sidebar collapsed={collapsed} />

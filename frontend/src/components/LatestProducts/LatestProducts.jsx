@@ -117,7 +117,7 @@ function LatestProducts() {
       </div>
 
       {/* Products grid */}
-      <div className="latest-grid">
+      <div className="latest-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {products.map((product) => {
           const imgSrc = getImageUrl(product.images?.[0]);
           const inWish = isInWishlist(product._id);

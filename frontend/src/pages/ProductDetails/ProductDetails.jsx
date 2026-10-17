@@ -134,7 +134,7 @@ function ProductDetails() {
   return (
     <div className="product-details">
 
-      <div className="product-main">
+      <div className="product-main flex-col lg:flex-row">
 
         {/* Images */}
         <div className="product-images">

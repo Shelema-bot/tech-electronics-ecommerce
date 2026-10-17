@@ -31,3 +31,18 @@
   .admin-main         { margin-left: 0; }
   .admin-main.collapsed { margin-left: 0; }
 }
+
+.admin-mobile-overlay {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .admin-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 920;
+  }
+}
+

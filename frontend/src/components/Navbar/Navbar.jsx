@@ -429,6 +429,31 @@ const Navbar = () => {
             </li>
 
           </ul>
+
+          {/* Mobile Preferences inside drawer */}
+          <div className="nav-mobile-prefs">
+            <div className="nav-mobile-pref-title">Region &amp; Preferences</div>
+            <div className="nav-mobile-pref-row">
+              <div className="nav-mobile-pref-select">
+                <span className="nav-pref-flag">{country.flag}</span>
+                <select value={country.code} onChange={e => setCountry(COUNTRIES.find(c => c.code === e.target.value))} aria-label="Country">
+                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.flag} {c.name}</option>)}
+                </select>
+              </div>
+              <div className="nav-mobile-pref-select">
+                <span className="nav-pref-icon">🌐</span>
+                <select value={language.code} onChange={e => setLanguage(LANGUAGES.find(l => l.code === e.target.value))} aria-label="Language">
+                  {LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.nativeName || l.name}</option>)}
+                </select>
+              </div>
+              <div className="nav-mobile-pref-select">
+                <span className="nav-pref-icon">💱</span>
+                <select value={currency.code} onChange={e => setCurrency(CURRENCIES.find(c => c.code === e.target.value))} aria-label="Currency">
+                  {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.name}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

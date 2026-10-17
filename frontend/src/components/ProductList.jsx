@@ -189,7 +189,7 @@ function ProductList() {
               <button className="pl-empty-btn" onClick={clearFilters}>Clear Filters</button>
             </div>
           ) : (
-            <div className="pl-grid">
+            <div className="pl-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {sorted.map(product => {
                 const inWish = isInWishlist(product._id);
                 const outOfStock = product.stock === 0;

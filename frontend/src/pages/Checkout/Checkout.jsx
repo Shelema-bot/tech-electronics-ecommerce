@@ -644,7 +644,7 @@ function Checkout() {
                         <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 4 }}>
                           Receipt Screenshot
                         </label>
-                        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                        <div className="checkout-proof-upload-row">
                           <input
                             type="file"
                             accept="image/*"
@@ -652,7 +652,7 @@ function Checkout() {
                             style={{ display: "none" }}
                             onChange={e => setProofFile(e.target.files[0])}
                           />
-                          <label htmlFor="checkoutProofFile" style={{ cursor: "pointer", background: "#ffffff", border: "1px solid #94a3b8", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#334155" }}>
+                          <label htmlFor="checkoutProofFile" className="checkout-proof-file-label">
                             {proofFile ? `📎 ${proofFile.name}` : "📷 Upload Receipt"}
                           </label>
                           <input
@@ -660,7 +660,7 @@ function Checkout() {
                             placeholder="Or paste screenshot image URL"
                             value={receiptImageUrl}
                             onChange={e => setReceiptImageUrl(e.target.value)}
-                            style={{ flex: 1, minWidth: 200, padding: "7px 12px", border: "1px solid #cbd5e1", borderRadius: 6, fontSize: 13, boxSizing: "border-box" }}
+                            className="checkout-proof-url-input"
                           />
                         </div>
                       </div>

@@ -147,6 +147,10 @@
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.25s ease;
 }
 
@@ -242,15 +246,20 @@
 }
 
 .quantity-section button {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
     border: none;
-    border-radius: 7px;
+    border-radius: 8px;
     background: #e5e7eb;
     color: #111827;
     font-size: 22px;
     font-weight: 600;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: 0.2s ease;
 }
 
@@ -290,6 +299,10 @@
     font-size: 15px;
     font-weight: 600;
     cursor: pointer;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.25s ease;
 }
 
@@ -590,34 +603,55 @@
 @media (max-width: 600px) {
 
     .product-details {
-        margin: 20px auto;
+        margin: 16px auto;
         padding: 0 12px 40px;
     }
 
     .product-main {
-        padding: 20px;
+        padding: 18px;
         border-radius: 12px;
+        gap: 20px;
     }
 
     .main-image-container {
-        height: 320px;
+        height: 280px;
+        max-width: 100%;
     }
 
     .product-info h1 {
-        font-size: 27px;
+        font-size: 23px;
+        margin: 10px 0 14px;
     }
 
     .product-price {
-        font-size: 26px;
+        font-size: 24px;
+        margin: 16px 0 8px;
     }
 
     .product-actions {
         flex-direction: column;
+        width: 100%;
+        gap: 10px;
     }
 
     .add-cart,
-    .buy-btn {
+    .buy-btn,
+    .wishlist-btn {
         width: 100%;
+        min-height: 48px;
+        align-self: stretch;
+        justify-content: center;
+        text-align: center;
+        box-sizing: border-box;
+    }
+
+    .quantity-section {
+        margin: 16px 0;
+    }
+
+    .quantity-section button {
+        min-width: 44px;
+        min-height: 44px;
     }
 
     .related-products {
@@ -626,16 +660,16 @@
 
     .related-section h2,
     .reviews-section h2 {
-        font-size: 23px;
+        font-size: 20px;
     }
 
     .reviews-section {
-        padding: 20px;
+        padding: 16px;
     }
 
     .thumbnail {
-        width: 65px;
-        height: 65px;
+        width: 60px;
+        height: 60px;
     }
 
 }

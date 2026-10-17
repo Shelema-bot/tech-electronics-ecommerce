@@ -31,6 +31,11 @@
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: background 0.2s;
   line-height: 1;
 }
@@ -55,8 +60,10 @@
 }
 
 .topbar-icon-btn {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   border-radius: 9px;
   background: rgba(255,255,255,0.15);
   border: 1px solid rgba(255,255,255,0.22);

@@ -16,11 +16,12 @@ function PaymentSuccess() {
   const queryOrderId = params.get("orderId") || params.get("id") || localStorage.getItem("pendingOrder") || "";
   const paymentType = params.get("type") || (tx_ref ? "chapa" : "cod");
   const isDemo = params.get("mode") === "demo" || (typeof tx_ref === "string" && tx_ref.includes("DEMO"));
+  const isManual = paymentType === "manual" || (!tx_ref && Boolean(queryOrderId));
 
   const [loading, setLoading] = useState(Boolean(tx_ref));
   const [error, setError] = useState(null);
   const [order, setOrder] = useState(null);
-  const [verifiedSuccess, setVerifiedSuccess] = useState(paymentType === "cod" || isDemo);
+  const [verifiedSuccess, setVerifiedSuccess] = useState(paymentType === "cod" || isDemo || isManual);
   const verificationAttempted = useRef(false);
 
   const performVerification = async () => {
@@ -178,6 +179,8 @@ function PaymentSuccess() {
           ? "Thank you for your order! Your items are being prepared and payment will be collected upon delivery."
           : isDemoOrder
           ? "Your order has been placed and payment confirmed in Demo Mode. Your order is now in processing."
+          : (order?.paymentStatus === "Pending" || order?.paymentStatus === "Pending Verification" || isManual)
+          ? "Thank you for your order! Your payment transfer has been recorded and will be verified by our team shortly."
           : "Your payment has been successfully confirmed and your order is now in processing."}
       </p>
 
@@ -192,6 +195,10 @@ function PaymentSuccess() {
               <span className="status-badge paid" style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}>
                 ✓ Paid (Demo Mode)
               </span>
+            ) : (order?.paymentStatus === "Pending" || order?.paymentStatus === "Pending Verification" || isManual) ? (
+              <span className="status-badge cod" style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a" }}>
+                ⏳ Pending Verification
+              </span>
             ) : (
               <span className="status-badge paid">✓ Paid via Chapa</span>
             )}
@@ -203,10 +210,10 @@ function PaymentSuccess() {
           <strong>#{displayOrderId.toString().slice(-10)}</strong>
         </div>
 
-        {tx_ref && !isCod && (
+        {(tx_ref || order?.transactionId || order?.transactionRef) && !isCod && (
           <div className="ps-detail-row">
             <span>Transaction Ref</span>
-            <strong>{tx_ref}</strong>
+            <strong>{tx_ref || order?.transactionId || order?.transactionRef}</strong>
           </div>
         )}
 

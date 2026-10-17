@@ -58,6 +58,13 @@ const orderSchema = new mongoose.Schema(
       default: "",
     },
 
+    // Transaction ID for manual bank transfers / mobile banking
+    transactionId: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     // Gateway transaction reference (tx_ref or customer reference)
     transactionRef: {
       type: String,
@@ -108,9 +115,20 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Keep transactionId and transactionRef in sync
+orderSchema.pre("save", function (next) {
+  if (this.transactionId && !this.transactionRef) {
+    this.transactionRef = this.transactionId;
+  } else if (this.transactionRef && !this.transactionId) {
+    this.transactionId = this.transactionRef;
+  }
+  next();
+});
+
 // Indexes
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ transactionRef: 1 }, { sparse: true });
+orderSchema.index({ transactionId: 1 }, { sparse: true });
 orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ status: 1 });
 

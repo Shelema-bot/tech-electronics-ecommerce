@@ -43,6 +43,7 @@ function Checkout() {
   const [paymentId, setPaymentId]       = useState(null);
   const [methodInfo, setMethodInfo]     = useState(null);
   const [txRef, setTxRef]               = useState("");
+  const [receiptImageUrl, setReceiptImageUrl] = useState("");
   const [proofFile, setProofFile]       = useState(null);
   const [note, setNote]                 = useState("");
   const [submittingProof, setSubmittingProof] = useState(false);
@@ -158,6 +159,9 @@ function Checkout() {
           country: shipping.country?.trim() || "Ethiopia",
         },
         paymentMethod: currentMethod?.name || (selectedMethod === "chapa" ? "Chapa" : selectedMethod === "cod" ? "Cash on Delivery" : selectedMethod),
+        transactionId: txRef.trim(),
+        transactionRef: txRef.trim(),
+        receiptImage: receiptImageUrl.trim(),
         itemsPrice: cartTotal,
         shippingPrice: 0,
         taxPrice: 0,
@@ -167,7 +171,38 @@ function Checkout() {
       const orderId = orderRes.data.order?._id || orderRes.data._id;
       if (!orderId) throw new Error("Order ID was not returned by server");
 
+      // Handle duplicate order smoothly
+      if (orderRes.data.isDuplicate) {
+        toast.info(orderRes.data.message || "Your order was already recorded.");
+        clearCart();
+        localStorage.removeItem("cartItems");
+        navigate(`/order-success?id=${orderId}`);
+        return;
+      }
+
       setOrderAmount(finalTotal);
+
+      // If manual transfer and proof was already provided on checkout form
+      if ((selectedMethod !== "chapa" && selectedMethod !== "cod") && proofFile && txRef.trim()) {
+        try {
+          const fd = new FormData();
+          fd.append("transactionReference", txRef.trim());
+          fd.append("transactionId", txRef.trim());
+          fd.append("customerNote", note.trim());
+          fd.append("paymentProof", proofFile);
+          fd.append("receiptImage", proofFile);
+          await API.post(`/payments/${orderId}/proof`, fd, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          clearCart();
+          localStorage.removeItem("cartItems");
+          toast.success("Order placed and payment proof submitted! Awaiting verification.");
+          navigate(`/order-success?id=${orderId}`);
+          return;
+        } catch (proofErr) {
+          console.warn("Direct proof upload fallback:", proofErr);
+        }
+      }
 
       // Initialize payment with backend (with graceful fallback for manual & COD)
       let payRes = null;
@@ -260,30 +295,47 @@ function Checkout() {
     e.preventDefault();
     const activeMethod = methodInfo || currentMethod;
     if (activeMethod?.requiresReference && !txRef.trim()) {
-      toast.warning("Transaction reference is required"); return;
+      toast.warning("Transaction reference / ID is required");
+      return;
     }
-    if (activeMethod?.requiresScreenshot && !proofFile) {
-      toast.warning("Payment screenshot is required"); return;
+    if (activeMethod?.requiresScreenshot && !proofFile && !receiptImageUrl.trim()) {
+      toast.warning("Payment screenshot or receipt image URL is required");
+      return;
     }
 
     try {
       setSubmittingProof(true);
-      const fd = new FormData();
-      fd.append("transactionReference", txRef);
-      fd.append("customerNote", note);
-      if (proofFile) fd.append("paymentProof", proofFile);
+      setLoading(true);
 
       const targetId = paymentId || localStorage.getItem("pendingPaymentId") || localStorage.getItem("pendingOrder");
+      if (!targetId) throw new Error("Order ID not found");
+
+      const fd = new FormData();
+      fd.append("transactionReference", txRef.trim());
+      fd.append("transactionId", txRef.trim());
+      fd.append("customerNote", note.trim());
+      if (receiptImageUrl.trim()) fd.append("receiptImage", receiptImageUrl.trim());
+      if (proofFile) {
+        fd.append("paymentProof", proofFile);
+        fd.append("receiptImage", proofFile);
+      }
+
       await API.post(`/payments/${targetId}/proof`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Payment proof submitted successfully!");
-      navigate(`/payment-result?type=manual&paymentId=${targetId}`);
+      toast.success("Payment proof submitted successfully! Your order is pending verification.");
+      clearCart();
+      localStorage.removeItem("cartItems");
+      localStorage.removeItem("pendingPaymentId");
+      localStorage.removeItem("pendingOrder");
+      navigate(`/order-success?id=${targetId}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Proof submission failed");
+      console.error("Proof submission failed:", err);
+      toast.error(err.response?.data?.message || err.message || "Proof submission failed. Please try again.");
     } finally {
       setSubmittingProof(false);
+      setLoading(false);
     }
   };
 
@@ -333,44 +385,49 @@ function Checkout() {
           <form className="proof-form" onSubmit={submitProof}>
             <h3>Submit Payment Proof</h3>
 
-            {activeMethod.requiresReference && (
-              <div className="form-group">
-                <label>Transaction / Reference Number *</label>
+            <div className="form-group">
+              <label>Transaction ID / Reference Number *</label>
+              <input
+                type="text"
+                placeholder="Enter your transaction reference / ID"
+                value={txRef}
+                onChange={e => setTxRef(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Payment Screenshot *</label>
+              <div className="file-upload-area">
                 <input
-                  type="text"
-                  placeholder="Enter your transaction reference number"
-                  value={txRef}
-                  onChange={e => setTxRef(e.target.value)}
-                  required
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={e => setProofFile(e.target.files[0])}
+                  id="proofFile"
+                  style={{ display: "none" }}
+                />
+                <label htmlFor="proofFile" className="file-upload-btn">
+                  {proofFile ? `📎 ${proofFile.name}` : "📷 Choose Screenshot"}
+                </label>
+                {proofFile && (
+                  <img
+                    src={URL.createObjectURL(proofFile)}
+                    alt="preview"
+                    style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8, marginTop: 8, border: "1px solid #e2e8f0" }}
+                  />
+                )}
+              </div>
+              <div style={{ marginTop: 8, fontSize: 13, color: "#64748b" }}>
+                <span>Or enter receipt screenshot URL:</span>
+                <input
+                  type="url"
+                  placeholder="https://example.com/receipt.jpg"
+                  value={receiptImageUrl}
+                  onChange={e => setReceiptImageUrl(e.target.value)}
+                  style={{ marginTop: 4, width: "100%", padding: "8px 12px", border: "1px solid #e2e8f0", borderRadius: 6, fontSize: 13, boxSizing: "border-box" }}
                 />
               </div>
-            )}
-
-            {activeMethod.requiresScreenshot && (
-              <div className="form-group">
-                <label>Payment Screenshot *</label>
-                <div className="file-upload-area">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/webp"
-                    onChange={e => setProofFile(e.target.files[0])}
-                    id="proofFile"
-                    style={{ display: "none" }}
-                    required
-                  />
-                  <label htmlFor="proofFile" className="file-upload-btn">
-                    {proofFile ? `📎 ${proofFile.name}` : "📷 Choose Screenshot"}
-                  </label>
-                  {proofFile && (
-                    <img
-                      src={URL.createObjectURL(proofFile)}
-                      alt="preview"
-                      style={{ maxWidth: "100%", maxHeight: 200, borderRadius: 8, marginTop: 8, border: "1px solid #e2e8f0" }}
-                    />
-                  )}
-                </div>
-              </div>
-            )}
+            </div>
 
             <div className="form-group">
               <label>Note (optional)</label>
@@ -382,8 +439,8 @@ function Checkout() {
               />
             </div>
 
-            <button type="submit" className="checkout-button chapa" disabled={submittingProof}>
-              {submittingProof ? "Submitting..." : "Submit Payment Proof"}
+            <button type="submit" className="checkout-button chapa" disabled={submittingProof || loading}>
+              {submittingProof || loading ? "Submitting..." : "Submit Payment Proof"}
             </button>
           </form>
         </div>
@@ -489,11 +546,81 @@ function Checkout() {
                 </div>
               )}
 
-              {/* Manual method note */}
+              {/* Manual method transfer details & proof inputs */}
               {currentMethod?.type === "manual" && (
-                <div className="cod-note" style={{ background:"#eff6ff", borderColor:"#bfdbfe" }}>
-                  <span>ℹ️</span>
-                  <p>After placing your order you'll receive the payment account details and can upload your payment proof. Your order will be confirmed after admin verification.</p>
+                <div style={{ marginTop: 14, padding: "16px", background: "#f8fafc", border: "1px solid #cbd5e1", borderRadius: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    <span style={{ fontSize: 22 }}>{METHOD_ICONS[currentMethod.code] || "🏦"}</span>
+                    <div>
+                      <strong style={{ fontSize: 15, color: "#1e293b" }}>{currentMethod.name} Transfer Details</strong>
+                      <div style={{ fontSize: 12, color: "#64748b" }}>Please transfer <strong>{fmt(finalTotal)}</strong> to the account below</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, background: "#ffffff", padding: "12px", borderRadius: 8, border: "1px solid #e2e8f0", marginBottom: 12 }}>
+                    {currentMethod.accountName && (
+                      <div><span style={{ fontSize: 11, color: "#64748b", display: "block" }}>Account Name</span><strong style={{ fontSize: 13, color: "#0f172a" }}>{currentMethod.accountName}</strong></div>
+                    )}
+                    {currentMethod.accountNumber && (
+                      <div><span style={{ fontSize: 11, color: "#64748b", display: "block" }}>Account Number</span><strong style={{ fontSize: 13, color: "#0f172a" }}>{currentMethod.accountNumber}</strong></div>
+                    )}
+                    {currentMethod.phoneNumber && (
+                      <div><span style={{ fontSize: 11, color: "#64748b", display: "block" }}>Phone Number</span><strong style={{ fontSize: 13, color: "#0f172a" }}>{currentMethod.phoneNumber}</strong></div>
+                    )}
+                    {currentMethod.bankName && (
+                      <div><span style={{ fontSize: 11, color: "#64748b", display: "block" }}>Bank</span><strong style={{ fontSize: 13, color: "#0f172a" }}>{currentMethod.bankName}</strong></div>
+                    )}
+                  </div>
+
+                  {currentMethod.instructions && (
+                    <div style={{ fontSize: 12, color: "#475569", background: "#f1f5f9", padding: "10px 12px", borderRadius: 6, marginBottom: 12, whiteSpace: "pre-line" }}>
+                      {currentMethod.instructions}
+                    </div>
+                  )}
+
+                  <div style={{ borderTop: "1px dashed #cbd5e1", paddingTop: 12, marginTop: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#334155", marginBottom: 8 }}>
+                      Payment Proof (Optional now, or submit on confirmation):
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 4 }}>
+                          Transaction ID / Reference Number
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. FT2348929 or Telebirr Trans ID"
+                          value={txRef}
+                          onChange={e => setTxRef(e.target.value)}
+                          style={{ width: "100%", padding: "9px 12px", border: "1px solid #cbd5e1", borderRadius: 6, fontSize: 13, boxSizing: "border-box" }}
+                        />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 12, fontWeight: 600, color: "#475569", display: "block", marginBottom: 4 }}>
+                          Receipt Screenshot
+                        </label>
+                        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="checkoutProofFile"
+                            style={{ display: "none" }}
+                            onChange={e => setProofFile(e.target.files[0])}
+                          />
+                          <label htmlFor="checkoutProofFile" style={{ cursor: "pointer", background: "#ffffff", border: "1px solid #94a3b8", borderRadius: 6, padding: "7px 14px", fontSize: 13, fontWeight: 600, color: "#334155" }}>
+                            {proofFile ? `📎 ${proofFile.name}` : "📷 Upload Receipt"}
+                          </label>
+                          <input
+                            type="url"
+                            placeholder="Or paste screenshot image URL"
+                            value={receiptImageUrl}
+                            onChange={e => setReceiptImageUrl(e.target.value)}
+                            style={{ flex: 1, minWidth: 200, padding: "7px 12px", border: "1px solid #cbd5e1", borderRadius: 6, fontSize: 13, boxSizing: "border-box" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

@@ -794,38 +794,47 @@ export const submitPaymentProof = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: "Not authorized" });
   }
 
-  const { transactionReference, customerNote } = req.body;
+  const { transactionReference, transactionId, customerNote, receiptImage } = req.body;
   const proofFile = req.file;
+  const cleanTxId = (transactionId || transactionReference || "").toString().trim();
+  const proofUrl = proofFile
+    ? (proofFile.path || proofFile.secure_url || proofFile.url || (proofFile.filename ? `/uploads/${proofFile.filename}` : "") || "")
+    : (receiptImage || "").toString().trim();
 
   const normalizedCode = normalizeMethodCode(payment.methodCode);
   const method = (await PaymentMethod.findOne({ code: normalizedCode })) ||
     DEFAULT_PAYMENT_METHODS.find(m => m.code === normalizedCode);
 
-  if (method?.requiresReference && !transactionReference?.trim()) {
-    return res.status(400).json({ success: false, message: "Transaction reference is required for this payment method" });
+  if (method?.requiresReference && !cleanTxId) {
+    return res.status(400).json({ success: false, message: "Transaction reference / ID is required for this payment method" });
   }
-  if (method?.requiresScreenshot && !proofFile) {
+  if (method?.requiresScreenshot && !proofFile && !proofUrl) {
     return res.status(400).json({ success: false, message: "Payment screenshot is required" });
   }
 
   const prev = payment.status;
-  payment.transactionReference = transactionReference?.trim() || payment.transactionReference;
-  payment.customerNote         = customerNote?.trim() || "";
-  const proofUrl = proofFile ? (proofFile.path || proofFile.secure_url || proofFile.url || "") : "";
+  if (cleanTxId) {
+    payment.transactionReference = cleanTxId;
+    payment.transactionId        = cleanTxId;
+  }
+  payment.customerNote     = customerNote?.trim() || "";
   if (proofUrl) payment.paymentProof = proofUrl;
-  payment.proofSubmittedAt     = new Date();
-  payment.status               = "Pending Verification";
+  payment.proofSubmittedAt = new Date();
+  payment.status           = "Pending Verification";
   if (req.user?._id) {
-    addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", transactionReference);
+    addAudit(payment, "PROOF_SUBMITTED", req.user._id, prev, "Pending Verification", cleanTxId);
   }
   await payment.save();
 
-  // Also update Order with receiptImage and transactionRef
+  // Also update Order with receiptImage, transactionId, and transactionRef
   if (payment.order) {
     const order = await Order.findById(payment.order);
     if (order) {
       if (proofUrl) order.receiptImage = proofUrl;
-      if (transactionReference?.trim()) order.transactionRef = transactionReference.trim();
+      if (cleanTxId) {
+        order.transactionRef = cleanTxId;
+        order.transactionId  = cleanTxId;
+      }
       order.paymentStatus = "Pending";
       await order.save().catch(() => {});
     }

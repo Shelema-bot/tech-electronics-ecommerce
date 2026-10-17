@@ -33,8 +33,9 @@ const paymentSchema = new mongoose.Schema(
     paidAt:    { type: Date },
 
     // ── Manual payment proof ──────────────────────────────────────────────
+    transactionId:         { type: String, default: "" },   // customer-entered tx id
     transactionReference:  { type: String, default: "" },   // customer-entered ref
-    paymentProof:          { type: String, default: "" },   // Cloudinary URL of screenshot
+    paymentProof:          { type: String, default: "" },   // Cloudinary or uploads URL of screenshot
     proofSubmittedAt:      { type: Date },
     customerNote:          { type: String, default: "" },
 

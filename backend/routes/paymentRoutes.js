@@ -1,6 +1,6 @@
 import express from "express";
 import protect from "../middleware/authMiddleware.js";
-import upload  from "../middleware/uploadMiddleware.js";
+import upload, { uploadProof } from "../middleware/uploadMiddleware.js";
 import {
   getEnabledPaymentMethods,
   createPayment,
@@ -45,7 +45,7 @@ router.post("/",                optionalProtect, createPayment);
 router.get("/my",               protect, getMyPayments);
 router.get("/my-payments",      protect, getMyPayments);   // legacy alias
 router.get("/:id",              protect, getPaymentById);
-router.post("/:id/proof",       protect, upload.single("paymentProof"), submitPaymentProof);
+router.post("/:id/proof",       optionalProtect, uploadProof, submitPaymentProof);
 
 export default router;
 

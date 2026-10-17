@@ -36,8 +36,6 @@ const ALL_MENU = [
   { path: "/admin/seller-plans",     name: "Seller Plans",    icon: <FaMoneyBillWave />,  roles: ALL_ADMIN },
   // Meetings (admin schedules, seller views)
   { path: "/admin/meetings",         name: "Meetings",        icon: <FaCalendarAlt />,    roles: [...ALL_ADMIN,"seller"] },
-  // Notifications — all staff
-  { path: "/admin/notifications",    name: "Notifications",   icon: <FaBell />,           roles: ALL_STAFF },
   // System settings — all admin staff
   { path: "/admin/settings",         name: "System Settings", icon: <FaCog />,            roles: ALL_STAFF },
   // Seller only

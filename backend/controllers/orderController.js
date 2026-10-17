@@ -18,6 +18,8 @@ export const createOrder = async (req, res) => {
       totalPrice,
       guestCustomer,
       receiptImage,
+      transactionId,
+      transactionRef,
     } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -49,6 +51,77 @@ export const createOrder = async (req, res) => {
       : (Number(itemsPrice || 0) + Number(shippingPrice || 0) + Number(taxPrice || 0));
 
     const userId = req.user ? req.user._id : null;
+    const cleanTxId = (transactionId || transactionRef || "").toString().trim();
+    const cleanReceipt = (receiptImage || "").toString().trim();
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+
+    // ── DUPLICATE PREVENTION ───────────────────────────────────────────
+    // 1. Check if an order with this transactionId already exists
+    if (cleanTxId) {
+      const existingTxOrder = await Order.findOne({
+        $or: [
+          { transactionId: cleanTxId },
+          { transactionRef: cleanTxId }
+        ]
+      });
+      if (existingTxOrder) {
+        if (cleanReceipt && !existingTxOrder.receiptImage) {
+          existingTxOrder.receiptImage = cleanReceipt;
+          await existingTxOrder.save().catch(() => {});
+        }
+        return res.status(200).json({
+          success: true,
+          message: "An order with this transaction reference has already been received.",
+          isDuplicate: true,
+          _id: existingTxOrder._id,
+          order: existingTxOrder,
+          ...existingTxOrder.toObject(),
+        });
+      }
+    }
+
+    // 2. Check if identical order was submitted within the last 60 seconds
+    if (userId) {
+      const recentOrder = await Order.findOne({
+        user: userId,
+        createdAt: { $gte: oneMinuteAgo },
+        totalPrice: Number(calculatedTotal),
+      }).sort({ createdAt: -1 });
+
+      if (recentOrder) {
+        const isSameItems =
+          recentOrder.orderItems.length === orderItems.length &&
+          recentOrder.orderItems.every((item, idx) => {
+            const p1 = String(item.product?._id || item.product);
+            const p2 = String(orderItems[idx]?.product?._id || orderItems[idx]?.product || orderItems[idx]?.id);
+            return p1 === p2 && Number(item.quantity) === Number(orderItems[idx]?.quantity);
+          });
+
+        if (isSameItems) {
+          let updated = false;
+          if (cleanTxId && !recentOrder.transactionId) {
+            recentOrder.transactionId = cleanTxId;
+            recentOrder.transactionRef = cleanTxId;
+            updated = true;
+          }
+          if (cleanReceipt && !recentOrder.receiptImage) {
+            recentOrder.receiptImage = cleanReceipt;
+            updated = true;
+          }
+          if (updated) await recentOrder.save().catch(() => {});
+
+          return res.status(200).json({
+            success: true,
+            message: "Duplicate order submission prevented. Your order is already being processed.",
+            isDuplicate: true,
+            _id: recentOrder._id,
+            order: recentOrder,
+            ...recentOrder.toObject(),
+          });
+        }
+      }
+    }
+
     const guest = guestCustomer || (!userId ? {
       name:  formattedShipping.fullName,
       phone: formattedShipping.phone,
@@ -68,7 +141,9 @@ export const createOrder = async (req, res) => {
       taxPrice: Number(taxPrice) || 0,
       totalPrice: Number(calculatedTotal),
       isPaid: false,
-      receiptImage: receiptImage || "",
+      receiptImage: cleanReceipt,
+      transactionId: cleanTxId,
+      transactionRef: cleanTxId,
     });
 
     // Send emails & in-app notifications in background without blocking response

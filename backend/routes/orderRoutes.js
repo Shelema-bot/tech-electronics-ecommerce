@@ -11,6 +11,8 @@ import {
     payOrder,
     deleteMyOrder
 } from "../controllers/orderController.js";
+import { submitPaymentProof } from "../controllers/paymentController.js";
+import { uploadProof } from "../middleware/uploadMiddleware.js";
 
 import {
     getAllOrdersAdmin,
@@ -72,6 +74,14 @@ router.get(
 
 
 
+
+// Submit payment proof for order
+router.post(
+    "/:id/proof",
+    optionalProtect,
+    uploadProof,
+    submitPaymentProof
+);
 
 // Mark order as paid
 router.put(

@@ -1,0 +1,51 @@
+.trust-bar {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px;
+  border-right: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.trust-badge:last-child { border-right: none; }
+.trust-badge:hover { background: #f8fafc; }
+
+.trust-icon { font-size: 28px; flex-shrink: 0; }
+
+.trust-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px;
+}
+
+.trust-desc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .trust-bar { grid-template-columns: repeat(2, 1fr); }
+  .trust-badge:nth-child(2) { border-right: none; }
+  .trust-badge:nth-child(3) { border-top: 1px solid #e2e8f0; }
+  .trust-badge:nth-child(4) { border-top: 1px solid #e2e8f0; border-right: none; }
+}
+
+@media (max-width: 480px) {
+  .trust-bar { grid-template-columns: 1fr; }
+  .trust-badge { border-right: none; border-bottom: 1px solid #e2e8f0; }
+  .trust-badge:last-child { border-bottom: none; }
+  .trust-badge:nth-child(2),
+  .trust-badge:nth-child(3),
+  .trust-badge:nth-child(4) { border-right: none; border-top: none; }
+}

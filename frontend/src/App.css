@@ -1,0 +1,4 @@
+/* App-level global overrides */
+html {
+  scroll-behavior: smooth;
+}

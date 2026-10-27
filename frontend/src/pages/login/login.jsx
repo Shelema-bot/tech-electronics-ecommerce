@@ -1,0 +1,129 @@
+import { useState } from "react";
+import "./Login.css";
+import API from "../../api/axios";
+import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useToast } from "../../context/ToastContext";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+
+function Login() {
+  const navigate = useNavigate();
+  const toast    = useToast();
+  const { t }    = useTranslation();
+
+  const [email, setEmail]       = useState("");
+  const [password, setPassword] = useState("");
+  const [showPw, setShowPw]     = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [errors, setErrors]     = useState({});
+
+  const validate = () => {
+    const errs = {};
+    if (!email.trim()) errs.email = t("auth.emailRequired", "Email is required");
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = t("auth.enterValidEmail", "Enter a valid email address");
+    if (!password) errs.password = t("auth.passwordRequired", "Password is required");
+    else if (password.length < 6) errs.password = t("auth.passwordMinChars", "Password must be at least 6 characters");
+    return errs;
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    setErrors({});
+
+    try {
+      setLoading(true);
+      const response = await API.post("/auth/login", { email, password });
+
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      window.dispatchEvent(new Event("loginStatusChanged"));
+
+      toast.success(t("auth.loginSuccess", "Welcome back! Login successful."));
+
+      // Redirect all staff roles to admin panel
+      const ADMIN_ROLES = ["owner", "super_admin", "admin", "finance", "cashier", "seller"];
+      if (ADMIN_ROLES.includes(response.data.user.role)) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      const msg = error.response?.data?.message || t("auth.loginFailed", "Login failed. Please try again.");
+      toast.error(msg);
+      setErrors({ general: msg });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="login-container">
+      <form className="login-form" onSubmit={handleLogin} noValidate>
+
+        <div className="login-header">
+          <h2>{t("auth.welcomeBack", "Welcome Back")}</h2>
+          <p>{t("auth.signInSubtitle", "Sign in to your account to continue")}</p>
+        </div>
+
+        {errors.general && (
+          <div className="form-error-banner">{errors.general}</div>
+        )}
+
+        <div className="form-field">
+          <label htmlFor="login-email">{t("auth.email", "Email Address")}</label>
+          <input
+            id="login-email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setErrors({}); }}
+            className={errors.email ? "input-error" : ""}
+            autoComplete="email"
+          />
+          {errors.email && <span className="field-error">{errors.email}</span>}
+        </div>
+
+        <div className="form-field">
+          <label htmlFor="login-password">{t("auth.password", "Password")}</label>
+          <div className="password-wrap">
+            <input
+              id="login-password"
+              type={showPw ? "text" : "password"}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setErrors({}); }}
+              className={errors.password ? "input-error" : ""}
+              autoComplete="current-password"
+            />
+            <button
+              type="button"
+              className="pw-toggle"
+              onClick={() => setShowPw(!showPw)}
+              aria-label={showPw ? "Hide password" : "Show password"}
+            >
+              {showPw ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+          {errors.password && <span className="field-error">{errors.password}</span>}
+        </div>
+
+        <div className="login-forgot">
+          <Link to="/forgot-password">{t("auth.forgotPassword", "Forgot password?")}</Link>
+        </div>
+
+        <button type="submit" className="login-submit-btn" disabled={loading}>
+          {loading ? <span className="btn-spinner" /> : t("auth.signIn", "Sign In")}
+        </button>
+
+        <p className="register-link">
+          {t("auth.noAccount", "Don't have an account?")} <Link to="/register">{t("auth.createAccount", "Create account")}</Link>
+        </p>
+
+      </form>
+    </div>
+  );
+}
+
+export default Login;

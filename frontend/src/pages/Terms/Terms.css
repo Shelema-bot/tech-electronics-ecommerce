@@ -1,0 +1,105 @@
+/* ================================
+   STATIC PAGES (Terms & Privacy)
+================================ */
+
+.static-page {
+  background: #f8fafc;
+  min-height: 80vh;
+  padding: 0 0 80px;
+}
+
+.static-container {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Hero banner */
+.static-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+  color: white;
+  text-align: center;
+  padding: 60px 20px 48px;
+  margin-bottom: 48px;
+}
+
+.static-hero h1 {
+  font-size: 36px;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: white;
+}
+
+.static-hero p {
+  font-size: 14px;
+  color: rgba(255,255,255,0.65);
+  margin: 0;
+}
+
+/* Body */
+.static-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.static-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 28px 32px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.static-section h2 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #eff6ff;
+}
+
+.static-section p {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.8;
+  margin: 0 0 10px;
+}
+
+.static-section p:last-child { margin-bottom: 0; }
+
+.static-section ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.static-section ul li {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.static-section a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.static-section a:hover { text-decoration: underline; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .static-hero { padding: 40px 16px 36px; }
+  .static-hero h1 { font-size: 26px; }
+  .static-section { padding: 20px 16px; }
+  .static-container { padding: 0 12px; }
+}
+
+@media (max-width: 400px) {
+  .static-hero h1 { font-size: 22px; }
+}

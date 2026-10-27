@@ -185,7 +185,6 @@ function Topbar({ collapsed, onToggle }) {
                 {ROLE_LABEL[role] || role.replace(/_/g, " ")}
               </span>
             </div>
-            <FaChevronDown className={`topbar-chevron ${dropOpen ? "open" : ""}`} />
           </button>
 
           {dropOpen && (

@@ -14,23 +14,20 @@ import upload from "../middleware/uploadMiddleware.js";
 
 const router = express.Router();
 
-
 // CREATE CATEGORY ADMIN
 router.post(
- "/",
- protect,
- admin,
- upload.single("image"),
- createCategory
+  "/",
+  protect,
+  admin,
+  upload.single("image"),
+  createCategory
 );
-
 
 // GET ALL CATEGORIES
 router.get(
   "/",
   getCategories
 );
-
 
 // GET SINGLE CATEGORY
 router.get(
@@ -40,15 +37,14 @@ router.get(
   getCategory
 );
 
-
-// UPDATE CATEGORY ADMIN
+// UPDATE CATEGORY ADMIN (support optional image replacement)
 router.put(
   "/:id",
   protect,
   admin,
+  upload.single("image"),
   updateCategory
 );
-
 
 // DELETE CATEGORY ADMIN
 router.delete(
@@ -57,6 +53,5 @@ router.delete(
   admin,
   deleteCategory
 );
-
 
 export default router;

@@ -19,12 +19,81 @@ const SORT_OPTIONS = [
   { value: "newest",     key: "sort.newest",     label: "Newest First" },
 ];
 
+const ITEMS_PER_PAGE = 12;
+
+/* ── Dual-Sided Pagination Controls Component ── */
+function PaginationControls({ currentPage, totalPages, onPageChange, totalItems, startIndex, endIndex, className = "" }) {
+  if (totalPages <= 1) return null;
+
+  const pages = [];
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= currentPage - 1 && i <= currentPage + 1)
+    ) {
+      pages.push(i);
+    } else if (pages[pages.length - 1] !== "...") {
+      pages.push("...");
+    }
+  }
+
+  const handlePageSelect = (page) => {
+    onPageChange(page);
+    window.scrollTo({ top: 120, behavior: "smooth" });
+  };
+
+  return (
+    <div className={`pl-pagination-bar ${className}`}>
+      <div className="pl-pagination-info">
+        Showing <strong>{Math.min(startIndex + 1, totalItems)}–{Math.min(endIndex, totalItems)}</strong> of <strong>{totalItems}</strong> products
+      </div>
+      <div className="pl-pagination-nav">
+        <button
+          className="pl-page-btn pl-prev-btn"
+          disabled={currentPage <= 1}
+          onClick={() => handlePageSelect(currentPage - 1)}
+          aria-label="Previous Page"
+        >
+          ‹ Prev
+        </button>
+
+        <div className="pl-page-numbers">
+          {pages.map((p, idx) =>
+            p === "..." ? (
+              <span key={`dots-${idx}`} className="pl-page-dots">…</span>
+            ) : (
+              <button
+                key={p}
+                className={`pl-page-num ${p === currentPage ? "active" : ""}`}
+                onClick={() => handlePageSelect(p)}
+              >
+                {p}
+              </button>
+            )
+          )}
+        </div>
+
+        <button
+          className="pl-page-btn pl-next-btn"
+          disabled={currentPage >= totalPages}
+          onClick={() => handlePageSelect(currentPage + 1)}
+          aria-label="Next Page"
+        >
+          Next ›
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ProductList() {
   const [products, setProducts]       = useState([]);
   const [categories, setCategories]   = useState([]);
   const [loading, setLoading]         = useState(true);
   const [sort, setSort]               = useState("default");
   const [priceMax, setPriceMax]       = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchParams]                = useSearchParams();
   const navigate                      = useNavigate();
@@ -57,6 +126,11 @@ function ProductList() {
     load();
   }, []);
 
+  // Reset to page 1 whenever filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [category, search, priceMax, sort]);
+
   // Filter
   let filtered = products;
   if (category) filtered = filtered.filter(p => p.category?.toLowerCase() === category.toLowerCase());
@@ -78,6 +152,14 @@ function ProductList() {
     if (sort === "newest")     return new Date(b.createdAt) - new Date(a.createdAt);
     return 0;
   });
+
+  // Pagination calculation
+  const totalItems  = sorted.length;
+  const totalPages  = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const validPage   = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex  = (validPage - 1) * ITEMS_PER_PAGE;
+  const endIndex    = startIndex + ITEMS_PER_PAGE;
+  const paginated   = sorted.slice(startIndex, endIndex);
 
   const handleCatClick = (name) => {
     setSidebarOpen(false);
@@ -191,7 +273,7 @@ function ProductList() {
         {/* Overlay for mobile sidebar */}
         {sidebarOpen && <div className="pl-overlay" onClick={() => setSidebarOpen(false)} />}
 
-        {/* ── Products grid ── */}
+        {/* ── Products Main Area ── */}
         <div className="pl-main">
           {loading ? (
             <div className="pl-loading">
@@ -206,81 +288,106 @@ function ProductList() {
               <button className="pl-empty-btn" onClick={clearFilters}>{t("product.clearFilters", "Clear Filters")}</button>
             </div>
           ) : (
-            <div className="pl-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {sorted.map(product => {
-                const inWish = isInWishlist(product._id);
-                const outOfStock = product.stock === 0;
-                const lowStock = product.stock > 0 && product.stock <= 5;
+            <>
+              {/* ── TOP PAGINATION CONTROLS ── */}
+              <PaginationControls
+                currentPage={validPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={totalItems}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                className="pl-pagination-top"
+              />
 
-                const discountPrice = product.discountPrice || product.price;
-                const originalPrice = product.originalPrice || (product.discountPrice && product.price > product.discountPrice ? product.price : null);
-                const hasDiscount = originalPrice && Number(originalPrice) > Number(discountPrice);
+              {/* ── PRODUCTS GRID ── */}
+              <div className="pl-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {paginated.map(product => {
+                  const inWish = isInWishlist(product._id);
+                  const outOfStock = product.stock === 0;
+                  const lowStock = product.stock > 0 && product.stock <= 5;
 
-                return (
-                  <div className="pl-card" key={product._id}>
-                    {/* Badges */}
-                    <div className="pl-badges">
-                      {outOfStock && <span className="pl-badge out">{t("product.outOfStock", "Out of Stock")}</span>}
-                      {lowStock && <span className="pl-badge low">{t("product.lowStock", "⚠ Only {{count}} left", { count: product.stock })}</span>}
-                    </div>
+                  const discountPrice = product.discountPrice || product.price;
+                  const originalPrice = product.originalPrice || (product.discountPrice && product.price > product.discountPrice ? product.price : null);
+                  const hasDiscount = originalPrice && Number(originalPrice) > Number(discountPrice);
 
-                    {/* Wishlist */}
-                    <button
-                      className={`pl-wish ${inWish ? "active" : ""}`}
-                      onClick={() => toggleWishlist(product)}
-                      title={inWish ? t("product.removeFromWishlist", "Remove from wishlist") : t("product.addToWishlist", "Add to wishlist")}
-                    >
-                      {inWish ? "♥" : "♡"}
-                    </button>
+                  return (
+                    <div className="pl-card" key={product._id}>
+                      {/* Badges */}
+                      <div className="pl-badges">
+                        {outOfStock && <span className="pl-badge out">{t("product.outOfStock", "Out of Stock")}</span>}
+                        {lowStock && <span className="pl-badge low">{t("product.lowStock", "⚠ Only {{count}} left", { count: product.stock })}</span>}
+                      </div>
 
-                    {/* Image */}
-                    <Link to={`/product/${product._id}`} className="pl-img-link">
-                      {product.images?.length > 0 ? (
-                        <img
-                          src={getImageUrl(product.images[0])}
-                          alt={product.name}
-                          className="pl-img"
-                        />
-                      ) : (
-                        <div className="pl-no-img">📦</div>
-                      )}
-                    </Link>
+                      {/* Wishlist */}
+                      <button
+                        className={`pl-wish ${inWish ? "active" : ""}`}
+                        onClick={() => toggleWishlist(product)}
+                        title={inWish ? t("product.removeFromWishlist", "Remove from wishlist") : t("product.addToWishlist", "Add to wishlist")}
+                      >
+                        {inWish ? "♥" : "♡"}
+                      </button>
 
-                    {/* Body */}
-                    <div className="pl-card-body">
-                      {product.brand && <p className="pl-brand">{product.brand}</p>}
-                      <Link to={`/product/${product._id}`} className="pl-name-link">
-                        <h3 className="pl-name">{product.name}</h3>
+                      {/* Image */}
+                      <Link to={`/product/${product._id}`} className="pl-img-link">
+                        {product.images?.length > 0 ? (
+                          <img
+                            src={getImageUrl(product.images[0])}
+                            alt={product.name}
+                            className="pl-img"
+                          />
+                        ) : (
+                          <div className="pl-no-img">📦</div>
+                        )}
                       </Link>
-                      {product.category && <p className="pl-category">{product.category}</p>}
 
-                      <div className="pl-footer">
-                        <div className="flex items-center gap-2">
-                          <span className="pl-price text-lg font-bold text-blue-600">
-                            {fmt(discountPrice)}
-                          </span>
-                          {hasDiscount && (
-                            <span className="text-sm line-through text-gray-400">
-                              {fmt(originalPrice)}
+                      {/* Body */}
+                      <div className="pl-card-body">
+                        {product.brand && <p className="pl-brand">{product.brand}</p>}
+                        <Link to={`/product/${product._id}`} className="pl-name-link">
+                          <h3 className="pl-name">{product.name}</h3>
+                        </Link>
+                        {product.category && <p className="pl-category">{product.category}</p>}
+
+                        <div className="pl-footer">
+                          <div className="flex items-center gap-2">
+                            <span className="pl-price text-lg font-bold text-blue-600">
+                              {fmt(discountPrice)}
                             </span>
-                          )}
+                            {hasDiscount && (
+                              <span className="text-sm line-through text-gray-400">
+                                {fmt(originalPrice)}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            className="pl-cart-btn"
+                            disabled={outOfStock}
+                            onClick={() => {
+                              addToCart({ ...product, price: discountPrice });
+                              if (!outOfStock) toast.success(`${product.name} ${t("product.addedToCart", "added to cart")}`);
+                            }}
+                          >
+                            {outOfStock ? t("product.soldOut", "Sold Out") : t("product.addToCart", "Add to Cart")}
+                          </button>
                         </div>
-                        <button
-                          className="pl-cart-btn"
-                          disabled={outOfStock}
-                          onClick={() => {
-                            addToCart({ ...product, price: discountPrice });
-                            if (!outOfStock) toast.success(`${product.name} ${t("product.addedToCart", "added to cart")}`);
-                          }}
-                        >
-                          {outOfStock ? t("product.soldOut", "Sold Out") : t("product.addToCart", "Add to Cart")}
-                        </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+
+              {/* ── BOTTOM PAGINATION CONTROLS ── */}
+              <PaginationControls
+                currentPage={validPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                totalItems={totalItems}
+                startIndex={startIndex}
+                endIndex={endIndex}
+                className="pl-pagination-bottom"
+              />
+            </>
           )}
         </div>
       </div>

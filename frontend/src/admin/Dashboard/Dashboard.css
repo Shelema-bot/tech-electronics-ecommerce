@@ -406,6 +406,16 @@
   color: #dc2626;
   padding: 6px 8px;
 }
+.edit-btn {
+  background: #f1f5f9;
+  color: #2563eb;
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+}
+.edit-btn:hover {
+  background: #e0f2fe;
+  color: #1d4ed8;
+}
 
 /* Product cell */
 .dash-prod-cell {
@@ -549,7 +559,8 @@
 }
 
 /* ── Modals ── */
-.dash-modal-overlay {
+.dash-modal-overlay,
+.dash-modal-backdrop {
   position: fixed;
   top: 0;
   left: 0;

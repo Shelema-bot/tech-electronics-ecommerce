@@ -1,48 +1,23 @@
 import Category from "../models/Category.js";
 
 // Create Category
-export const createCategory = async (req,res)=>{
+export const createCategory = async (req, res) => {
+  try {
+    const category = await Category.create({
+      name: req.body.name,
+      image: req.file ? req.file.path : "",
+    });
 
-try{
-
-
-const category = await Category.create({
-
-    name:req.body.name,
-
-    image:req.file
-    ?
-    req.file.path
-    :
-    ""
-
-});
-
-
-
-res.status(201).json(category);
-
-
-
-}catch(error){
-
-
-res.status(500).json({
-
-message:error.message
-
-});
-
-
-}
-
+    res.status(201).json(category);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // Get All Categories
 export const getCategories = async (req, res) => {
   try {
     const categories = await Category.find().sort({ createdAt: -1 });
-
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -67,9 +42,13 @@ export const getCategory = async (req, res) => {
 // Update Category
 export const updateCategory = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.image = req.file.path;
+    }
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true }
     );
 
@@ -83,7 +62,6 @@ export const updateCategory = async (req, res) => {
 export const deleteCategory = async (req, res) => {
   try {
     await Category.findByIdAndDelete(req.params.id);
-
     res.json({ message: "Category deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });

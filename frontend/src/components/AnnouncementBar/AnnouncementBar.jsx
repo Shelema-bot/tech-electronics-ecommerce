@@ -1,8 +1,8 @@
 /**
  * AnnouncementBar — rotating promotional messages at the top of the storefront.
- * Clean, lightweight top banner with integrated active language switcher.
+ * Clean, lightweight top banner with single collapsed active language selector.
  */
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import "./AnnouncementBar.css";
 import { usePreference, LANGUAGES } from "../../context/PreferenceContext";
 
@@ -29,6 +29,8 @@ export default function AnnouncementBar() {
   const [promos, setPromos]       = useState(loadPromos);
   const [current, setCurrent]     = useState(0);
   const [animating, setAnimating] = useState(false);
+  const [langOpen, setLangOpen]   = useState(false);
+  const langRef                   = useRef(null);
   const { language, setLanguage } = usePreference();
 
   const next = useCallback(() => {
@@ -61,6 +63,17 @@ export default function AnnouncementBar() {
     return () => window.removeEventListener("promosUpdated", handler);
   }, []);
 
+  // Close language dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (promos.length === 0) return null;
 
   const promo = promos[current];
@@ -84,23 +97,38 @@ export default function AnnouncementBar() {
           )}
         </div>
 
-        {/* Verified Language Toggle (Clean, active languages only) */}
-        <div className="ann-lang-wrap" title="Switch Language">
-          <span className="ann-lang-icon" aria-hidden="true">🌐</span>
-          {LANGUAGES.map((l, idx) => (
-            <span key={l.code} className="ann-lang-unit">
-              {idx > 0 && <span className="ann-lang-sep">|</span>}
-              <button
-                type="button"
-                className={`ann-lang-btn ${language?.code === l.code ? "active" : ""}`}
-                onClick={() => setLanguage(l)}
-                title={`${l.name} (${l.nativeName})`}
-                aria-label={`Switch language to ${l.name}`}
-              >
-                {l.label}
-              </button>
-            </span>
-          ))}
+        {/* Single Collapsed Language Selector on Very Top Navbar (No arrow icon) */}
+        <div className="ann-lang-collapsed-wrap" ref={langRef} title="Select Language">
+          <button
+            type="button"
+            className={`ann-lang-trigger-btn ${langOpen ? "open" : ""}`}
+            onClick={() => setLangOpen(o => !o)}
+            aria-label="Select Language"
+            aria-expanded={langOpen}
+          >
+            <span className="ann-lang-globe">🌐</span>
+            <span className="ann-lang-current-label">{language?.label || "EN"}</span>
+          </button>
+
+          {langOpen && (
+            <div className="ann-lang-dropdown">
+              {LANGUAGES.map(l => (
+                <button
+                  key={l.code}
+                  type="button"
+                  className={`ann-lang-drop-item ${language?.code === l.code ? "selected" : ""}`}
+                  onClick={() => {
+                    setLanguage(l);
+                    setLangOpen(false);
+                  }}
+                >
+                  <span className="ann-lang-item-native">{l.nativeName}</span>
+                  <span className="ann-lang-item-code">{l.label}</span>
+                  {language?.code === l.code && <span className="ann-lang-check">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

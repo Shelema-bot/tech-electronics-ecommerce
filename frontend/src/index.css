@@ -223,3 +223,25 @@ a,
 .text-blue-600 { color: #2563eb; }
 .text-gray-400 { color: #9ca3af; }
 .line-through { text-decoration: line-through; }
+
+/* ========================================================
+   CLEAN UI: HIDE COLLAPSE & DROPDOWN ARROWS
+   Preserves all click-to-toggle and accordion functionality
+======================================================== */
+.nav-chevron,
+.nav-lang-chevron,
+.nav-cat-arrow,
+.nav-link-arrow,
+.nav-drawer-arrow,
+.topbar-chevron,
+.accordion-arrow,
+.collapse-arrow,
+.dropdown-chevron,
+.arrow-icon,
+.faq-arrow,
+.footer-collapse-arrow,
+svg.chevron-down,
+svg.chevron-up,
+svg.chevron-right {
+  display: none !important;
+}

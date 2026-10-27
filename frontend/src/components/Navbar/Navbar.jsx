@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   FaShoppingCart, FaUserCircle, FaSearch, FaHeart,
-  FaChevronDown, FaBars, FaTimes, FaCamera,
+  FaBars, FaTimes, FaCamera,
 } from "react-icons/fa";
 import {
   FiUser, FiShoppingBag, FiCreditCard, FiHeart,
@@ -291,15 +291,7 @@ const Navbar = () => {
                 </div>
               )}
 
-              {/* Staff / Admin Dashboard Quick Link Button */}
-              {isStaff && (
-                <Link to="/admin" className="nav-staff-pill-btn" title={t("nav.staffDashboard", "Staff Dashboard")}>
-                  <span className="nav-staff-spark">⚡</span>
-                  <span className="nav-staff-text">{t("nav.staffDashboard", "Staff Dashboard")}</span>
-                </Link>
-              )}
-
-              {/* Account Dropdown or Login Link */}
+              {/* Account Dropdown or Login Link (Dashboard accessible under Account) */}
               {user ? (
                 <div className="nav-account-wrap" ref={acctRef}>
                   <button className="nav-acct-btn" onClick={() => setAcctOpen(o => !o)} aria-expanded={acctOpen} aria-label="User Account">
@@ -309,7 +301,6 @@ const Navbar = () => {
                         : <span className="nav-avatar-initial">{user.name?.charAt(0).toUpperCase() || "U"}</span>}
                     </span>
                     <span className="nav-icon-label">{t("nav.account")}</span>
-                    <FaChevronDown className={`nav-chevron ${acctOpen ? "open" : ""}`} />
                   </button>
                   {acctOpen && (
                     <div className="nav-acct-dropdown">
@@ -361,42 +352,6 @@ const Navbar = () => {
                 </Link>
               )}
 
-              {/* Collapsed Language Selector Dropdown */}
-              <div className="nav-lang-collapsed-wrap" ref={langRef}>
-                <button
-                  type="button"
-                  className={`nav-lang-collapsed-btn ${langOpen ? "open" : ""}`}
-                  onClick={() => setLangOpen(o => !o)}
-                  aria-label="Select Language"
-                  aria-expanded={langOpen}
-                  title="Switch Language"
-                >
-                  <span className="nav-lang-globe">🌐</span>
-                  <span className="nav-lang-current-label">{language?.label || "EN"}</span>
-                  <FaChevronDown className={`nav-lang-chevron ${langOpen ? "open" : ""}`} />
-                </button>
-
-                {langOpen && (
-                  <div className="nav-lang-dropdown-menu">
-                    {LANGUAGES.map(l => (
-                      <button
-                        key={l.code}
-                        type="button"
-                        className={`nav-lang-drop-item ${language?.code === l.code ? "selected" : ""}`}
-                        onClick={() => {
-                          setLanguage(l);
-                          setLangOpen(false);
-                        }}
-                      >
-                        <span className="nav-lang-item-name">{l.nativeName}</span>
-                        <span className="nav-lang-item-code">{l.label}</span>
-                        {language?.code === l.code && <span className="nav-lang-check">✓</span>}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
               {/* Mobile Hamburger Button */}
               <button
                 className="nav-hamburger"
@@ -444,7 +399,6 @@ const Navbar = () => {
               <div className="nav-cat-trigger">
                 <FaBars className="nav-cat-trigger-icon" />
                 <span>{t("nav.categories")}</span>
-                <FaChevronDown className="nav-cat-arrow" />
               </div>
 
               {/* Mega Dropdown Panel */}
@@ -491,7 +445,7 @@ const Navbar = () => {
               {/* All Products — hover shows quick category panel */}
               <li className="nav-link-item nav-has-panel">
                 <Link to="/products" className="nav-link" onClick={closeAll}>
-                  {t("nav.allProducts")} <FaChevronDown className="nav-link-arrow" />
+                  {t("nav.allProducts")}
                 </Link>
                 <HoverPanel>
                   <div className="nhp-title">{t("nav.browseByCategory", "Browse by Category")}</div>
@@ -521,7 +475,7 @@ const Navbar = () => {
               {/* About — hover shows About Us + Team */}
               <li className="nav-link-item nav-has-panel">
                 <span className="nav-link nav-cat-trigger-text">
-                  {t("nav.about")} <FaChevronDown className="nav-link-arrow" />
+                  {t("nav.about")}
                 </span>
                 <div className="nav-hover-panel nhp-narrow">
                   {ABOUT_LINKS.map(item => (
@@ -544,7 +498,7 @@ const Navbar = () => {
               {/* Help & Support */}
               <li className="nav-link-item nav-has-panel">
                 <span className="nav-link nav-cat-trigger-text">
-                  {t("nav.help")} <FaChevronDown className="nav-link-arrow" />
+                  {t("nav.help")}
                 </span>
                 <div className="nav-hover-panel nhp-narrow">
                   {HELP_LINKS.map(item => (
@@ -644,7 +598,6 @@ const Navbar = () => {
                   <span className="nav-drawer-item-icon">📦</span>
                   <span>{t("nav.categories")}</span>
                 </div>
-                <FaChevronDown className={`nav-drawer-arrow ${mobileCatOpen ? "open" : ""}`} />
               </button>
               {mobileCatOpen && (
                 <div className="nav-drawer-sub-menu">
@@ -686,7 +639,6 @@ const Navbar = () => {
                   <span className="nav-drawer-item-icon">ℹ️</span>
                   <span>{t("nav.about")}</span>
                 </div>
-                <FaChevronDown className={`nav-drawer-arrow ${mobileAboutOpen ? "open" : ""}`} />
               </button>
               {mobileAboutOpen && (
                 <div className="nav-drawer-sub-menu">
@@ -719,7 +671,6 @@ const Navbar = () => {
                   <span className="nav-drawer-item-icon">❓</span>
                   <span>{t("nav.help")}</span>
                 </div>
-                <FaChevronDown className={`nav-drawer-arrow ${mobileHelpOpen ? "open" : ""}`} />
               </button>
               {mobileHelpOpen && (
                 <div className="nav-drawer-sub-menu">
@@ -783,7 +734,6 @@ const Navbar = () => {
                 <span className="nav-drawer-item-icon">🌐</span>
                 <span>Language: <strong>{language?.nativeName || "English"}</strong></span>
               </div>
-              <FaChevronDown className={`nav-drawer-arrow ${mobileLangOpen ? "open" : ""}`} />
             </button>
             {mobileLangOpen && (
               <div className="nav-drawer-sub-menu">

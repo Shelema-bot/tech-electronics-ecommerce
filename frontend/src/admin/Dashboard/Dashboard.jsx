@@ -13,7 +13,7 @@ import {
   FaChartLine, FaShoppingCart, FaBox, FaUsers,
   FaCheckCircle, FaTimesCircle, FaSearch, FaPlus,
   FaEye, FaTrash, FaEdit, FaSave, FaUserCheck,
-  FaClipboardCheck, FaLock
+  FaClipboardCheck, FaLock, FaTags
 } from "react-icons/fa";
 import "../components/Charts/Charts.css";
 import "./Dashboard.css";
@@ -112,9 +112,16 @@ export default function Dashboard({ initialTab = "overview" }) {
   const [stockFilter, setStockFilter]         = useState("all");
   const [stockInputs, setStockInputs]         = useState({});
   const [showAddProduct, setShowAddProduct]   = useState(false);
+  const [editingProduct, setEditingProduct]   = useState(null);
   const [newProduct, setNewProduct]           = useState({
     name: "", price: "", originalPrice: "", category: "Laptops", stock: 10, description: ""
   });
+
+  // Category management states
+  const [categoriesList, setCategoriesList]   = useState([]);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [newCategory, setNewCategory]         = useState({ name: "" });
 
   const [userSearch, setUserSearch]           = useState("");
   const [userRoleFilter, setUserRoleFilter]   = useState("all");
@@ -191,6 +198,11 @@ export default function Dashboard({ initialTab = "overview" }) {
           .then(res => setPendingSellers(res?.data?.sellers || []))
           .catch(err => console.warn("Pending sellers fetch:", err));
       }
+
+      // Load categories
+      API.get("/categories")
+        .then(res => setCategoriesList(Array.isArray(res.data) ? res.data : res.data?.categories || []))
+        .catch(err => console.warn("Categories fetch:", err));
 
       // Load users if authorized (Shelema is the ONLY Super Admin who manages users)
       if (shelemaUser) {
@@ -289,6 +301,68 @@ export default function Dashboard({ initialTab = "overview" }) {
       showNotice(t("admin.productCreatedSuccess", "New product created successfully!"));
     } catch (err) {
       showNotice(err.response?.data?.message || "Failed to create product", true);
+    }
+  };
+
+  const handleUpdateProduct = async (e) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    try {
+      const payload = {
+        name: editingProduct.name,
+        price: Number(editingProduct.price),
+        discountPrice: Number(editingProduct.discountPrice || editingProduct.price),
+        originalPrice: editingProduct.originalPrice ? Number(editingProduct.originalPrice) : null,
+        category: editingProduct.category,
+        stock: Number(editingProduct.stock),
+        description: editingProduct.description || "",
+      };
+      await API.put(`/products/${editingProduct._id}`, payload);
+      setProducts(prev => prev.map(p => p._id === editingProduct._id ? { ...p, ...payload } : p));
+      setEditingProduct(null);
+      showNotice(t("admin.productUpdated", "Product updated successfully!"));
+    } catch (err) {
+      showNotice(err.response?.data?.message || "Failed to update product", true);
+    }
+  };
+
+  // ── Category Handlers ──
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategory.name?.trim()) return;
+    try {
+      const res = await API.post("/categories", { name: newCategory.name.trim() });
+      const cat = res.data.category || res.data;
+      setCategoriesList(prev => [cat, ...prev]);
+      setNewCategory({ name: "" });
+      setShowAddCategory(false);
+      showNotice(t("admin.categoryCreated", "Category created successfully!"));
+    } catch (err) {
+      showNotice(err.response?.data?.message || "Failed to create category", true);
+    }
+  };
+
+  const handleSaveCategoryEdit = async (e) => {
+    e.preventDefault();
+    if (!editingCategory || !editingCategory.name?.trim()) return;
+    try {
+      await API.put(`/categories/${editingCategory._id}`, { name: editingCategory.name.trim() });
+      setCategoriesList(prev => prev.map(c => c._id === editingCategory._id ? { ...c, name: editingCategory.name.trim() } : c));
+      setEditingCategory(null);
+      showNotice(t("admin.categoryUpdated", "Category updated successfully!"));
+    } catch (err) {
+      showNotice(err.response?.data?.message || "Failed to update category", true);
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    try {
+      await API.delete(`/categories/${id}`);
+      setCategoriesList(prev => prev.filter(c => c._id !== id));
+      showNotice(t("admin.categoryDeleted", "Category deleted successfully!"));
+    } catch (err) {
+      showNotice(err.response?.data?.message || "Failed to delete category", true);
     }
   };
 
@@ -406,6 +480,9 @@ export default function Dashboard({ initialTab = "overview" }) {
     ] : []),
     ...(shelemaUser || userRoleNorm === "Admin" || userRoleNorm === "InventoryManager" || userRoleNorm === "Seller" ? [
       { key: "products", label: t("admin.productsAndStock", "Products & Stock"), icon: <FaBox /> }
+    ] : []),
+    ...(shelemaUser || userRoleNorm === "Admin" || userRoleNorm === "InventoryManager" ? [
+      { key: "categories", label: t("admin.categories", "Categories"), icon: <FaTags /> }
     ] : []),
     ...(shelemaUser || userRoleNorm === "Admin" || userRoleNorm === "InventoryManager" ? [
       { key: "product-approval", label: t("admin.productApprovals", "Product Approvals"), icon: <FaClipboardCheck /> }
@@ -994,9 +1071,241 @@ export default function Dashboard({ initialTab = "overview" }) {
                           <td>
                             <div className="dash-actions-cell">
                               <button
+                                className="dash-action-btn edit-btn"
+                                onClick={() => setEditingProduct(p)}
+                                title="Quick Edit Product"
+                              >
+                                <FaEdit />
+                              </button>
+                              <Link
+                                to={`/admin/edit-product/${p._id}`}
+                                className="dash-action-btn edit-btn"
+                                title="Full Edit Page"
+                                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
+                              >
+                                <FaEye />
+                              </Link>
+                              <button
                                 className="dash-action-btn delete-btn"
                                 onClick={() => handleDeleteProduct(p._id)}
                                 title="Delete Product"
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Quick Edit Product Modal */}
+            {editingProduct && (
+              <div className="dash-modal-backdrop" onClick={() => setEditingProduct(null)}>
+                <div className="dash-modal-card" onClick={e => e.stopPropagation()}>
+                  <div className="dash-modal-header">
+                    <h3>Edit Product: {editingProduct.name}</h3>
+                    <button className="dash-modal-close" onClick={() => setEditingProduct(null)}>✕</button>
+                  </div>
+                  <form onSubmit={handleUpdateProduct} className="dash-modal-body">
+                    <div className="dash-form-grid">
+                      <div style={{ gridColumn: "1/-1" }}>
+                        <label>Product Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={editingProduct.name}
+                          onChange={e => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label>Discount / Sale Price (ETB) *</label>
+                        <input
+                          type="number"
+                          required
+                          value={editingProduct.discountPrice || editingProduct.price}
+                          onChange={e => setEditingProduct({ ...editingProduct, price: e.target.value, discountPrice: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label>Original Regular Price (Optional strikethrough)</label>
+                        <input
+                          type="number"
+                          value={editingProduct.originalPrice || ""}
+                          onChange={e => setEditingProduct({ ...editingProduct, originalPrice: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <label>Category *</label>
+                        <select
+                          value={editingProduct.category}
+                          onChange={e => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                        >
+                          {productCategories.filter(c => c !== "All").map(c => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label>Stock Quantity *</label>
+                        <input
+                          type="number"
+                          required
+                          value={editingProduct.stock}
+                          onChange={e => setEditingProduct({ ...editingProduct, stock: e.target.value })}
+                        />
+                      </div>
+                      <div style={{ gridColumn: "1/-1" }}>
+                        <label>Description</label>
+                        <textarea
+                          rows="3"
+                          value={editingProduct.description || ""}
+                          onChange={e => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div className="dash-form-actions" style={{ marginTop: 16 }}>
+                      <button type="submit" className="dash-primary-btn">Save Changes</button>
+                      <button type="button" className="dash-secondary-btn" onClick={() => setEditingProduct(null)}>Cancel</button>
+                      <Link to={`/admin/edit-product/${editingProduct._id}`} className="dash-secondary-btn" style={{ marginLeft: "auto", textDecoration: "none" }}>
+                        Full Edit Page →
+                      </Link>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════
+            TAB: CATEGORIES MANAGEMENT
+        ════════════════════════════════════════════════════ */}
+        {activeTab === "categories" && (
+          <div className="dash-tab-content">
+            <div className="dash-section-bar">
+              <div>
+                <h3 className="dash-section-title">Category Management</h3>
+                <p className="dash-section-sub">
+                  Add new product categories, rename existing categories, or manage catalog classifications.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  className="dash-primary-btn"
+                  onClick={() => setShowAddCategory(prev => !prev)}
+                >
+                  <FaPlus /> {showAddCategory ? "Close Form" : "Add Category"}
+                </button>
+                <Link to="/admin/categories" className="dash-secondary-btn" style={{ textDecoration: "none" }}>
+                  Full Category View →
+                </Link>
+              </div>
+            </div>
+
+            {/* Add Category Form */}
+            {showAddCategory && (
+              <form className="dash-inline-form-card" onSubmit={handleCreateCategory}>
+                <h4>Create New Category</h4>
+                <div style={{ display: "flex", gap: 12, alignItems: "center", marginTop: 12 }}>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Smart Projectors, Wearables..."
+                    value={newCategory.name}
+                    onChange={e => setNewCategory({ name: e.target.value })}
+                    style={{ flex: 1, padding: "8px 14px", border: "1px solid #cbd5e1", borderRadius: 8 }}
+                  />
+                  <button type="submit" className="dash-primary-btn">Save Category</button>
+                  <button type="button" className="dash-secondary-btn" onClick={() => setShowAddCategory(false)}>Cancel</button>
+                </div>
+              </form>
+            )}
+
+            {/* Edit Category Modal */}
+            {editingCategory && (
+              <div className="dash-modal-backdrop" onClick={() => setEditingCategory(null)}>
+                <div className="dash-modal-card" style={{ maxWidth: 450 }} onClick={e => e.stopPropagation()}>
+                  <div className="dash-modal-header">
+                    <h3>Edit Category</h3>
+                    <button className="dash-modal-close" onClick={() => setEditingCategory(null)}>✕</button>
+                  </div>
+                  <form onSubmit={handleSaveCategoryEdit} className="dash-modal-body">
+                    <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>Category Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={editingCategory.name}
+                      onChange={e => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                      style={{ width: "100%", padding: "8px 12px", border: "1px solid #cbd5e1", borderRadius: 8 }}
+                    />
+                    <div className="dash-form-actions" style={{ marginTop: 16 }}>
+                      <button type="submit" className="dash-primary-btn">Update Category</button>
+                      <button type="button" className="dash-secondary-btn" onClick={() => setEditingCategory(null)}>Cancel</button>
+                      <Link to={`/admin/edit-category/${editingCategory._id}`} className="dash-secondary-btn" style={{ marginLeft: "auto", textDecoration: "none" }}>
+                        Full Edit Page →
+                      </Link>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
+
+            {/* Categories Table */}
+            <div className="dash-table-card">
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Category Name</th>
+                    <th>Associated Products</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categoriesList.length === 0 ? (
+                    <tr>
+                      <td colSpan="3" className="dash-empty-td">No categories found</td>
+                    </tr>
+                  ) : (
+                    categoriesList.map(c => {
+                      const count = products.filter(p => p.category?.toLowerCase() === c.name?.toLowerCase()).length;
+                      return (
+                        <tr key={c._id}>
+                          <td>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <span style={{ fontSize: 20 }}>📁</span>
+                              <strong>{c.name}</strong>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="dash-badge badge-instock">
+                              {count} {count === 1 ? "product" : "products"}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="dash-actions-cell">
+                              <button
+                                className="dash-action-btn edit-btn"
+                                onClick={() => setEditingCategory(c)}
+                                title="Edit Category Name"
+                              >
+                                <FaEdit />
+                              </button>
+                              <Link
+                                to={`/admin/edit-category/${c._id}`}
+                                className="dash-action-btn edit-btn"
+                                title="Full Category Edit Page"
+                                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", textDecoration: "none" }}
+                              >
+                                <FaEye />
+                              </Link>
+                              <button
+                                className="dash-action-btn delete-btn"
+                                onClick={() => handleDeleteCategory(c._id)}
+                                title="Delete Category"
                               >
                                 <FaTrash />
                               </button>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import Pagination from "../../components/common/Pagination";
 import { useToast } from "../../context/ToastContext";
 import "./Orders.css";
 
@@ -21,6 +22,9 @@ const avatarColor = (name) => {
 function OrderDetailModal({ order, onClose }) {
   if (!order) return null;
   const sm = STATUS_META[order.status] || STATUS_META.Pending;
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedOrders = filtered.slice(startIndex, startIndex + pageSize);
+
   return (
     <div className="ord-overlay" onClick={onClose}>
       <div className="ord-modal" onClick={e => e.stopPropagation()}>
@@ -94,8 +98,11 @@ function Orders() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [payFilter, setPayFilter]       = useState("all");
   const [detailOrder, setDetailOrder]   = useState(null);
+  const [currentPage, setCurrentPage]   = useState(1);
+  const [pageSize, setPageSize]         = useState(10);
 
   useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => { setCurrentPage(1); }, [search, statusFilter, payFilter]);
 
   const fetchOrders = async () => {
     try {
@@ -257,7 +264,7 @@ function Orders() {
                     No orders found
                   </div>
                 </td></tr>
-              ) : filtered.map(order => {
+              ) : paginatedOrders.map(order => {
                 const sm = STATUS_META[order.status] || STATUS_META.Pending;
                 return (
                   <tr key={order._id} className="ord-row">
@@ -319,6 +326,16 @@ function Orders() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
+          pageSizeOptions={[5, 10, 20, 50]}
+          itemLabel="orders"
+        />
       </div>
 
       <OrderDetailModal order={detailOrder} onClose={() => setDetailOrder(null)} />

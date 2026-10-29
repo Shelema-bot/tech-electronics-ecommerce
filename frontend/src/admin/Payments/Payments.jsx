@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
 import { useToast } from "../../context/ToastContext";
+import Pagination from "../../components/common/Pagination";
 import "./Payments.css";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -589,17 +590,24 @@ function Payments() {
                 </table>
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="pay-pagination">
-                  <button className="pay-page-btn" disabled={page <= 1} onClick={() => { setPage(p => p-1); fetchPayments(page-1); }}>
-                    ← Prev
-                  </button>
-                  <span className="pay-page-info">Page {page} of {totalPages}</span>
-                  <button className="pay-page-btn" disabled={page >= totalPages} onClick={() => { setPage(p => p+1); fetchPayments(page+1); }}>
-                    Next →
-                  </button>
-                </div>
+              {/* Pagination with Previous & Next Arrows */}
+              {total > 0 && (
+                <Pagination
+                  currentPage={page}
+                  totalItems={total}
+                  pageSize={limit}
+                  onPageChange={(p) => {
+                    setPage(p);
+                    fetchPayments(p);
+                  }}
+                  onPageSizeChange={(sz) => {
+                    setLimit(sz);
+                    setPage(1);
+                    fetchPayments(1, status, method, search, sz);
+                  }}
+                  pageSizeOptions={[10, 20, 50]}
+                  itemLabel="payments"
+                />
               )}
             </>
           )}

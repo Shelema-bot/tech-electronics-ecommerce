@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import Pagination from "../../components/common/Pagination";
 import { useToast } from "../../context/ToastContext";
 import "./Customers.css";
 
@@ -29,8 +30,11 @@ function Customers() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [detailUser, setDetailUser] = useState(null);
   const [deleting, setDeleting]     = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize]       = useState(10);
 
   useEffect(() => { fetchCustomers(); }, []);
+  useEffect(() => { setCurrentPage(1); }, [search, roleFilter]);
 
   const fetchCustomers = async () => {
     try {
@@ -99,6 +103,9 @@ function Customers() {
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
+
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedCustomers = filtered.slice(startIndex, startIndex + pageSize);
 
   return (
     <AdminLayout>
@@ -183,7 +190,7 @@ function Customers() {
                     No customers found
                   </div>
                 </td></tr>
-              ) : filtered.map(c => {
+              ) : paginatedCustomers.map(c => {
                 const rc = ROLE_COLORS[c.role] || ROLE_COLORS.customer;
                 return (
                   <tr key={c._id} className="cust-row">
@@ -258,6 +265,16 @@ function Customers() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={(sz) => { setPageSize(sz); setCurrentPage(1); }}
+          pageSizeOptions={[5, 10, 20, 50]}
+          itemLabel="users"
+        />
       </div>
 
       {/* Detail modal */}

@@ -4,6 +4,7 @@
     "allProducts": "ሁሉም ምርቶች",
     "categories": "ምድቦች",
     "about": "ስለ እኛ",
+    "jobs": "ስራ (Job)",
     "team": "ቡድናችን",
     "contact": "ያግኙን",
     "help": "እርዳታ እና ድጋፍ",
@@ -46,6 +47,15 @@
     "supportDesc": "ቁርጠኛ የድጋፍ ቡድን"
   },
   "product": {
+    "dealsHot": "ልዩ ቅናሾች",
+    "hotDealsTitle": "የተወሰነ ጊዜ ልዩ ቅናሾች እና ማጣሪያዎች",
+    "hotDealsDesc": "በተረጋገጡ የቴክኖሎጂ እቃዎች ላይ ልዩ ቅናሽ ዋጋዎች። እቃ እስኪያልቅ!",
+    "newArrivals": "አዲስ የገቡ",
+    "newArrivalsTitle": "በቅርብ ጊዜ የገቡ አዳዲስ ምርቶች",
+    "brands": "ብራንዶች",
+    "shopByBrand": "በብራንድ ይግዙ",
+    "allBrands": "ሁሉም ብራንዶች",
+    "allProducts": "ሁሉም ምርቶች",
     "addToWishlist": "ወደ ምኞት ዝርዝር ጨምር",
     "removeFromWishlist": "ከምኞት ዝርዝር አስወግድ",
     "customerReviews": "የደንበኞች አስተያየቶች",
@@ -382,7 +392,8 @@
     "productDeletedSuccess": "ምርቱ ከካታሎግ ተሰርዟል",
     "productCreatedSuccess": "አዲስ ምርት በተሳካ ሁኔታ ተፈጥሯል!",
     "accountActivated": "መለያው ገቢር ተደርጓል",
-    "accountDeactivated": "መለያው ታግዷል"
+    "accountDeactivated": "መለያው ታግዷል",
+    "staffMeetings": "የሰራተኞች ስብሰባ እና ቪዲዮ"
   },
   "common": {
     "loading": "እየጫነ ነው...",

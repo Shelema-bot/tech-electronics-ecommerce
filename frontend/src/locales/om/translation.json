@@ -4,6 +4,7 @@
     "allProducts": "Meeshaalee Hunda",
     "categories": "Gareewwan",
     "about": "Waa'ee Keenya",
+    "jobs": "Hojii (Job)",
     "team": "Garee Keenya",
     "contact": "Nu Quunnamaa",
     "help": "Gargaarsa & Deeggarsa",
@@ -46,6 +47,15 @@
     "supportDesc": "Garee deeggarsa qophaa'aa"
   },
   "product": {
+    "dealsHot": "Gurgurtaa Addaa",
+    "hotDealsTitle": "Gurgurtaa Addaa fi Hir'ina Yeroo Murtaa'e",
+    "hotDealsDesc": "Meeshaalee teeknoolojii qulqullina qaban irratti gatii hir'ina addaa. Hanga kuusaan jirutti!",
+    "newArrivals": "Haaraa Dhufan",
+    "newArrivalsTitle": "Oomishaalee Haaraa Dhiheenya Kana Galan",
+    "brands": "Brandoota",
+    "shopByBrand": "Akka Brandiitiin Bitadhaa",
+    "allBrands": "Brandoota Hundumaa",
+    "allProducts": "Oomishaalee Hunda",
     "addToWishlist": "Gara Hawwiitti Dabali",
     "removeFromWishlist": "Hawwii Keessaa Haqi",
     "customerReviews": "Yaada Maamiltootaa",
@@ -382,7 +392,8 @@
     "productDeletedSuccess": "Oomishni tarree keessaa haqameera",
     "productCreatedSuccess": "Oomishni haaraan milkaa'inaan uumameera!",
     "accountActivated": "Herregni hojiirra ooleera",
-    "accountDeactivated": "Herregni cufameera"
+    "accountDeactivated": "Herregni cufameera",
+    "staffMeetings": "Walga'ii Hojjettootaa fi Viidiyoo"
   },
   "common": {
     "loading": "Fe'amaa jira...",

@@ -30,8 +30,10 @@ export default function AnnouncementBar() {
   const [current, setCurrent]     = useState(0);
   const [animating, setAnimating] = useState(false);
   const [langOpen, setLangOpen]   = useState(false);
+  const [currOpen, setCurrOpen]   = useState(false);
   const langRef                   = useRef(null);
-  const { language, setLanguage } = usePreference();
+  const currRef                   = useRef(null);
+  const { language, setLanguage, currency, setCurrency, currencies } = usePreference();
 
   const next = useCallback(() => {
     setAnimating(true);
@@ -63,11 +65,14 @@ export default function AnnouncementBar() {
     return () => window.removeEventListener("promosUpdated", handler);
   }, []);
 
-  // Close language dropdown when clicking outside
+  // Close language and currency dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (langRef.current && !langRef.current.contains(e.target)) {
         setLangOpen(false);
+      }
+      if (currRef.current && !currRef.current.contains(e.target)) {
+        setCurrOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -97,38 +102,78 @@ export default function AnnouncementBar() {
           )}
         </div>
 
-        {/* Single Collapsed Language Selector on Very Top Navbar (No arrow icon) */}
-        <div className="ann-lang-collapsed-wrap" ref={langRef} title="Select Language">
-          <button
-            type="button"
-            className={`ann-lang-trigger-btn ${langOpen ? "open" : ""}`}
-            onClick={() => setLangOpen(o => !o)}
-            aria-label="Select Language"
-            aria-expanded={langOpen}
-          >
-            <span className="ann-lang-globe">🌐</span>
-            <span className="ann-lang-current-label">{language?.label || "EN"}</span>
-          </button>
+        {/* Right utility cluster: Language and Currency selectors */}
+        <div className="ann-actions-cluster">
+          {/* Single Collapsed Language Selector on Very Top Navbar (No arrow icon) */}
+          <div className="ann-lang-collapsed-wrap" ref={langRef} title="Select Language">
+            <button
+              type="button"
+              className={`ann-lang-trigger-btn ${langOpen ? "open" : ""}`}
+              onClick={() => { setLangOpen(o => !o); setCurrOpen(false); }}
+              aria-label="Select Language"
+              aria-expanded={langOpen}
+            >
+              <span className="ann-lang-globe">🌐</span>
+              <span className="ann-lang-current-label">{language?.label || "EN"}</span>
+            </button>
 
-          {langOpen && (
-            <div className="ann-lang-dropdown">
-              {LANGUAGES.map(l => (
-                <button
-                  key={l.code}
-                  type="button"
-                  className={`ann-lang-drop-item ${language?.code === l.code ? "selected" : ""}`}
-                  onClick={() => {
-                    setLanguage(l);
-                    setLangOpen(false);
-                  }}
-                >
-                  <span className="ann-lang-item-native">{l.nativeName}</span>
-                  <span className="ann-lang-item-code">{l.label}</span>
-                  {language?.code === l.code && <span className="ann-lang-check">✓</span>}
-                </button>
-              ))}
-            </div>
-          )}
+            {langOpen && (
+              <div className="ann-lang-dropdown">
+                {LANGUAGES.map(l => (
+                  <button
+                    key={l.code}
+                    type="button"
+                    className={`ann-lang-drop-item ${language?.code === l.code ? "selected" : ""}`}
+                    onClick={() => {
+                      setLanguage(l);
+                      setLangOpen(false);
+                    }}
+                  >
+                    <span className="ann-lang-item-native">{l.nativeName}</span>
+                    <span className="ann-lang-item-code">{l.label}</span>
+                    {language?.code === l.code && <span className="ann-lang-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Single Collapsed Currency Selector beyond Language */}
+          <div className="ann-curr-collapsed-wrap" ref={currRef} title="Select Currency">
+            <button
+              type="button"
+              className={`ann-curr-trigger-btn ${currOpen ? "open" : ""}`}
+              onClick={() => { setCurrOpen(o => !o); setLangOpen(false); }}
+              aria-label="Select Currency"
+              aria-expanded={currOpen}
+            >
+              <span className="ann-curr-icon">{currency?.symbol || "ETB"}</span>
+              <span className="ann-curr-current-label">{currency?.code || "ETB"}</span>
+            </button>
+
+            {currOpen && (
+              <div className="ann-curr-dropdown">
+                {(currencies || []).map(c => (
+                  <button
+                    key={c.code}
+                    type="button"
+                    className={`ann-curr-drop-item ${currency?.code === c.code ? "selected" : ""}`}
+                    onClick={() => {
+                      setCurrency(c);
+                      setCurrOpen(false);
+                    }}
+                  >
+                    <span className="ann-curr-item-symbol">{c.symbol}</span>
+                    <div className="ann-curr-item-meta">
+                      <span className="ann-curr-item-code">{c.code}</span>
+                      <span className="ann-curr-item-name">{c.name}</span>
+                    </div>
+                    {currency?.code === c.code && <span className="ann-curr-check">✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,0 +1,222 @@
+/* ── Reusable Unified Pagination Component Styling ── */
+.pg-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
+  margin-top: 20px;
+}
+
+.pg-summary {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pg-summary strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.pg-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.pg-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  transform: translateY(-1px);
+}
+
+.pg-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: #f8fafc;
+  border-color: #f1f5f9;
+}
+
+/* Arrow Buttons (Previous & Next) */
+.pg-arrow-btn {
+  padding: 0 14px;
+  font-weight: 700;
+  color: #1e293b;
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.pg-arrow-btn:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.pg-arrow-icon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-block;
+  font-weight: 900;
+  transition: transform 0.18s ease;
+}
+
+.pg-prev-btn:hover:not(:disabled) .pg-arrow-left {
+  transform: translateX(-3px);
+}
+
+.pg-next-btn:hover:not(:disabled) .pg-arrow-right {
+  transform: translateX(3px);
+}
+
+/* Edge Buttons (First & Last) */
+.pg-edge-btn {
+  padding: 0 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.pg-edge-arrow {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pg-num {
+  padding: 0 12px;
+}
+
+.pg-num.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+  font-weight: 700;
+}
+
+.pg-ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.pg-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.pg-size-picker,
+.pg-jump-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.pg-select {
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.pg-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.pg-jump-input {
+  width: 52px;
+  height: 34px;
+  padding: 0 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.pg-jump-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+.pg-jump-btn {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pg-jump-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.pg-jump-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive Stacking */
+@media (max-width: 768px) {
+  .pg-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+  }
+  .pg-controls {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .pg-edge-label {
+    display: none;
+  }
+}

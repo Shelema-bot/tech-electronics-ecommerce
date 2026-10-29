@@ -35,6 +35,7 @@ export const normalizeRole = (role, user = null) => {
   if (["cashier", "finance", "cashierfinance"].includes(r)) return "CashierFinance";
   if (["delivery"].includes(r)) return "Delivery";
   if (["seller"].includes(r)) return "Seller";
+  if (["webappmanager", "web_app_manager"].includes(r)) return "WebAppManager";
   return "Customer";
 };
 
@@ -132,6 +133,21 @@ export const ownerOnlySellerApproval = (req, res, next) => {
   next();
 };
 
+// ── Strict Owner-Only Staff Meeting Scheduler Middleware ──
+export const ownerOnlyMeetingScheduler = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: "Authentication required" });
+  }
+
+  if (!isOwnerSuperAdmin(req.user) && !isShelema(req.user)) {
+    return res.status(403).json({
+      success: false,
+      message: "403 Forbidden: Restricted: Only the Owner (Shelema) has permission to schedule or manage staff meetings.",
+    });
+  }
+  next();
+};
+
 // ── Generic role factory (legacy support) ─────────
 export const requireRole = (...roles) => (req, res, next) => {
   if (!req.user) {
@@ -186,7 +202,7 @@ export const anyStaff = (req, res, next) => {
   if (isShelema(req.user)) return next();
 
   const userNorm = normalizeRole(req.user.role, req.user);
-  if (!["SuperAdmin", "CashierFinance", "InventoryManager", "Seller"].includes(userNorm)) {
+  if (!["SuperAdmin", "Admin", "CashierFinance", "InventoryManager", "Delivery", "Seller", "WebAppManager"].includes(userNorm)) {
     return res.status(403).json({ success: false, message: "Staff access required" });
   }
   next();

@@ -21,12 +21,6 @@ export default function About() {
     { number: "24/7",   label: t("about.stat4", "Customer Support")       },
   ];
 
-  const TEAM_PREVIEW = [
-    { name: "Shelema Ageri", role: "Founder & CEO",   emoji: "👨‍💼" },
-    { name: "Tech Team",     role: "Product & Dev",    emoji: "👨‍💻" },
-    { name: "Support Team",  role: "Customer Success", emoji: "🎧" },
-  ];
-
   return (
     <div className="about-page">
 
@@ -42,7 +36,7 @@ export default function About() {
           </p>
           <div className="about-hero-btns">
             <Link to="/products" className="about-btn-primary">{t("product.browseProducts", "Browse Products")}</Link>
-            <Link to="/team"     className="about-btn-outline">{t("nav.team", "Meet the Team")}</Link>
+            <Link to="/contact"  className="about-btn-outline">{t("nav.contact", "Contact Us")}</Link>
           </div>
         </div>
 
@@ -110,25 +104,39 @@ export default function About() {
         </div>
       </section>
 
-      {/* ── Team Preview ── */}
-      <section className="about-team-preview">
+      {/* ── Founder & Full-Stack Developer Section ── */}
+      <section className="about-founder-section">
         <div className="about-section-container">
           <div className="about-section-header">
-            <span className="about-section-tag">{t("nav.team", "Our Team")}</span>
-            <h2>{t("nav.team", "Meet the Leadership")}</h2>
-            <p>{t("help.supportReply24h", "Our support team is here for you.")}</p>
+            <span className="about-section-tag">💻 {t("about.developerTag", "FULL-STACK ARCHITECTURE")}</span>
+            <h2>{t("about.founderTitle", "Meet the Founder & Lead Developer")}</h2>
+            <p>{t("about.founderSub", "Engineered with precision from database schemas to sleek interfaces.")}</p>
           </div>
-          <div className="about-team-grid">
-            {TEAM_PREVIEW.map((m, i) => (
-              <div key={i} className="about-member-card">
-                <span className="about-member-emoji">{m.emoji}</span>
-                <h3>{m.name}</h3>
-                <p>{m.role}</p>
+
+          <div className="about-founder-card">
+            <div className="about-founder-avatar-wrap">
+              <span className="about-founder-emoji">👨‍💻</span>
+              <div className="about-founder-badge">Full-Stack Engineer</div>
+            </div>
+            <div className="about-founder-info">
+              <h3 className="about-founder-name">Shelema Ageri</h3>
+              <p className="about-founder-role">{t("about.founderRole", "Founder & Full-Stack Software Engineer")}</p>
+              <p className="about-founder-bio">
+                {t("about.founderBio", "Shelema architected and developed the entire Tech & Electronic e-commerce ecosystem end-to-end. This encompasses the modern React.js frontend interface, resilient Node.js / Express REST API microservices, high-throughput MongoDB data models, cryptographic JWT authentication, multi-tier Role-Based Access Control (RBAC), multi-channel manual payment processing (CBE Birr, Telebirr, Bank of Abyssinia, Awash Bank), and automated order-dispatch logistics.")}
+              </p>
+              <div className="about-founder-skills">
+                <span className="founder-skill-pill">⚛️ React.js &amp; Modern UI</span>
+                <span className="founder-skill-pill">🟢 Node.js &amp; Express</span>
+                <span className="founder-skill-pill">🍃 MongoDB Database</span>
+                <span className="founder-skill-pill">🔐 RBAC Security</span>
+                <span className="founder-skill-pill">💳 Ethiopian Payment Gateways</span>
+                <span className="founder-skill-pill">⚡ Trilingual I18n</span>
               </div>
-            ))}
-          </div>
-          <div className="about-team-cta">
-            <Link to="/team" className="about-btn-primary">{t("nav.team", "Meet the Full Team")} →</Link>
+              <div className="about-founder-actions">
+                <Link to="/contact" className="about-btn-primary about-founder-contact-btn">{t("nav.contact", "Get in Touch")} →</Link>
+                <Link to="/products" className="about-btn-outline-dark">{t("product.browseProducts", "Explore Products")}</Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -1,33 +1,7 @@
-import ProductList from "../components/ProductList/ProductList";
-import { useSearchParams } from "react-router-dom";
+import ProductList from "../components/ProductList";
 
 function Products() {
-
-  const [searchParams] = useSearchParams();
-
-  const category = searchParams.get("category");
-  const search = searchParams.get("search");
-
-  return (
-
-    <div>
-
-      <h1>
-
-        {category
-          ? `${category} Products`
-          : search
-          ? `Search Results for "${search}"`
-          : "All Products"}
-
-      </h1>
-
-      <ProductList />
-
-    </div>
-
-  );
-
+  return <ProductList />;
 }
 
 export default Products;

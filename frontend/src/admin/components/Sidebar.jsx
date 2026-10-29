@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   FaHome, FaBox, FaShoppingCart, FaUsers,
-  FaCog, FaUserCheck, FaClipboardCheck, FaTag, FaEnvelope,
+  FaCog, FaUserCheck, FaClipboardCheck, FaTag, FaEnvelope, FaVideo,
 } from "react-icons/fa";
 import { normalizeRole, isShelema } from "../AdminRoute";
 import "./Sidebar.css";
@@ -73,6 +73,7 @@ const ROLE_BADGE = {
   CashierFinance:   { bg: "#0891b2", label: "Cashier / Finance" },
   Delivery:         { bg: "#ea580c", label: "Delivery" },
   Seller:           { bg: "#16a34a", label: "Seller" },
+  WebAppManager:    { bg: "#0d9488", label: "Web Apps Manager" },
   Customer:         { bg: "#64748b", label: "Customer" },
 };
 

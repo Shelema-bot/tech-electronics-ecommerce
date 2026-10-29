@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import Pagination from "../../components/common/Pagination";
+import VideoMeetingRoom from "../Meetings/VideoMeetingRoom";
 import DashboardCard from "../components/DashboardCard";
 import SalesChart from "../components/Charts/SalesChart";
 import OrdersChart from "../components/Charts/OrdersChart";
@@ -13,7 +15,7 @@ import {
   FaChartLine, FaShoppingCart, FaBox, FaUsers,
   FaCheckCircle, FaTimesCircle, FaSearch, FaPlus,
   FaEye, FaTrash, FaEdit, FaSave, FaUserCheck,
-  FaClipboardCheck, FaLock, FaTags
+  FaClipboardCheck, FaLock, FaTags, FaVideo
 } from "react-icons/fa";
 import "../components/Charts/Charts.css";
 import "./Dashboard.css";
@@ -57,6 +59,20 @@ function getRoleBadgeBg(role) {
   if (norm === "Seller")                              return "#16a34a";
   return "#64748b";
 }
+
+// Helper to ensure state collections are always safe arrays
+const toSafeArray = (data, key = null) => {
+  if (Array.isArray(data)) return data;
+  if (data && key && Array.isArray(data[key])) return data[key];
+  if (data && Array.isArray(data.products)) return data.products;
+  if (data && Array.isArray(data.orders)) return data.orders;
+  if (data && Array.isArray(data.payments)) return data.payments;
+  if (data && Array.isArray(data.users)) return data.users;
+  if (data && Array.isArray(data.meetings)) return data.meetings;
+  if (data && Array.isArray(data.categories)) return data.categories;
+  if (data && Array.isArray(data.sellers)) return data.sellers;
+  return [];
+};
 
 export default function Dashboard({ initialTab = "overview" }) {
   const { t } = useTranslation();
@@ -131,6 +147,28 @@ export default function Dashboard({ initialTab = "overview" }) {
   const [productNotes, setProductNotes]       = useState({});
   const [sellerNotes, setSellerNotes]         = useState({});
 
+  // ── Table Pagination States ──
+  const [ordersPage, setOrdersPage]               = useState(1);
+  const [ordersPerPage, setOrdersPerPage]         = useState(10);
+  const [paymentsPage, setPaymentsPage]           = useState(1);
+  const [paymentsPerPage, setPaymentsPerPage]     = useState(10);
+  const [productsPage, setProductsPage]           = useState(1);
+  const [productsPerPage, setProductsPerPage]     = useState(10);
+  const [usersPage, setUsersPage]                 = useState(1);
+  const [usersPerPage, setUsersPerPage]           = useState(10);
+  const [categoriesPage, setCategoriesPage]       = useState(1);
+  const [categoriesPerPage, setCategoriesPerPage] = useState(10);
+  const [meetingsPage, setMeetingsPage]           = useState(1);
+  const [meetingsPerPage, setMeetingsPerPage]     = useState(6);
+  const [dashboardMeetings, setDashboardMeetings] = useState([]);
+  const [activeVideoMeeting, setActiveVideoMeeting] = useState(null);
+
+  // Reset pagination when searches or filters change
+  useEffect(() => { setOrdersPage(1); }, [orderSearch, orderFilter]);
+  useEffect(() => { setPaymentsPage(1); }, [orderSearch]);
+  useEffect(() => { setProductsPage(1); }, [productSearch, productCategory, stockFilter]);
+  useEffect(() => { setUsersPage(1); }, [userSearch]);
+
   const showNotice = (msg, isErr = false) => {
     setFeedback({ msg, isErr });
     setTimeout(() => setFeedback(null), 4000);
@@ -158,6 +196,11 @@ export default function Dashboard({ initialTab = "overview" }) {
         .then(res => setReport(res.data || {}))
         .catch(err => console.warn("Reports fetch:", err));
 
+      // Load meetings for all staff
+      API.get("/meetings", { headers })
+        .then(res => setDashboardMeetings(toSafeArray(res.data, "meetings")))
+        .catch(() => {});
+
       // Load notifications
       API.get("/notifications", { headers })
         .then(res => setNotifs(res.data.notifications?.slice(0, 5) || []))
@@ -166,12 +209,12 @@ export default function Dashboard({ initialTab = "overview" }) {
       // Load orders & payments if authorized (Shelema, CashierFinance, Delivery)
       if (shelemaUser || ["CashierFinance", "Delivery"].includes(userRoleNorm)) {
         API.get("/admin/orders", { headers })
-          .then(res => setOrders(res.data.orders || res.data || []))
+          .then(res => setOrders(toSafeArray(res.data, "orders")))
           .catch(err => console.warn("Orders fetch:", err));
 
         if (shelemaUser || userRoleNorm === "CashierFinance") {
           API.get("/admin/payments", { headers })
-            .then(res => setPayments(res.data.payments || res.data || []))
+            .then(res => setPayments(toSafeArray(res.data, "payments")))
             .catch(err => console.warn("Payments fetch:", err));
         }
       }
@@ -179,7 +222,7 @@ export default function Dashboard({ initialTab = "overview" }) {
       // Load products if authorized (Shelema, Admin, InventoryManager, Seller)
       if (shelemaUser || ["Admin", "InventoryManager", "Seller"].includes(userRoleNorm)) {
         API.get("/products")
-          .then(res => setProducts(res.data.products || res.data || []))
+          .then(res => setProducts(toSafeArray(res.data, "products")))
           .catch(err => console.warn("Products fetch:", err));
       }
 
@@ -187,7 +230,7 @@ export default function Dashboard({ initialTab = "overview" }) {
       if (shelemaUser || ["Admin", "InventoryManager"].includes(userRoleNorm)) {
         API.get("/admin/products/pending", { headers })
           .catch(() => API.get("/staff/products/pending", { headers }))
-          .then(res => setPendingProducts(res?.data?.products || []))
+          .then(res => setPendingProducts(toSafeArray(res?.data, "products")))
           .catch(err => console.warn("Pending products fetch:", err));
       }
 
@@ -195,19 +238,19 @@ export default function Dashboard({ initialTab = "overview" }) {
       if (shelemaUser || ["CashierFinance", "Admin", "InventoryManager"].includes(userRoleNorm)) {
         API.get("/admin/sellers/pending", { headers })
           .catch(() => API.get("/staff/verifications/pending", { headers }))
-          .then(res => setPendingSellers(res?.data?.sellers || []))
+          .then(res => setPendingSellers(toSafeArray(res?.data, "sellers")))
           .catch(err => console.warn("Pending sellers fetch:", err));
       }
 
       // Load categories
       API.get("/categories")
-        .then(res => setCategoriesList(Array.isArray(res.data) ? res.data : res.data?.categories || []))
+        .then(res => setCategoriesList(toSafeArray(res.data, "categories")))
         .catch(err => console.warn("Categories fetch:", err));
 
       // Load users if authorized (Shelema is the ONLY Super Admin who manages users)
       if (shelemaUser) {
         API.get("/admin/users", { headers })
-          .then(res => setUsers(Array.isArray(res.data) ? res.data : res.data.users || []))
+          .then(res => setUsers(toSafeArray(res.data, "users")))
           .catch(err => console.warn("Users fetch:", err));
       }
     } catch (err) {
@@ -434,7 +477,8 @@ export default function Dashboard({ initialTab = "overview" }) {
 
   // ── Filtered Collections ──
   const filteredOrders = useMemo(() => {
-    return orders.filter(o => {
+    const safe = Array.isArray(orders) ? orders : [];
+    return safe.filter(o => {
       const matchSearch = !orderSearch ||
         o._id?.toLowerCase().includes(orderSearch.toLowerCase()) ||
         o.user?.name?.toLowerCase().includes(orderSearch.toLowerCase()) ||
@@ -445,7 +489,8 @@ export default function Dashboard({ initialTab = "overview" }) {
   }, [orders, orderSearch, orderFilter]);
 
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
+    const safe = Array.isArray(products) ? products : [];
+    return safe.filter(p => {
       const matchSearch = !productSearch || p.name?.toLowerCase().includes(productSearch.toLowerCase());
       const matchCat = productCategory === "All" || p.category === productCategory;
       const matchStock = stockFilter === "all" ||
@@ -457,7 +502,8 @@ export default function Dashboard({ initialTab = "overview" }) {
   }, [products, productSearch, productCategory, stockFilter]);
 
   const filteredUsers = useMemo(() => {
-    return users.filter(u => {
+    const safe = Array.isArray(users) ? users : [];
+    return safe.filter(u => {
       const matchSearch = !userSearch ||
         u.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
         u.email?.toLowerCase().includes(userSearch.toLowerCase()) ||
@@ -468,8 +514,14 @@ export default function Dashboard({ initialTab = "overview" }) {
     });
   }, [users, userSearch, userRoleFilter]);
 
+  const pendingPaymentsList = useMemo(() => {
+    const safe = Array.isArray(payments) ? payments : [];
+    return safe.filter(p => ["Pending", "Pending Verification", "pending"].includes(p.status));
+  }, [payments]);
+
   const productCategories = useMemo(() => {
-    return ["All", ...new Set(products.map(p => p.category).filter(Boolean))];
+    const safe = Array.isArray(products) ? products : [];
+    return ["All", ...new Set(safe.map(p => p.category).filter(Boolean))];
   }, [products]);
 
   // Available tabs based on normalized RBAC actor
@@ -493,7 +545,40 @@ export default function Dashboard({ initialTab = "overview" }) {
     ...(shelemaUser ? [
       { key: "users", label: t("admin.usersAndRoles", "Users & Roles"), icon: <FaUsers /> }
     ] : []),
+    { key: "meetings", label: t("admin.staffMeetings", "Staff Meetings & Video"), icon: <FaVideo /> },
   ];
+
+  // Sliced paginated arrays for admin tables (with safety checks)
+  const safeOrders = Array.isArray(filteredOrders) ? filteredOrders : [];
+  const safePayments = Array.isArray(pendingPaymentsList) ? pendingPaymentsList : [];
+  const safeProducts = Array.isArray(filteredProducts) ? filteredProducts : [];
+  const safeUsers = Array.isArray(filteredUsers) ? filteredUsers : [];
+  const safeCategories = Array.isArray(categoriesList) ? categoriesList : [];
+  const safeMeetings = Array.isArray(dashboardMeetings) ? dashboardMeetings : [];
+
+  const curOrdersPage       = typeof ordersPage === "number" && ordersPage > 0 ? ordersPage : 1;
+  const curOrdersPerPage    = typeof ordersPerPage === "number" && ordersPerPage > 0 ? ordersPerPage : 10;
+  const paginatedOrders     = safeOrders.slice((curOrdersPage - 1) * curOrdersPerPage, curOrdersPage * curOrdersPerPage);
+
+  const curPaymentsPage     = typeof paymentsPage === "number" && paymentsPage > 0 ? paymentsPage : 1;
+  const curPaymentsPerPage  = typeof paymentsPerPage === "number" && paymentsPerPage > 0 ? paymentsPerPage : 10;
+  const paginatedPayments   = safePayments.slice((curPaymentsPage - 1) * curPaymentsPerPage, curPaymentsPage * curPaymentsPerPage);
+
+  const curProductsPage     = typeof productsPage === "number" && productsPage > 0 ? productsPage : 1;
+  const curProductsPerPage  = typeof productsPerPage === "number" && productsPerPage > 0 ? productsPerPage : 10;
+  const paginatedProducts   = safeProducts.slice((curProductsPage - 1) * curProductsPerPage, curProductsPage * curProductsPerPage);
+
+  const curUsersPage        = typeof usersPage === "number" && usersPage > 0 ? usersPage : 1;
+  const curUsersPerPage     = typeof usersPerPage === "number" && usersPerPage > 0 ? usersPerPage : 10;
+  const paginatedUsers      = safeUsers.slice((curUsersPage - 1) * curUsersPerPage, curUsersPage * curUsersPerPage);
+
+  const curCategoriesPage   = typeof categoriesPage === "number" && categoriesPage > 0 ? categoriesPage : 1;
+  const curCategoriesPerPage = typeof categoriesPerPage === "number" && categoriesPerPage > 0 ? categoriesPerPage : 10;
+  const paginatedCategories = safeCategories.slice((curCategoriesPage - 1) * curCategoriesPerPage, curCategoriesPage * curCategoriesPerPage);
+
+  const curMeetingsPage     = typeof meetingsPage === "number" && meetingsPage > 0 ? meetingsPage : 1;
+  const curMeetingsPerPage  = typeof meetingsPerPage === "number" && meetingsPerPage > 0 ? meetingsPerPage : 6;
+  const paginatedMeetings   = safeMeetings.slice((curMeetingsPage - 1) * curMeetingsPerPage, curMeetingsPage * curMeetingsPerPage);
 
   if (loading) {
     return (
@@ -730,7 +815,7 @@ export default function Dashboard({ initialTab = "overview" }) {
                       <td colSpan="7" className="dash-empty-td">No matching orders found</td>
                     </tr>
                   ) : (
-                    filteredOrders.map(order => {
+                    paginatedOrders.map(order => {
                       const sm = STATUS_META[order.status] || STATUS_META.Pending;
                       const pay = payments.find(p => p.order === order._id || p._id === order.payment);
                       return (
@@ -795,6 +880,20 @@ export default function Dashboard({ initialTab = "overview" }) {
               </table>
             </div>
 
+            {/* Orders Pagination */}
+            {safeOrders.length > 0 && (
+              <Pagination
+                currentPage={ordersPage}
+                totalItems={safeOrders.length}
+                pageSize={ordersPerPage}
+                onPageChange={(p) => setOrdersPage(p)}
+                onPageSizeChange={(sz) => { setOrdersPerPage(sz); setOrdersPage(1); }}
+                pageSizeOptions={[5, 10, 20, 50]}
+                itemLabel="orders"
+                className="dash-table-pagination"
+              />
+            )}
+
             {/* Pending Payments Verification Queue */}
             <div className="dash-section-bar" style={{ marginTop: 32 }}>
               <div>
@@ -819,12 +918,12 @@ export default function Dashboard({ initialTab = "overview" }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.filter(p => ["Pending", "Pending Verification"].includes(p.status)).length === 0 ? (
+                  {pendingPaymentsList.length === 0 ? (
                     <tr>
                       <td colSpan="7" className="dash-empty-td">No pending payment verifications needed! 🎉</td>
                     </tr>
                   ) : (
-                    payments.filter(p => ["Pending", "Pending Verification"].includes(p.status)).map(p => (
+                    paginatedPayments.map(p => (
                       <tr key={p._id}>
                         <td className="dash-mono">#{p.transactionReference || p._id?.slice(-8)}</td>
                         <td>{p.user?.name || "Customer"}</td>
@@ -867,6 +966,20 @@ export default function Dashboard({ initialTab = "overview" }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Payments Pagination */}
+            {safePayments.length > 0 && (
+              <Pagination
+                currentPage={paymentsPage}
+                totalItems={safePayments.length}
+                pageSize={paymentsPerPage}
+                onPageChange={(p) => setPaymentsPage(p)}
+                onPageSizeChange={(sz) => { setPaymentsPerPage(sz); setPaymentsPage(1); }}
+                pageSizeOptions={[5, 10, 20, 50]}
+                itemLabel="payments"
+                className="dash-table-pagination"
+              />
+            )}
           </div>
         )}
 
@@ -1012,7 +1125,7 @@ export default function Dashboard({ initialTab = "overview" }) {
                       <td colSpan="6" className="dash-empty-td">No matching products found</td>
                     </tr>
                   ) : (
-                    filteredProducts.map(p => {
+                    paginatedProducts.map(p => {
                       const isOut = p.stock === 0;
                       const isLow = p.stock > 0 && p.stock <= 5;
                       const discountPrice = p.discountPrice || p.price;
@@ -1101,6 +1214,20 @@ export default function Dashboard({ initialTab = "overview" }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Products Pagination */}
+            {safeProducts.length > 0 && (
+              <Pagination
+                currentPage={productsPage}
+                totalItems={safeProducts.length}
+                pageSize={productsPerPage}
+                onPageChange={(p) => setProductsPage(p)}
+                onPageSizeChange={(sz) => { setProductsPerPage(sz); setProductsPage(1); }}
+                pageSizeOptions={[5, 10, 20, 50]}
+                itemLabel="products"
+                className="dash-table-pagination"
+              />
+            )}
 
             {/* Quick Edit Product Modal */}
             {editingProduct && (
@@ -1270,7 +1397,7 @@ export default function Dashboard({ initialTab = "overview" }) {
                       <td colSpan="3" className="dash-empty-td">No categories found</td>
                     </tr>
                   ) : (
-                    categoriesList.map(c => {
+                    paginatedCategories.map(c => {
                       const count = products.filter(p => p.category?.toLowerCase() === c.name?.toLowerCase()).length;
                       return (
                         <tr key={c._id}>
@@ -1318,6 +1445,20 @@ export default function Dashboard({ initialTab = "overview" }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Categories Pagination */}
+            {safeCategories.length > 0 && (
+              <Pagination
+                currentPage={categoriesPage}
+                totalItems={safeCategories.length}
+                pageSize={categoriesPerPage}
+                onPageChange={(p) => setCategoriesPage(p)}
+                onPageSizeChange={(sz) => { setCategoriesPerPage(sz); setCategoriesPage(1); }}
+                pageSizeOptions={[5, 10, 20]}
+                itemLabel="categories"
+                className="dash-table-pagination"
+              />
+            )}
           </div>
         )}
 
@@ -1601,7 +1742,7 @@ export default function Dashboard({ initialTab = "overview" }) {
                       <td colSpan="6" className="dash-empty-td">No users found matching your search</td>
                     </tr>
                   ) : (
-                    filteredUsers.map(user => {
+                    paginatedUsers.map(user => {
                       const isTargetShelema = isShelema(user);
                       return (
                         <tr key={user._id}>
@@ -1660,7 +1801,205 @@ export default function Dashboard({ initialTab = "overview" }) {
                 </tbody>
               </table>
             </div>
+
+            {/* Users Pagination */}
+            {safeUsers.length > 0 && (
+              <Pagination
+                currentPage={usersPage}
+                totalItems={safeUsers.length}
+                pageSize={usersPerPage}
+                onPageChange={(p) => setUsersPage(p)}
+                onPageSizeChange={(sz) => { setUsersPerPage(sz); setUsersPage(1); }}
+                pageSizeOptions={[5, 10, 20, 50]}
+                itemLabel="users"
+                className="dash-table-pagination"
+              />
+            )}
           </div>
+        )}
+
+{/* ════════════════════════════════════════════════════
+            TAB: STAFF MEETINGS & LIVE VIDEO CONFERENCING
+        ════════════════════════════════════════════════════ */}
+        {activeTab === "meetings" && (
+          <div className="dash-tab-content">
+            <div className="dash-section-bar">
+              <div>
+                <h3 className="dash-section-title">📹 Staff Meetings &amp; Live Video Rooms</h3>
+                <p className="dash-section-sub">
+                  Team video conferences, real-time screen sharing, in-call chat, and department standups.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+                {shelemaUser ? (
+                  <>
+                    <button
+                      className="dash-primary-btn"
+                      style={{ background: "#16a34a" }}
+                      onClick={() => {
+                        const instantRoomId = "inst-" + Math.random().toString(36).substring(2, 8);
+                        setActiveVideoMeeting({
+                          _id: "instant-meeting",
+                          roomId: instantRoomId,
+                          title: "Instant Staff Video Sync",
+                          targetAudience: "all_staff",
+                          platform: "in_app_video",
+                          invitees: []
+                        });
+                      }}
+                    >
+                      <FaVideo /> Launch Instant Video Call
+                    </button>
+                    <Link to="/admin/meetings" className="dash-primary-btn">
+                      📅 Open Meeting Scheduler
+                    </Link>
+                  </>
+                ) : (
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#64748b", background: "#f1f5f9", padding: "8px 16px", borderRadius: 20, border: "1px solid #e2e8f0" }}>
+                    🔒 Staff Meeting Participant (Scheduled by Owner)
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Live Call Banner if ongoing meetings exist */}
+            {dashboardMeetings.filter(m => m.status === "ongoing").length > 0 && (
+              <div style={{
+                background: "linear-gradient(135deg, #1e293b, #0f172a)",
+                border: "1px solid #22c55e",
+                borderRadius: 12,
+                padding: "16px 20px",
+                marginBottom: 20,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                color: "#fff",
+                boxShadow: "0 4px 16px rgba(34, 197, 94, 0.2)"
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{
+                    width: 12, height: 12, borderRadius: "50%", background: "#22c55e",
+                    boxShadow: "0 0 10px #22c55e"
+                  }} />
+                  <div>
+                    <strong style={{ fontSize: 15, display: "block" }}>🔴 Live Staff Meeting in Progress</strong>
+                    <span style={{ fontSize: 13, color: "#94a3b8" }}>
+                      {dashboardMeetings.find(m => m.status === "ongoing")?.title || "Staff Sync"}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  style={{
+                    padding: "9px 18px", background: "#16a34a", color: "#fff",
+                    border: "none", borderRadius: 8, fontWeight: 700, cursor: "pointer", fontSize: 13
+                  }}
+                  onClick={() => setActiveVideoMeeting(dashboardMeetings.find(m => m.status === "ongoing"))}
+                >
+                  📹 Join Video Room
+                </button>
+              </div>
+            )}
+
+            {/* Meetings Cards Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+              {dashboardMeetings.length === 0 ? (
+                <div className="dash-table-card" style={{ gridColumn: "1/-1", padding: 48, textAlign: "center" }}>
+                  <div style={{ fontSize: 44, marginBottom: 12 }}>📹</div>
+                  <h4 style={{ margin: 0, color: "#0f172a" }}>No Scheduled Meetings Yet</h4>
+                  <p style={{ color: "#64748b", fontSize: 13, margin: "6px 0 16px" }}>
+                    {shelemaUser
+                      ? "Start an instant video room or schedule a future department sync."
+                      : "No team meetings currently scheduled by the owner. Check back later."}
+                  </p>
+                  {shelemaUser && (
+                    <Link to="/admin/meetings" className="dash-inline-btn" style={{ textDecoration: "none" }}>
+                      Schedule Staff Meeting →
+                    </Link>
+                  )}
+                </div>
+              ) : (
+                paginatedMeetings.map(m => (
+                  <div key={m._id} className="dash-table-card" style={{ padding: "18px 20px", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
+                        <span style={{
+                          fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 20,
+                          background: m.status === "ongoing" ? "#dcfce7" : (m.status === "scheduled" ? "#dbeafe" : "#f1f5f9"),
+                          color: m.status === "ongoing" ? "#16a34a" : (m.status === "scheduled" ? "#1d4ed8" : "#64748b")
+                        }}>
+                          {m.status === "ongoing" ? "🔴 Live Now" : m.status}
+                        </span>
+                        <span style={{ fontSize: 11, color: "#94a3b8", fontFamily: "monospace" }}>
+                          Room: {m.roomId || "LIVE"}
+                        </span>
+                      </div>
+                      <h4 style={{ margin: "0 0 6px", fontSize: 16, color: "#0f172a", fontWeight: 700 }}>
+                        {m.title}
+                      </h4>
+                      {m.description && (
+                        <p style={{ fontSize: 13, color: "#64748b", margin: "0 0 12px", lineHeight: 1.5, maxHeight: 40, overflow: "hidden" }}>
+                          {m.description}
+                        </p>
+                      )}
+                      <div style={{ fontSize: 12, color: "#475569", marginBottom: 14 }}>
+                        <div>📅 {new Date(m.scheduledAt).toLocaleDateString([], { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</div>
+                        <div>⏱ {m.durationMin || 60} min &bull; 👥 {m.targetAudience?.replace("_", " ")}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                      <button
+                        style={{
+                          flex: 1, padding: "9px 12px", background: "#2563eb", color: "#fff",
+                          border: "none", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer",
+                          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6
+                        }}
+                        onClick={() => setActiveVideoMeeting(m)}
+                      >
+                        <FaVideo /> Join Room
+                      </button>
+                      <Link
+                        to="/admin/meetings"
+                        style={{
+                          padding: "9px 14px", background: "#f1f5f9", color: "#334155",
+                          borderRadius: 8, fontSize: 12, fontWeight: 600, textDecoration: "none",
+                          display: "inline-flex", alignItems: "center", justifyContent: "center"
+                        }}
+                      >
+                        Details
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Staff Meetings Pagination */}
+            {safeMeetings.length > 0 && (
+              <Pagination
+                currentPage={meetingsPage}
+                totalItems={safeMeetings.length}
+                pageSize={meetingsPerPage}
+                onPageChange={(p) => setMeetingsPage(p)}
+                onPageSizeChange={(sz) => { setMeetingsPerPage(sz); setMeetingsPage(1); }}
+                pageSizeOptions={[4, 6, 12]}
+                itemLabel="meetings"
+                className="dash-table-pagination"
+              />
+            )}
+          </div>
+        )}
+
+        {/* ── Active Video Meeting Fullscreen Component ── */}
+        {activeVideoMeeting && (
+          <VideoMeetingRoom
+            meeting={activeVideoMeeting}
+            onClose={() => {
+              setActiveVideoMeeting(null);
+              API.get("/meetings").then(res => setDashboardMeetings(res.data.meetings || [])).catch(() => {});
+            }}
+            currentUser={currentUser}
+          />
         )}
 
         {/* ── Order Detail Modal ── */}

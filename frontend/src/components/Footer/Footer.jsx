@@ -70,8 +70,8 @@ const Footer = () => {
             <li><Link to="/products">{t("nav.allProducts", "All Products")}</Link></li>
             <li><Link to="/products#categories">{t("nav.categories", "Categories")}</Link></li>
             <li><Link to="/about">{t("nav.about", "About Us")}</Link></li>
+            <li><Link to="/jobs">{t("nav.jobs", "Job Opportunities")}</Link></li>
             <li><Link to="/contact">{t("nav.contact", "Contact")}</Link></li>
-            <li><Link to="/become-seller">{t("account.becomeSeller", "Become a Seller")}</Link></li>
           </ul>
         </div>
 

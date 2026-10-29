@@ -37,6 +37,7 @@ import contactRoutes      from "./routes/contactRoutes.js";
 import staffRoutes        from "./routes/staffRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import couponRoutes       from "./routes/couponRoutes.js";
+import aiRoutes           from "./routes/aiRoutes.js";
 
 // ── Admin Routes ────────────────────────────────────────────────
 import adminRoutes          from "./routes/adminRoutes.js";
@@ -113,6 +114,7 @@ app.use("/api/contact",        contactRoutes);
 app.use("/api/staff",          staffRoutes);
 app.use("/api/notifications",  notificationRoutes);
 app.use("/api/coupons",        couponRoutes);
+app.use("/api/ai",             aiRoutes);
 
 // ══════════════════════════════════════════════════════════════
 // ADMIN ROUTES

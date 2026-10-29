@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import "./CategoryCard.css";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import API from "../../api/axios";
 
 // Professional High-Resolution Studio Tech Photography
 import laptopImg     from "../../assets/category/laptops.jpg";
@@ -49,6 +51,17 @@ const categories = [
 function CategoryCard() {
   const navigate = useNavigate();
   const { t }    = useTranslation();
+  const [products, setProducts] = useState([]);
+  const [hoveredCat, setHoveredCat] = useState(null);
+
+  useEffect(() => {
+    API.get("/products")
+      .then((res) => {
+        const data = Array.isArray(res.data) ? res.data : res.data?.products || [];
+        setProducts(data);
+      })
+      .catch(() => setProducts([]));
+  }, []);
 
   return (
     <section className="category-section">
@@ -63,11 +76,20 @@ function CategoryCard() {
       <div className="category-container">
         {categories.map((cat, index) => {
           const catImg = CAT_IMAGE_MAP[cat.name] || laptopImg;
+          const catProducts = products.filter(p => {
+            const pCat = String(p.category || "").trim().toLowerCase();
+            const cCat = String(cat.name).trim().toLowerCase();
+            return pCat === cCat || pCat.includes(cCat) || cCat.includes(pCat);
+          });
+          const topProd = catProducts[0];
+
           return (
             <div
-              className="category-card"
+              className={`category-card ${hoveredCat === cat.name ? "is-hovered" : ""}`}
               key={index}
               onClick={() => navigate(`/products?category=${encodeURIComponent(cat.category)}`)}
+              onMouseEnter={() => setHoveredCat(cat.name)}
+              onMouseLeave={() => setHoveredCat(null)}
               role="button"
               tabIndex={0}
               onKeyDown={e => e.key === "Enter" && navigate(`/products?category=${encodeURIComponent(cat.category)}`)}
@@ -82,8 +104,20 @@ function CategoryCard() {
                 />
                 <div className="category-img-shine" />
               </div>
+
               <h3 className="category-name">{t("cat." + cat.name, cat.name)}</h3>
-              <span className="category-explore-link">{t("hero.shopNow", "Shop Now")} ›</span>
+
+              {/* On hover product preview pill */}
+              {topProd ? (
+                <div className="category-preview-pill">
+                  <span className="cat-preview-label">{topProd.name}</span>
+                  <span className="cat-preview-price">
+                    {(topProd.discountPrice || topProd.price)?.toLocaleString()} ETB
+                  </span>
+                </div>
+              ) : (
+                <span className="category-explore-link">{t("hero.shopNow", "Shop Now")} ›</span>
+              )}
             </div>
           );
         })}

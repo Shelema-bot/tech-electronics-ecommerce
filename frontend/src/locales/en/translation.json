@@ -4,6 +4,7 @@
     "allProducts": "All Products",
     "categories": "Categories",
     "about": "About Us",
+    "jobs": "Job",
     "team": "Team",
     "contact": "Contact",
     "help": "Help & Support",
@@ -46,6 +47,15 @@
     "supportDesc": "Dedicated support team"
   },
   "product": {
+    "dealsHot": "Hot Deals",
+    "hotDealsTitle": "Limited-Time Hot Deals & Clearance Sales",
+    "hotDealsDesc": "Special discounted prices on certified tech gadgets. While stock lasts!",
+    "newArrivals": "New Arrivals",
+    "newArrivalsTitle": "Latest Arrivals & New Releases",
+    "brands": "Brands",
+    "shopByBrand": "Shop by Brand",
+    "allBrands": "All Brands",
+    "allProducts": "All Products",
     "addToWishlist": "Add to Wishlist",
     "removeFromWishlist": "Remove from Wishlist",
     "customerReviews": "Customer Reviews",
@@ -382,7 +392,8 @@
     "productDeletedSuccess": "Product deleted from catalog",
     "productCreatedSuccess": "New product created successfully!",
     "accountActivated": "Account activated",
-    "accountDeactivated": "Account deactivated"
+    "accountDeactivated": "Account deactivated",
+    "staffMeetings": "Staff Meetings & Video"
   },
   "common": {
     "loading": "Loading...",

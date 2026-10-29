@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../../api/axios";
 import AdminLayout from "../components/AdminLayout";
+import Pagination from "../../components/common/Pagination";
 import { useToast } from "../../context/ToastContext";
 import { getImageUrl } from "../../utils/imageUrl";
 import "./Products.css";
@@ -260,22 +261,15 @@ function Products() {
           </div>
         )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="pagination">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>← Prev</button>
-            {[...Array(Math.min(totalPages, 7))].map((_, i) => {
-              const p = i + 1;
-              return (
-                <button key={p} className={currentPage === p ? "active-page" : ""} onClick={() => setCurrentPage(p)}>
-                  {p}
-                </button>
-              );
-            })}
-            {totalPages > 7 && <span style={{ color:"#94a3b8", alignSelf:"center" }}>…</span>}
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next →</button>
-          </div>
-        )}
+        {/* Pagination with Previous/Next Arrows */}
+        <Pagination
+          currentPage={currentPage}
+          totalItems={filtered.length}
+          pageSize={PER_PAGE}
+          onPageChange={setCurrentPage}
+          showPageSize={false}
+          itemLabel="products"
+        />
 
       </div>
     </AdminLayout>

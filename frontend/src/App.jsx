@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // ================= CUSTOMER COMPONENTS =================
 import Navbar from "./components/Navbar/Navbar";
@@ -21,7 +21,6 @@ import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import ProductDetails from "./pages/ProductDetails/ProductDetails";
 import Contact from "./pages/Contact/Contact";
 import MyMessages from "./pages/MyMessages/MyMessages";
-import Team from "./components/Team/Team";
 import NotFound from "./pages/NotFound";
 import Wishlist from "./pages/Wishlist/Wishlist";
 import Help from "./pages/Help/Help";
@@ -57,6 +56,7 @@ import ProductApproval from "./admin/Staff/ProductApproval";
 import MyProducts from "./admin/Staff/MyProducts";
 import MyPlan from "./admin/Staff/MyPlan";
 import BecomeSeller from "./pages/BecomeSeller/BecomeSeller";
+import Jobs from "./pages/Jobs/Jobs";
 import Coupons from "./admin/Coupons/Coupons";
 import SellerPlans from "./admin/SellerPlans/SellerPlans";
 import Meetings from "./admin/Meetings/Meetings";
@@ -73,7 +73,7 @@ function App() {
         <Route path="/products" element={<><Navbar /><ProductList /><Footer /></>} />
         <Route path="/product/:id" element={<><Navbar /><ProductDetails /><Footer /></>} />
         <Route path="/about" element={<><Navbar /><About /><Footer /></>} />
-        <Route path="/team" element={<><Navbar /><Team /><Footer /></>} />
+        <Route path="/team" element={<Navigate to="/about" replace />} />
         <Route path="/contact" element={<><Navbar /><Contact /><Footer /></>} />
         <Route path="/cart" element={<><Navbar /><Cart /><Footer /></>} />
         <Route path="/wishlist" element={<><Navbar /><Wishlist /><Footer /></>} />
@@ -157,15 +157,12 @@ function App() {
         <Route path="/admin/my-plan"          element={<AdminRoute><MyPlan /></AdminRoute>} />
         <Route path="/admin/coupons"          element={<AdminRoute><Coupons /></AdminRoute>} />
         <Route path="/admin/seller-plans"     element={<AdminRoute requiredRoles={["owner","super_admin","admin"]}><SellerPlans /></AdminRoute>} />
-        <Route path="/admin/meetings"         element={<AdminRoute requiredRoles={["owner","super_admin","admin","seller"]}><Meetings /></AdminRoute>} />
+        <Route path="/admin/meetings"         element={<AdminRoute requiredRoles={["owner","super_admin","admin","seller","cashier","finance","cashier_finance","inventory_manager","delivery","web_app_manager"]}><Meetings /></AdminRoute>} />
         <Route path="/admin/notifications"    element={<AdminRoute><AdminNotifications /></AdminRoute>} />
 
-        {/* Become a seller */}
-        <Route path="/become-seller" element={
-          <PrivateRoute>
-            <><Navbar /><BecomeSeller /><Footer /></>
-          </PrivateRoute>
-        } />
+        {/* Jobs & Careers / Become a Seller */}
+        <Route path="/jobs" element={<><Navbar /><Jobs /><Footer /></>} />
+        <Route path="/become-seller" element={<><Navbar /><Jobs /><Footer /></>} />
 
         {/* 404 */}
         <Route path="*" element={<><Navbar /><NotFound /><Footer /></>} />

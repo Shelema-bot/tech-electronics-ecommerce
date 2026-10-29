@@ -101,6 +101,37 @@ const renderFormattedText = (text) => {
   });
 };
 
+// ── Search & Natural Language Keywords Helper ─────────────────────────────────
+const STOP_WORDS = new Set([
+  "i", "want", "to", "buy", "a", "an", "the", "for", "looking", "show", "me", "give",
+  "find", "get", "do", "you", "have", "any", "good", "best", "cheap", "please", "some",
+  "need", "can", "is", "there", "what", "which", "are", "of", "with", "all", "in",
+  "መግዛት", "እፈልጋለሁ", "አሳየኝ", "ስጠኝ", "ፈልግ", "የሚሸጥ", "አለ", "ምርጥ", "ቅናሽ", "ዋጋ",
+  "bituu", "barbaada", "agarsiisi", "jira", "gaarii", "rakkaasa", "gatii"
+]);
+
+const KNOWN_BRANDS = [
+  "apple", "macbook", "iphone", "ipad", "samsung", "galaxy", "hp", "dell",
+  "lenovo", "thinkpad", "asus", "rog", "acer", "sony", "playstation", "ps5",
+  "xbox", "nintendo", "dji", "canon", "nikon", "epson", "logitech", "anker",
+  "bose", "jbl", "xiaomi", "redmi", "huawei", "infinix", "tecno", "google", "pixel"
+];
+
+const CAT_KEYWORD_MAP = {
+  Laptops: ["laptop", "laptops", "notebook", "macbook", "computer", "pc", "core i", "ryzen", "ላፕቶፕ", "ኮምፒውተር", "laaptooppii"],
+  Smartphones: ["phone", "phones", "smartphone", "smartphones", "iphone", "galaxy", "android", "mobile", "ስልክ", "ስማርትፎን", "ሞባይል", "bilbila", "moobaayilii"],
+  Gaming: ["gaming", "game", "gamer", "playstation", "ps5", "xbox", "nintendo", "console", "rtx", "gpu", "ጌም", "ጌሚንግ", "geemii"],
+  "Smart Watch": ["watch", "smartwatch", "applewatch", "fitbit", "band", "ሰዓት", "ስማርትሰዓት", "sa'aatii"],
+  "Headphones & Audio": ["headphone", "headphones", "headset", "earphone", "earphones", "earbuds", "airpods", "speaker", "audio", "sound", "ድምጽ", "ሄድፎን", "ስፒከር", "hedfoonii", "sagalee"],
+  Tablets: ["tablet", "tablets", "ipad", "tab", "ታብሌት", "አይፓድ", "taableetii"],
+  Cameras: ["camera", "cameras", "dslr", "lens", "nikon", "canon", "ካሜራ", "kaameraa"],
+  Drones: ["drone", "drones", "quadcopter", "uav", "dji", "ድሮን", "diroonii"],
+  "Smart Accessories": ["accessory", "accessories", "charger", "cable", "adapter", "case", "powerbank", "mouse", "keyboard", "ቻርጀር", "ኬብል", "ፓወርባንክ", "chaarjerii", "keebilii"],
+  Network: ["network", "router", "wifi", "switch", "modem", "ethernet", "ላን", "ዋይፋይ", "ሩተር", "raawutarii", "neetiwoorkii"],
+  "Printers & Scanners": ["printer", "printers", "scanner", "scanners", "ink", "epson", "ፕሪንተር", "ስካነር", "piraantarii"],
+  "Smart Home": ["smarthome", "smart home", "bulb", "alexa", "security camera", "ስማርትሆም"],
+};
+
 export default function AiAssistant() {
   const { t } = useTranslation();
   const { language } = usePreference();
@@ -256,6 +287,210 @@ export default function AiAssistant() {
       ) {
         fileNotice += `• If this is your **bank transfer slip** (CBE, Telebirr, BOA, or Awash), ensure the \`txRef\` transaction number is clearly legible.\n• Remember to attach this file in the **Checkout** page (\`/checkout\`) when placing your manual order so Cashier / Finance can verify it!\n\n`;
       }
+    }
+
+    // ── 0A. Conversational Greetings ──────────────────────────────────────────
+    const isGreeting =
+      /^(hi|hello|hey|yo|howdy|selam|ሰላም|እንደምን|akkam|hallow|hola)\b/i.test(q) ||
+      q.startsWith("good morning") ||
+      q.startsWith("good afternoon") ||
+      q.startsWith("good evening") ||
+      q === "hi" || q === "hello" || q === "hey" || q === "ሰላም" || q === "akkam" || q === "selam";
+
+    if (isGreeting) {
+      if (langCode === "am") {
+        return {
+          text: `${fileNotice}👋 **ሰላም! እንኳን ወደ ቴክ ኢ-ኮሜርስ (Tech & Electronic) በደህና መጡ!**
+እኔ የሲስተሙ AI ረዳት (Tech Copilot) ነኝ። ዛሬ በምን ላግዝዎ እችላለሁ?
+• **ምርቶችን መፈለግ:** ላፕቶፕ፣ ስልክ፣ ጌሚንግ ወይም የዋጋ ክልል ይጠይቁኝ (ምሳሌ፦ "ከ30000 ብር በታች ላፕቶፕ")
+• **ክፍያና ደረሰኝ:** በቴሌብር፣ በሲቢኢ፣ በአቢሲኒያ ወይም በአዋሽ ባንክ ክፍያ ፈጽመው ደረሰኝ እንዴት እንደሚልኩ
+• **ትዕዛዝ ክትትል:** የትዕዛዝዎን ሁኔታ ማወቅ
+• **ምዝገባና መግቢያ:** መለያ መክፈትና መጠቀም
+• **ስለ ሲስተሙ:** ስለ አሰራሩ ወይም ስለ አበልጻጊው (ሸለማ) ማወቅ`,
+          links: [
+            { label: "🛍️ ምርቶችን ይመልከቱ", to: "/products" },
+            { label: "💳 ቼክአውት ገጽ", to: "/checkout" },
+            { label: "📦 የእኔ ትዕዛዞች", to: "/my-orders" },
+            { label: "✉️ ያግኙን", to: "/contact" },
+          ],
+        };
+      }
+      if (langCode === "om") {
+        return {
+          text: `${fileNotice}👋 **Akkam! Baga nagaan gara Tech & Electronic dhuftan!**
+Ani gargaaraa AI sirnichaa (Tech Copilot) dha. Har'a akkamitti isin gargaaruu danda'a?
+• **Oomisha Barbaaduu:** Laaptooppii, bilbila, ykn gatii meeshaa na gaafadhaa (fkn: "laaptooppii 40000 gadani")
+• **Kaffaltii fi Nagahee:** Telebirr, CBE, BOA fi Awash kaffaluu fi nagahee erguu
+• **Ajaja Hordofuu:** Haala ajajni keessan irra jiru baruu
+• **Galmee fi Seensa:** Herrega banachuu fi itti fayyadamuu
+• **Waa'ee Sirnichaa:** Waa'ee sirna kanaa fi ijaaraa isaa (Shelema)`,
+          links: [
+            { label: "🛍️ Oomishaalee", to: "/products" },
+            { label: "💳 Kaffaltii", to: "/checkout" },
+            { label: "📦 Ajaja Koo", to: "/my-orders" },
+            { label: "✉️ Nu Quunnamaa", to: "/contact" },
+          ],
+        };
+      }
+      return {
+        text: `${fileNotice}👋 **Hello! Welcome to Tech & Electronic E-Commerce!**
+I am your interactive AI Copilot. How can I assist you today?
+• **Search Catalog:** Ask for any gadget, brand, or budget (e.g., *"Show me laptops under 40000 ETB"* or *"Samsung phones"*)
+• **Manual Payments:** Learn how to pay via CBE Birr, Telebirr, Bank of Abyssinia, or Awash Bank and upload your receipt
+• **Track Orders:** Check real-time shipping progression
+• **Account & Auth:** Guidance on registering and logging in with JWT tokens
+• **System Architecture:** Understand our RBAC roles or learn about the platform's Full-Stack Developer (Shelema Ageri)`,
+        links: [
+          { label: "🛍️ Browse Products", to: "/products" },
+          { label: "💳 Checkout", to: "/checkout" },
+          { label: "📦 Track Orders", to: "/my-orders" },
+          { label: "✉️ Contact Support", to: "/contact" },
+        ],
+      };
+    }
+
+    // ── 0B. Full-Stack Developer & Creator Recognition (Shelema Ageri) ────────
+    const isDeveloperQuery =
+      q.includes("developer") ||
+      q.includes("who developed") ||
+      q.includes("who built") ||
+      q.includes("who made") ||
+      q.includes("who designed") ||
+      q.includes("who created") ||
+      q.includes("who is developer") ||
+      q.includes("who is the developer") ||
+      q.includes("who's the developer") ||
+      q.includes("full stack") ||
+      q.includes("fullstack") ||
+      q.includes("shelema") ||
+      q.includes("ageri") ||
+      q.includes("ማነው የሰራው") ||
+      q.includes("ማን ሰራው") ||
+      q.includes("ደቨሎፐሩ ማነው") ||
+      q.includes("ማነው ያዘጋጀው") ||
+      q.includes("ማነው የፈጠረው") ||
+      q.includes("eenyutu hojjete") ||
+      q.includes("eenyutu ijaare");
+
+    if (isDeveloperQuery) {
+      if (langCode === "am") {
+        return {
+          text: `${fileNotice}💻 **ስለ ሲስተም አበልጻጊ (Full-Stack Engineer):**
+• **ሸለማ አገሪ (Shelema Ageri):** ይህንን የቴክ ኢ-ኮሜርስ ሙሉ ሲስተም (Full-Stack Architecture) ከመጀመሪያው እስከ መጨረሻው የገነባውና ያበለጸገው **ሸለማ አገሪ** (Founder & Full-Stack Developer) ነው።
+• **የተገነቡ የሲስተም አወቃቀሮች:**
+  - **ፈጣን የተጠቃሚ በይነገጽ (Frontend):** React.js እና CSS3 የተገነባ፣ በ3 ቋንቋዎች (እንግሊዝኛ፣ አማርኛ፣ አፋን ኦሮሞ) የሚሰራ ዘመናዊ ዩአይ።
+  - **የደህንነት ሰርቨር (Backend API):** Node.js እና Express.js RESTful ማይክሮሰርቪስ ከ JWT የደህንነት ማረጋገጫ ጋር።
+  - **ዳታቤዝ (Database Architecture):** MongoDB NoSQL የዳታ ሞዴሎች ለምርቶች፣ ለተጠቃሚዎች እና ለትዕዛዞች።
+  - **የስልጣን እርከን ቁጥጥር (RBAC):** የሱፐር አድሚን (ሸለማ)፣ የካሺየር/ፋይናንስ፣ የዕቃ ክምችት፣ የማድረሻ እና የደንበኞች የስልጣን ድንበሮች።
+  - **የክፍያ ማረጋገጫ:** የኢትዮጵያ ባንኮች (CBE Birr፣ Telebirr፣ አቢሲኒያ ባንክ፣ አዋሽ ባንክ) እና የ Chapa ፈጣን ክፍያ አሰራር።
+• ሸለማ ሲስተሙን በሙሉ ብቻውን (Sole Full-Stack Developer) ያበለጸገው በመሆኑ በድረ-ገጹ ላይ ምንም ዓይነት ሌላ የውሸት ቡድን አባል የለም።`,
+          links: [
+            { label: "ℹ️ ስለ እኛ (About Page)", to: "/about" },
+            { label: "✉️ ሸለማን ያግኙ", to: "/contact" },
+            { label: "🛍️ ምርቶችን ይመልከቱ", to: "/products" },
+          ],
+        };
+      }
+      if (langCode === "om") {
+        return {
+          text: `${fileNotice}💻 **Waa'ee Oomishaa fi Hojjataa Sirnichaa (Full-Stack Engineer):**
+• **Shalamaa Aagerii (Shelema Ageri):** Sirna e-commerce guutuu kana (Full-Stack Architecture) jalqabaa hanga xumuraatti kan ijaaree fi hojjete **Shalamaa Aagerii** (Founder & Full-Stack Developer) dha.
+• **Caasaalee Sirnichaa:**
+  - **Frontend:** React.js fi CSS3 dhaan kan ijaarame, afaan 3n (Ingiliffa, Oromiffa, Amaariffa) kan hojjetu.
+  - **Backend API:** Node.js fi Express.js tajaajila nageenya JWT qabu.
+  - **Database:** MongoDB kuusaa daataa oomishaalee fi ajajaa.
+  - **Eegumsa RBAC:** Aangoo Super Admin (Shelema), Cashier, Inventory, Delivery fi Customer qoodu.
+  - **Kaffaltii:** Kaffaltii Baankii (CBE, BOA, Awash), Telebirr fi Chapa.
+• Shalamaa Aagerii qofaan sirna kana guutummaatti waan ijaareef, gareen sobaa biraa sirna kana keessa hin jiru.`,
+          links: [
+            { label: "ℹ️ Waa'ee Keenya (About)", to: "/about" },
+            { label: "✉️ Shelema Quunnamaa", to: "/contact" },
+            { label: "🛍️ Oomisha Hunda", to: "/products" },
+          ],
+        };
+      }
+      return {
+        text: `${fileNotice}💻 **Platform Creator & Full-Stack Software Engineer:**
+• **Sole Full-Stack Architect (Shelema Ageri):** This entire e-commerce ecosystem was designed, architected, and developed end-to-end by **Shelema Ageri** (Founder & Lead Full-Stack Software Engineer).
+• **Full-Stack Engineering Highlights:**
+  - **Frontend UI/UX:** React.js single-page application with complete trilingual localization (English, Amharic, Afan Oromo) and responsive design.
+  - **Backend Services:** Node.js & Express RESTful API microservices protected with cryptographic JWT authentication and CORS policies.
+  - **Database Architecture:** MongoDB high-performance collections for products, orders, user accounts, categories, and audit logs.
+  - **Enterprise RBAC:** Granular role-based authorization delineating Super Admin Shelema (exclusive seller approval authority), Cashier/Finance, Inventory Manager, Delivery, and Customers.
+  - **Multi-Rail Payments:** Ethiopian localized manual banking workflows (CBE Birr, Telebirr, Bank of Abyssinia, Awash Bank) with slip upload verification alongside instant Chapa checkout.
+• Having engineered the complete full-stack codebase independently, there are no third-party developer teams associated with this platform.`,
+        links: [
+          { label: "ℹ️ About Platform", to: "/about" },
+          { label: "✉️ Contact Shelema", to: "/contact" },
+          { label: "🛍️ Explore Products", to: "/products" },
+        ],
+      };
+    }
+
+    // ── 0C. Store Contact, Phone Number, Location & Hours ─────────────────────
+    const isContactQuery =
+      q.includes("contact") ||
+      q.includes("phone") ||
+      q.includes("telephone") ||
+      q.includes("call") ||
+      q.includes("address") ||
+      q.includes("where are you") ||
+      q.includes("location") ||
+      q.includes("office") ||
+      q.includes("telegram") ||
+      q.includes("email") ||
+      q.includes("ስልክ") ||
+      q.includes("አድራሻ") ||
+      q.includes("የት ነው ያላችሁት") ||
+      q.includes("መደወል") ||
+      q.includes("bilbila") ||
+      q.includes("teessoo") ||
+      q.includes("eessa jirtu");
+
+    if (isContactQuery) {
+      if (langCode === "am") {
+        return {
+          text: `${fileNotice}📞 **የቴክ ኢ-ኮሜርስ አድራሻና የመገናኛ መስመሮች:**
+• **ስልክ ቁጥር:** \`+251 974 007 772\` (በቀጥታ መደወል ይችላሉ)
+• **ቴሌግራም ቻናል:** [\`@ijoolleeortodoksii\`](https://t.me/ijoolleeortodoksii)
+• **ዋና ቢሮ አድራሻ:** አዲስ አበባ፣ ኢትዮጵያ (Addis Ababa, Ethiopia)
+• **የስራ ሰዓት:** 24/7 የኦንላይን ደንበኞች ድጋፍ ክፍት ነው
+• **ማድረሻ (Delivery):** አዲስ አበባ ውስጥ ከ1 እስከ 3 ቀናት፤ በመላው ኢትዮጵያ ደግሞ ከ3 እስከ 7 ቀናት በርዎ ድረስ እናደርሳለን!`,
+          links: [
+            { label: "✉️ መልእክት ይላኩልን", to: "/contact" },
+            { label: "❓ በተደጋጋሚ የሚጠየቁ (FAQ)", to: "/faq" },
+            { label: "🚚 የማድረሻ መረጃ", to: "/shipping-info" },
+          ],
+        };
+      }
+      if (langCode === "om") {
+        return {
+          text: `${fileNotice}📞 **Teessoo fi Quunnamtii Tech E-Commerce:**
+• **Lakkoofsa Bilbilaa:** \`+251 974 007 772\`
+• **Telegram:** [\`@ijoolleeortodoksii\`](https://t.me/ijoolleeortodoksii)
+• **Teessoo:** Finfinnee, Itoophiyaa (Addis Ababa, Ethiopia)
+• **Sa'aatii Hojii:** Tajaajilli deeggarsa maamilaa sa'aatii 24/7 banaadha
+• **Geejjiba:** Finfinnee keessatti guyyoota 1–3; kutaalee biyyaatti guyyoota 3–7 keessatti hulaa keessan ga'a!`,
+          links: [
+            { label: "✉️ Nu Quunnamaa", to: "/contact" },
+            { label: "❓ Gaaffilee Yeroo Baay'ee (FAQ)", to: "/faq" },
+            { label: "🚚 Odeeffannoo Geejjibaa", to: "/shipping-info" },
+          ],
+        };
+      }
+      return {
+        text: `${fileNotice}📞 **Contact & Location Information:**
+• **Direct Phone:** \`+251 974 007 772\`
+• **Telegram Community:** [\`@ijoolleeortodoksii\`](https://t.me/ijoolleeortodoksii)
+• **Headquarters:** Addis Ababa, Ethiopia (Doorstep delivery nationwide)
+• **Customer Support Hours:** 24/7 online technical & payment assistance
+• **Delivery Speed:** 1–3 business days within Addis Ababa; 3–7 business days nationwide!`,
+        links: [
+          { label: "✉️ Send Message", to: "/contact" },
+          { label: "❓ Help & FAQ", to: "/faq" },
+          { label: "🚚 Shipping Details", to: "/shipping-info" },
+        ],
+      };
     }
 
     // ── 1. Who Can Approve Sellers & Exclusive Owner Verification ──────────────
@@ -940,49 +1175,158 @@ You are not logged in yet. Please log in or register to track your orders, submi
       };
     }
 
-    // ── 12. Product Search with Natural Language Budget Filter ─────────────────
+    // ── 12. Intelligent Product Search with Natural Language, Brand & Budget Filter ──
     const budgetMatch =
       q.match(/(?:under|below|less than|gadani|በታች)\s*(\d+[\d,]*)/i) ||
-      q.match(/(\d+[\d,]*)\s*(?:etb|birr|ብር)?\s*(?:በታች|gadani|under|below)/i);
+      q.match(/(\d+[\d,]*)\s*(?:etb|birr|ብር)?\s*(?:በታች|gadani|under|below)/i) ||
+      q.match(/(?:max|budget|limit)\s*[:=]?\s*(\d+[\d,]*)/i);
     const maxBudget = budgetMatch ? parseInt(budgetMatch[1].replace(/,/g, ""), 10) : null;
 
+    // Detect target category from multi-lingual keywords
+    let targetedCategory = null;
+    for (const [catName, keywords] of Object.entries(CAT_KEYWORD_MAP)) {
+      if (keywords.some((kw) => q.includes(kw))) {
+        targetedCategory = catName;
+        break;
+      }
+    }
+
+    // Detect target brand
+    let targetedBrand = null;
+    for (const b of KNOWN_BRANDS) {
+      if (q.includes(b)) {
+        targetedBrand = b;
+        break;
+      }
+    }
+
+    // Tokenize query words without stopwords
+    const queryTokens = q
+      .replace(/[^\w\s\u1200-\u137F]/g, " ")
+      .split(/\s+/)
+      .filter((t) => t.length > 1 && !STOP_WORDS.has(t));
+
+    // Filter products
     const matchedProducts = productsCatalog.filter((p) => {
-      const name = (p.name || "").toLowerCase();
-      const cat = (p.category || "").toLowerCase();
-      const desc = (p.description || "").toLowerCase();
+      const pName = (p.name || "").toLowerCase();
+      const pCat = (p.category || "").toLowerCase();
+      const pBrand = (p.brand || "").toLowerCase();
+      const pDesc = (p.description || "").toLowerCase();
       const price = p.discountPrice || p.price || 0;
 
-      const matchesText =
-        name.includes(q) ||
-        cat.includes(q) ||
-        desc.includes(q) ||
-        (q.includes("laptop") && (cat.includes("laptop") || name.includes("laptop"))) ||
-        (q.includes("phone") && (cat.includes("phone") || name.includes("phone"))) ||
-        (q.includes("gaming") && (cat.includes("gaming") || name.includes("gaming"))) ||
-        (q.includes("watch") && (cat.includes("watch") || name.includes("watch"))) ||
-        (q.includes("headphone") && (cat.includes("headphone") || name.includes("headphone"))) ||
-        (q.includes("audio") && (cat.includes("audio") || name.includes("audio"))) ||
-        (q.includes("drone") && (cat.includes("drone") || name.includes("drone"))) ||
-        (q.includes("camera") && (cat.includes("camera") || name.includes("camera"))) ||
-        (q.includes("tablet") && (cat.includes("tablet") || name.includes("tablet"))) ||
-        (q.includes("printer") && (cat.includes("printer") || name.includes("printer")));
-
-      if (maxBudget && matchesText) {
-        return price <= maxBudget;
+      // Budget constraint
+      if (maxBudget && price > maxBudget) {
+        return false;
       }
-      return matchesText;
+
+      // 1. Direct text match
+      if (pName.includes(q) || pCat.includes(q) || pBrand.includes(q)) {
+        return true;
+      }
+
+      // 2. Target Category match
+      if (targetedCategory && pCat.includes(targetedCategory.toLowerCase())) {
+        if (targetedBrand) {
+          return pBrand.includes(targetedBrand) || pName.includes(targetedBrand) || pDesc.includes(targetedBrand);
+        }
+        return true;
+      }
+
+      // 3. Target Brand match
+      if (targetedBrand && (pBrand.includes(targetedBrand) || pName.includes(targetedBrand) || pDesc.includes(targetedBrand))) {
+        return true;
+      }
+
+      // 4. Token matches
+      if (queryTokens.length > 0) {
+        const matchesAnyToken = queryTokens.some(
+          (token) =>
+            pName.includes(token) ||
+            pCat.includes(token) ||
+            pBrand.includes(token) ||
+            pDesc.includes(token)
+        );
+        if (matchesAnyToken) return true;
+      }
+
+      return false;
     });
 
     if (matchedProducts.length > 0) {
-      const top3 = matchedProducts.slice(0, 3);
+      // Sort: products with active discounts first
+      const sortedProds = [...matchedProducts].sort((a, b) => {
+        const aHasDiscount = (a.discountPrice || 0) > 0 && a.discountPrice < a.price;
+        const bHasDiscount = (b.discountPrice || 0) > 0 && b.discountPrice < b.price;
+        if (aHasDiscount && !bHasDiscount) return -1;
+        if (!aHasDiscount && bHasDiscount) return 1;
+        return 0;
+      });
+
+      const topProducts = sortedProds.slice(0, 4);
+
+      let introText = "";
+      if (langCode === "am") {
+        introText = maxBudget
+          ? `✨ ከ **${maxBudget.toLocaleString()} ብር** በታች **${matchedProducts.length}** ምርቶች ተገኝተዋል:`
+          : targetedCategory || targetedBrand
+          ? `✨ ለ **${targetedBrand || targetedCategory}** **${matchedProducts.length}** ምርቶች ተገኝተዋል:`
+          : `✨ የፈለጉትን የሚመጥኑ **${matchedProducts.length}** ምርቶች ተገኝተዋል:`;
+      } else if (langCode === "om") {
+        introText = maxBudget
+          ? `✨ Gatii **${maxBudget.toLocaleString()} ETB** gadiin oomishaalee **${matchedProducts.length}** argamaniiru:`
+          : targetedCategory || targetedBrand
+          ? `✨ Oomishaalee **${targetedBrand || targetedCategory}** **${matchedProducts.length}** argamaniiru:`
+          : `✨ Oomishaalee filataman **${matchedProducts.length}** argamaniiru:`;
+      } else {
+        introText = maxBudget
+          ? `✨ Found **${matchedProducts.length} product(s)** under **${maxBudget.toLocaleString()} ETB**: Here are top recommendations:`
+          : targetedCategory || targetedBrand
+          ? `✨ Found **${matchedProducts.length} product(s)** matching **${targetedBrand || targetedCategory}**:`
+          : `✨ Found **${matchedProducts.length} matching item(s)** in catalog:`;
+      }
+
       return {
-        text: `${fileNotice}${
-          maxBudget
-            ? `✨ Found **${matchedProducts.length} product(s)** under **${maxBudget.toLocaleString()} ETB**: Here are top recommendations:`
-            : `✨ Found **${matchedProducts.length} matching item(s)** in catalog: Here are top recommendations:`
-        }`,
-        products: top3,
-        links: [{ label: "🛍️ View Full Catalog", to: "/products" }],
+        text: `${fileNotice}${introText}`,
+        products: topProducts,
+        links: [
+          {
+            label: targetedCategory
+              ? `🛍️ View All in ${targetedCategory}`
+              : "🛍️ View Full Catalog",
+            to: targetedCategory
+              ? `/products?category=${encodeURIComponent(targetedCategory)}`
+              : "/products",
+          },
+        ],
+      };
+    }
+
+    if (targetedCategory || targetedBrand) {
+      const term = targetedBrand || targetedCategory;
+      if (langCode === "am") {
+        return {
+          text: `${fileNotice}🔍 ለ **${term}** የሚሆን ምርት አሁን በስቶክ ውስጥ አልተገኘም። አዳዲስ እቃዎች በየሳምንቱ ስለሚገቡ እባክዎን ሙሉ ካታሎጋችንን ይመልከቱ ወይም ልዩ ትዕዛዝ ለማስመጣት ያግኙን!`,
+          links: [
+            { label: "🛍️ ሙሉ ካታሎግ ይመልከቱ", to: "/products" },
+            { label: "✉️ የደንበኞች ድጋፍ", to: "/contact" },
+          ],
+        };
+      }
+      if (langCode === "om") {
+        return {
+          text: `${fileNotice}🔍 Oomishni **${term}** jedhu yeroo ammaa kuusaa keessa hin jiru. Oomishoonni haaraan yeroo hunda waan dabalaniif kaataaloogii guutuu ilaalaa ykn nu quunnamaa!`,
+          links: [
+            { label: "🛍️ Oomisha Hunda", to: "/products" },
+            { label: "✉️ Nu Quunnamaa", to: "/contact" },
+          ],
+        };
+      }
+      return {
+        text: `${fileNotice}🔍 No products currently in stock matching "**${term}**"${maxBudget ? ` under ${maxBudget.toLocaleString()} ETB` : ""}. New inventory arrives weekly! Browse our complete catalog or contact our team for special inquiries:`,
+        links: [
+          { label: "🛍️ Browse Full Catalog", to: "/products" },
+          { label: "✉️ Contact Support", to: "/contact" },
+        ],
       };
     }
 
@@ -1023,8 +1367,9 @@ You are not logged in yet. Please log in or register to track your orders, submi
     };
   };
 
-  const handleSend = (textToSend = input) => {
-    const trimmed = textToSend.trim();
+  const handleSend = async (explicitText) => {
+    const rawText = typeof explicitText === "string" ? explicitText : input;
+    const trimmed = (rawText || "").trim();
     if (!trimmed && !attachedFile) return;
 
     const attachmentPayload = attachedFile ? { ...attachedFile } : null;
@@ -1042,7 +1387,38 @@ You are not logged in yet. Please log in or register to track your orders, submi
     setAttachedFile(null);
     setIsTyping(true);
 
-    // Realistic Copilot thinking delay (400-600ms)
+    // 1. Try Live Google Gemini AI via backend endpoint
+    try {
+      const res = await API.post("/ai/chat", {
+        message: trimmed || `[Attachment: ${attachmentPayload?.name || "file"}]`,
+        language: langCode,
+        history: messages.slice(-6).map((m) => ({ sender: m.sender, text: m.text })),
+      });
+
+      if (res.data?.success && res.data?.reply) {
+        const localResp = generateResponse(trimmed, attachmentPayload);
+        const botMsg = {
+          id: `bot_${Date.now()}`,
+          sender: "bot",
+          text: res.data.reply,
+          model: res.data.model || "Gemini 3.1 Flash",
+          products: localResp?.products || [],
+          links: localResp?.links || [],
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        };
+        setMessages((prev) => [...prev, botMsg]);
+        setIsTyping(false);
+
+        if (!isOpen) {
+          setUnreadCount((c) => c + 1);
+        }
+        return;
+      }
+    } catch (err) {
+      console.warn("Live Gemini API call failed, falling back to local reasoning engine:", err.message);
+    }
+
+    // 2. Fallback to local high-precision reasoning engine
     setTimeout(() => {
       const response = generateResponse(trimmed, attachmentPayload);
       const botMsg = {
@@ -1059,7 +1435,7 @@ You are not logged in yet. Please log in or register to track your orders, submi
       if (!isOpen) {
         setUnreadCount((c) => c + 1);
       }
-    }, 500);
+    }, 300);
   };
 
   const handleKeyDown = (e) => {
@@ -1306,7 +1682,13 @@ You are not logged in yet. Please log in or register to track your orders, submi
                   </div>
                 )}
 
-                <div className="ai-vscode-input-row">
+                <form
+                  className="ai-vscode-input-row"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSend();
+                  }}
+                >
                   {/* Hidden File Input */}
                   <input
                     ref={fileInputRef}
@@ -1344,16 +1726,15 @@ You are not logged in yet. Please log in or register to track your orders, submi
                   />
 
                   <button
-                    type="button"
+                    type="submit"
                     className={`ai-vscode-send-btn ${input.trim() || attachedFile ? "active" : ""}`}
-                    onClick={() => handleSend()}
                     disabled={!input.trim() && !attachedFile}
                     aria-label="Execute prompt"
                     title="Send Prompt (Enter)"
                   >
                     <FaPaperPlane />
                   </button>
-                </div>
+                </form>
               </div>
             </>
           )}

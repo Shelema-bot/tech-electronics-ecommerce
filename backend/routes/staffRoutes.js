@@ -40,7 +40,7 @@ router.get("/products/pending",      protect, checkRole(["SuperAdmin", "Inventor
 router.put("/products/:id/approve",  protect, checkRole(["SuperAdmin", "InventoryManager"]), approveProduct);
 
 // ── Seller: Apply & manage products ──────────────
-router.post("/apply-seller",         protect, upload.single("nationalIdImage"), applyAsSeller);
+router.post("/apply-seller",         protect, upload.fields([{ name: "nationalIdImage", maxCount: 1 }, { name: "tradeLicenseImage", maxCount: 1 }]), applyAsSeller);
 router.post("/seller/products",      protect, upload.array("images", 5),       sellerSubmitProduct);
 router.get("/seller/my-products",    protect, sellerOrAdmin,                   getMyProducts);
 

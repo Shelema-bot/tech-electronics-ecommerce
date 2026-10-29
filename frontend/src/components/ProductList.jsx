@@ -8,6 +8,7 @@ import { useToast } from "../context/ToastContext";
 import { usePreference } from "../context/PreferenceContext";
 import { getImageUrl } from "../utils/imageUrl";
 import { CAT_IMAGE_MAP } from "./CategoryCard/CategoryCard";
+import Pagination from "./common/Pagination";
 import "./ProductList.css";
 
 const SORT_OPTIONS = [
@@ -19,88 +20,23 @@ const SORT_OPTIONS = [
   { value: "newest",     key: "sort.newest",     label: "Newest First" },
 ];
 
-const ITEMS_PER_PAGE = 12;
-
-/* ── Dual-Sided Pagination Controls Component ── */
-function PaginationControls({ currentPage, totalPages, onPageChange, totalItems, startIndex, endIndex, className = "" }) {
-  if (totalPages <= 1) return null;
-
-  const pages = [];
-  for (let i = 1; i <= totalPages; i++) {
-    if (
-      i === 1 ||
-      i === totalPages ||
-      (i >= currentPage - 1 && i <= currentPage + 1)
-    ) {
-      pages.push(i);
-    } else if (pages[pages.length - 1] !== "...") {
-      pages.push("...");
-    }
-  }
-
-  const handlePageSelect = (page) => {
-    onPageChange(page);
-    window.scrollTo({ top: 120, behavior: "smooth" });
-  };
-
-  return (
-    <div className={`pl-pagination-bar ${className}`}>
-      <div className="pl-pagination-info">
-        Showing <strong>{Math.min(startIndex + 1, totalItems)}–{Math.min(endIndex, totalItems)}</strong> of <strong>{totalItems}</strong> products
-      </div>
-      <div className="pl-pagination-nav">
-        <button
-          className="pl-page-btn pl-prev-btn"
-          disabled={currentPage <= 1}
-          onClick={() => handlePageSelect(currentPage - 1)}
-          aria-label="Previous Page"
-        >
-          ‹ Prev
-        </button>
-
-        <div className="pl-page-numbers">
-          {pages.map((p, idx) =>
-            p === "..." ? (
-              <span key={`dots-${idx}`} className="pl-page-dots">…</span>
-            ) : (
-              <button
-                key={p}
-                className={`pl-page-num ${p === currentPage ? "active" : ""}`}
-                onClick={() => handlePageSelect(p)}
-              >
-                {p}
-              </button>
-            )
-          )}
-        </div>
-
-        <button
-          className="pl-page-btn pl-next-btn"
-          disabled={currentPage >= totalPages}
-          onClick={() => handlePageSelect(currentPage + 1)}
-          aria-label="Next Page"
-        >
-          Next ›
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function ProductList() {
-  const [products, setProducts]       = useState([]);
-  const [categories, setCategories]   = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [sort, setSort]               = useState("default");
-  const [priceMax, setPriceMax]       = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchParams]                = useSearchParams();
-  const navigate                      = useNavigate();
-  const { t }                         = useTranslation();
+  const [products, setProducts]         = useState([]);
+  const [categories, setCategories]     = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [sort, setSort]                 = useState("default");
+  const [priceMax, setPriceMax]         = useState("");
+  const [currentPage, setCurrentPage]   = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [sidebarOpen, setSidebarOpen]   = useState(false);
+  const [searchParams]                  = useSearchParams();
+  const navigate                        = useNavigate();
+  const { t }                           = useTranslation();
 
-  const category = searchParams.get("category") || "";
-  const search   = searchParams.get("search")   || "";
+  const currentTab    = searchParams.get("tab") || "all";
+  const selectedBrand = searchParams.get("brand") || "";
+  const category      = searchParams.get("category") || "";
+  const search        = searchParams.get("search")   || "";
 
   const { addToCart }                   = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
@@ -115,10 +51,23 @@ function ProductList() {
           API.get("/products"),
           API.get("/categories"),
         ]);
-        setProducts(pRes.data.products || pRes.data);
-        setCategories(cRes.data || []);
+        const pData = pRes.data;
+        const fetchedProducts = Array.isArray(pData?.products)
+          ? pData.products
+          : Array.isArray(pData)
+          ? pData
+          : [];
+        setProducts(fetchedProducts);
+
+        const cData = cRes.data;
+        const fetchedCategories = Array.isArray(cData?.categories)
+          ? cData.categories
+          : Array.isArray(cData)
+          ? cData
+          : [];
+        setCategories(fetchedCategories);
       } catch (e) {
-        console.log(e);
+        console.error("Failed to load products/categories:", e);
       } finally {
         setLoading(false);
       }
@@ -129,36 +78,127 @@ function ProductList() {
   // Reset to page 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [category, search, priceMax, sort]);
+  }, [category, search, priceMax, sort, currentTab, selectedBrand]);
 
-  // Filter
-  let filtered = products;
-  if (category) filtered = filtered.filter(p => p.category?.toLowerCase() === category.toLowerCase());
-  if (search)   filtered = filtered.filter(p =>
-    p.name?.toLowerCase().includes(search.toLowerCase()) ||
-    p.brand?.toLowerCase().includes(search.toLowerCase()) ||
-    p.category?.toLowerCase().includes(search.toLowerCase())
+  const safeProducts   = Array.isArray(products) ? products : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
+  // Dynamic & Curated Brands list
+  const catalogBrands = Array.from(
+    new Set(
+      safeProducts
+        .map(p => (p?.brand && typeof p.brand === "string" ? p.brand.trim() : ""))
+        .filter(Boolean)
+    )
   );
-  if (priceMax && !isNaN(priceMax)) filtered = filtered.filter(p => (p.discountPrice || p.price) <= Number(priceMax));
+  const FALLBACK_BRANDS = ["Apple", "Samsung", "HP", "Dell", "Lenovo", "Asus", "Sony", "Acer", "Canon", "DJI", "Logitech"];
+  const displayBrands = catalogBrands.length > 0 ? catalogBrands : FALLBACK_BRANDS;
 
-  // Sort
+  // Active Deals count
+  const dealsCount = safeProducts.filter(p => {
+    const price = Number(p?.price || 0);
+    const disc  = Number(p?.discountPrice || 0);
+    return disc > 0 && disc < price;
+  }).length;
+
+  // Safe Filtering
+  let filtered = safeProducts;
+
+  // Tab-specific filtering
+  if (currentTab === "deals" || currentTab === "hot") {
+    filtered = filtered.filter(p => {
+      const price = Number(p?.price || 0);
+      const disc  = Number(p?.discountPrice || 0);
+      return disc > 0 && disc < price;
+    });
+  }
+
+  // Brand filtering
+  if (selectedBrand) {
+    const brandQuery = String(selectedBrand).toLowerCase().trim();
+    filtered = filtered.filter(p => {
+      const b = String(p?.brand || "").toLowerCase().trim();
+      const n = String(p?.name || "").toLowerCase().trim();
+      return b === brandQuery || n.includes(brandQuery);
+    });
+  }
+
+  if (category) {
+    const catQuery = String(category).toLowerCase().trim();
+    filtered = filtered.filter(p => String(p?.category || "").toLowerCase().trim() === catQuery);
+  }
+
+  if (search) {
+    const sQuery = String(search).toLowerCase().trim();
+    filtered = filtered.filter(p =>
+      String(p?.name || "").toLowerCase().includes(sQuery) ||
+      String(p?.brand || "").toLowerCase().includes(sQuery) ||
+      String(p?.category || "").toLowerCase().includes(sQuery)
+    );
+  }
+
+  if (priceMax && !isNaN(priceMax)) {
+    const maxVal = Number(priceMax);
+    filtered = filtered.filter(p => {
+      const effPrice = Number(p?.discountPrice || p?.price || 0);
+      return effPrice <= maxVal;
+    });
+  }
+
+  // Safe Sort
   const sorted = [...filtered].sort((a, b) => {
-    const priceA = a.discountPrice || a.price;
-    const priceB = b.discountPrice || b.price;
+    if (currentTab === "new" && sort === "default") {
+      const timeB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const timeA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      return timeB - timeA;
+    }
+    const priceA = Number(a?.discountPrice || a?.price || 0);
+    const priceB = Number(b?.discountPrice || b?.price || 0);
     if (sort === "price-asc")  return priceA - priceB;
     if (sort === "price-desc") return priceB - priceA;
-    if (sort === "name-asc")   return a.name?.localeCompare(b.name);
-    if (sort === "name-desc")  return b.name?.localeCompare(a.name);
-    if (sort === "newest")     return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sort === "name-asc")   return String(a?.name || "").localeCompare(String(b?.name || ""));
+    if (sort === "name-desc")  return String(b?.name || "").localeCompare(String(a?.name || ""));
+    if (sort === "newest") {
+      const timeB = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      const timeA = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      return timeB - timeA;
+    }
     return 0;
   });
 
+  const handleTabChange = (newTab) => {
+    const params = new URLSearchParams(searchParams);
+    if (newTab === "all") {
+      params.delete("tab");
+      params.delete("brand");
+    } else {
+      params.set("tab", newTab);
+      if (newTab !== "brands") {
+        params.delete("brand");
+      }
+    }
+    const qs = params.toString();
+    navigate(qs ? `/products?${qs}` : "/products");
+  };
+
+  const handleBrandSelect = (b) => {
+    const params = new URLSearchParams(searchParams);
+    params.set("tab", "brands");
+    if (!b) {
+      params.delete("brand");
+    } else {
+      params.set("brand", b);
+    }
+    const qs = params.toString();
+    navigate(qs ? `/products?${qs}` : "/products");
+  };
+
   // Pagination calculation
   const totalItems  = sorted.length;
-  const totalPages  = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+  const totalPages  = Math.max(1, Math.ceil(totalItems / itemsPerPage));
   const validPage   = Math.min(Math.max(1, currentPage), totalPages);
-  const startIndex  = (validPage - 1) * ITEMS_PER_PAGE;
-  const endIndex    = startIndex + ITEMS_PER_PAGE;
+  const startIndex  = (validPage - 1) * itemsPerPage;
+  const endIndex    = startIndex + itemsPerPage;
   const paginated   = sorted.slice(startIndex, endIndex);
 
   const handleCatClick = (name) => {
@@ -172,9 +212,15 @@ function ProductList() {
     navigate("/products");
   };
 
-  const activeFilters = (category ? 1 : 0) + (priceMax ? 1 : 0) + (sort !== "default" ? 1 : 0);
+  const activeFilters = (category ? 1 : 0) + (priceMax ? 1 : 0) + (sort !== "default" ? 1 : 0) + (selectedBrand ? 1 : 0) + (currentTab !== "all" ? 1 : 0);
 
-  const pageTitle = category
+  const pageTitle = selectedBrand
+    ? `${selectedBrand} ${t("product.products", "Products")}`
+    : currentTab === "deals" || currentTab === "hot"
+    ? `🔥 ${t("product.hotDealsTitle", "Hot Deals & Clearances")}`
+    : currentTab === "new"
+    ? `✨ ${t("product.newArrivalsTitle", "New Arrivals")}`
+    : category
     ? `${category} ${t("product.products", "Products")}`
     : search
     ? `${t("common.search", "Search")}: "${search}"`
@@ -182,6 +228,90 @@ function ProductList() {
 
   return (
     <div className="pl-page">
+
+      {/* ── Product Section Sub-Navbar ── */}
+      <nav className="pl-sub-navbar" aria-label="Product Navigation">
+        <div className="pl-sub-nav-tabs">
+          <button
+            type="button"
+            className={`pl-sub-tab ${currentTab === "all" && !selectedBrand ? "active" : ""}`}
+            onClick={() => handleTabChange("all")}
+          >
+            <span className="pl-sub-tab-icon">🛍️</span>
+            <span className="pl-sub-tab-text">{t("product.allProducts", "All Products")}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`pl-sub-tab pl-tab-hot ${currentTab === "deals" || currentTab === "hot" ? "active" : ""}`}
+            onClick={() => handleTabChange("deals")}
+          >
+            <span className="pl-sub-tab-icon">🔥</span>
+            <span className="pl-sub-tab-text">{t("product.dealsHot", "Hot Deals")}</span>
+            {dealsCount > 0 && <span className="pl-sub-tab-pill">{dealsCount}</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`pl-sub-tab ${currentTab === "new" ? "active" : ""}`}
+            onClick={() => handleTabChange("new")}
+          >
+            <span className="pl-sub-tab-icon">✨</span>
+            <span className="pl-sub-tab-text">{t("product.newArrivals", "New Arrivals")}</span>
+          </button>
+
+          <button
+            type="button"
+            className={`pl-sub-tab ${currentTab === "brands" || selectedBrand ? "active" : ""}`}
+            onClick={() => handleTabChange("brands")}
+          >
+            <span className="pl-sub-tab-icon">🏷️</span>
+            <span className="pl-sub-tab-text">{t("product.brands", "Brands")}</span>
+            {selectedBrand && <span className="pl-sub-tab-brand-active">: {selectedBrand}</span>}
+          </button>
+        </div>
+
+        {/* Deals Hot Highlight Strip */}
+        {(currentTab === "deals" || currentTab === "hot") && (
+          <div className="pl-deals-strip">
+            <span className="pl-deals-strip-icon">🔥</span>
+            <div className="pl-deals-strip-text">
+              <strong>{t("product.hotDealsTitle", "Limited-Time Hot Deals & Clearance Sales")}</strong>
+              <span>{t("product.hotDealsDesc", "Special discounted prices on certified tech gadgets. While stock lasts!")}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Brands Selector Drawer */}
+        {(currentTab === "brands" || selectedBrand) && (
+          <div className="pl-brands-strip">
+            <span className="pl-brands-strip-title">{t("product.shopByBrand", "Shop by Brand:")}</span>
+            <div className="pl-brands-chips-scroll">
+              <button
+                type="button"
+                className={`pl-brand-chip ${!selectedBrand ? "active" : ""}`}
+                onClick={() => handleBrandSelect("")}
+              >
+                {t("product.allBrands", "All Brands")}
+              </button>
+              {displayBrands.map(b => {
+                const bStr = String(b || "");
+                const isSelected = selectedBrand && bStr.toLowerCase() === String(selectedBrand).toLowerCase();
+                return (
+                  <button
+                    key={bStr}
+                    type="button"
+                    className={`pl-brand-chip ${isSelected ? "active" : ""}`}
+                    onClick={() => handleBrandSelect(bStr)}
+                  >
+                    {bStr}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </nav>
 
       {/* ── Top bar ── */}
       <div className="pl-topbar">
@@ -290,15 +420,26 @@ function ProductList() {
           ) : (
             <>
               {/* ── TOP PAGINATION CONTROLS ── */}
-              <PaginationControls
-                currentPage={validPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-                totalItems={totalItems}
-                startIndex={startIndex}
-                endIndex={endIndex}
-                className="pl-pagination-top"
-              />
+              {totalPages > 1 && (
+                <Pagination
+                  currentPage={validPage}
+                  totalItems={totalItems}
+                  pageSize={itemsPerPage}
+                  onPageChange={(p) => {
+                    setCurrentPage(p);
+                    window.scrollTo({ top: 120, behavior: "smooth" });
+                  }}
+                  onPageSizeChange={(sz) => {
+                    setItemsPerPage(sz);
+                    setCurrentPage(1);
+                  }}
+                  pageSizeOptions={[6, 12, 24, 48]}
+                  itemLabel={t("product.products", "products")}
+                  showPageSize={false}
+                  showQuickJump={false}
+                  className="pl-pagination-top"
+                />
+              )}
 
               {/* ── PRODUCTS GRID ── */}
               <div className="pl-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -377,14 +518,21 @@ function ProductList() {
                 })}
               </div>
 
-              {/* ── BOTTOM PAGINATION CONTROLS ── */}
-              <PaginationControls
+              {/* ── PAGINATION CONTROLS ── */}
+              <Pagination
                 currentPage={validPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
                 totalItems={totalItems}
-                startIndex={startIndex}
-                endIndex={endIndex}
+                pageSize={itemsPerPage}
+                onPageChange={(p) => {
+                  setCurrentPage(p);
+                  window.scrollTo({ top: 120, behavior: "smooth" });
+                }}
+                onPageSizeChange={(sz) => {
+                  setItemsPerPage(sz);
+                  setCurrentPage(1);
+                }}
+                pageSizeOptions={[6, 12, 24, 48]}
+                itemLabel={t("product.products", "products")}
                 className="pl-pagination-bottom"
               />
             </>

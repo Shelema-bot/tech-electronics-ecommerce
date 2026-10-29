@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 export const isShelema = (user) => {
   if (!user) return false;
@@ -20,6 +21,7 @@ export const normalizeRole = (role, user = null) => {
   if (["cashier", "finance", "cashierfinance"].includes(r)) return "CashierFinance";
   if (["delivery"].includes(r)) return "Delivery";
   if (["seller"].includes(r)) return "Seller";
+  if (["webappmanager", "web_app_manager"].includes(r)) return "WebAppManager";
   return "Customer";
 };
 
@@ -82,7 +84,7 @@ function AdminRoute({ children, requiredRole = null, requiredRoles = null }) {
     }
   }
 
-  return children;
+  return <ErrorBoundary>{children}</ErrorBoundary>;
 }
 
 export default AdminRoute;

@@ -9,7 +9,7 @@ import {
 import {
   FiUser, FiShoppingBag, FiCreditCard, FiHeart,
   FiMessageSquare, FiBell, FiLogOut,
-  FiInfo, FiUsers, FiMail, FiHelpCircle,
+  FiInfo, FiMail, FiHelpCircle,
 } from "react-icons/fi";
 import logo from "../../assets/tech-logo.png";
 import { useCart }       from "../../context/CartContext";
@@ -41,10 +41,6 @@ const CAT_ICONS = {
 const catIcon = n => CAT_ICONS[n] || "📦";
 
 /* ── Static nav sub-menus ───────────────────────────────────── */
-const ABOUT_LINKS = [
-  { href:"/about",   icon:<FiInfo />,      label:"About Us",       sub:"Our story & mission"       },
-  { href:"/team",    icon:<FiUsers />,     label:"Our Team",       sub:"Meet the people behind us" },
-];
 const HELP_LINKS = [
   { href:"/help",          icon:<FiHelpCircle />, label:"Help Center",        sub:"FAQs & guides"          },
   { href:"/contact",       icon:<FiMail />,       label:"Contact Us",         sub:"Get in touch"           },
@@ -71,8 +67,9 @@ const Navbar = () => {
   const [notifOpen, setNotifOpen]         = useState(false);
   const [imgSearchOpen, setImgSearchOpen] = useState(false);
   const [categories, setCategories]       = useState([]);
+  const [navProducts, setNavProducts]     = useState([]);
+  const [hoveredCategory, setHoveredCategory] = useState("Laptops");
   const [mobileCatOpen, setMobileCatOpen] = useState(false);
-  const [mobileAboutOpen, setMobileAboutOpen] = useState(false);
   const [mobileHelpOpen, setMobileHelpOpen]   = useState(false);
   const [langOpen, setLangOpen]               = useState(false);
   const [mobileLangOpen, setMobileLangOpen]   = useState(false);
@@ -99,8 +96,21 @@ const Navbar = () => {
 
   useEffect(() => {
     API.get("/categories")
-      .then(res => setCategories(res.data || []))
+      .then(res => {
+        const data = res.data || [];
+        setCategories(data);
+        if (data.length > 0) {
+          setHoveredCategory(data[0].name);
+        }
+      })
       .catch(() => setCategories([]));
+
+    API.get("/products")
+      .then(res => {
+        const prods = Array.isArray(res.data) ? res.data : res.data?.products || [];
+        setNavProducts(prods);
+      })
+      .catch(() => setNavProducts([]));
   }, []);
 
   useEffect(() => {
@@ -149,7 +159,6 @@ const Navbar = () => {
     setNotifOpen(false);
     setLangOpen(false);
     setMobileCatOpen(false);
-    setMobileAboutOpen(false);
     setMobileHelpOpen(false);
     setMobileLangOpen(false);
   };
@@ -401,36 +410,150 @@ const Navbar = () => {
                 <span>{t("nav.categories")}</span>
               </div>
 
-              {/* Mega Dropdown Panel */}
+              {/* Mega Dropdown Panel with Hover Category Products Preview */}
               <div className="cat-mega-dropdown">
-                <div className="cat-mega-inner">
-                  <button className="cat-mega-all" onClick={() => { navigate("/products"); closeAll(); }}>
-                    🛍️ {t("product.allProducts")}
-                  </button>
-                  <div className="cat-mega-divider" />
-                  <div className="cat-mega-grid">
-                    {categories.length === 0 ? (
-                      <span className="cat-mega-empty">No categories yet</span>
-                    ) : (
-                      categories.map(cat => {
-                        const img = CAT_IMAGE_MAP[cat.name];
-                        return (
-                          <button
-                            key={cat._id}
-                            className="cat-mega-item"
-                            onClick={() => { navigate(`/products?category=${encodeURIComponent(cat.name)}`); closeAll(); }}
-                          >
-                            {img ? (
-                              <img src={img} alt="" className="cat-mega-thumb" />
-                            ) : (
-                              <span className="cat-mega-icon">{catIcon(cat.name)}</span>
-                            )}
-                            <span className="cat-mega-label">{cat.name}</span>
-                          </button>
-                        );
-                      })
-                    )}
+                <div className="cat-mega-split">
+                  
+                  {/* Left Column: Categories List */}
+                  <div className="cat-mega-sidebar">
+                    <button
+                      type="button"
+                      className="cat-mega-all"
+                      onClick={() => { navigate("/products"); closeAll(); }}
+                    >
+                      <span>🛍️ {t("product.allProducts", "All Products")}</span>
+                      <span className="cat-mega-all-arrow">→</span>
+                    </button>
+                    <div className="cat-mega-divider" />
+                    <div className="cat-mega-list">
+                      {categories.length === 0 ? (
+                        <span className="cat-mega-empty">No categories yet</span>
+                      ) : (
+                        categories.map(cat => {
+                          const img = CAT_IMAGE_MAP[cat.name];
+                          const isHovered = hoveredCategory === cat.name;
+                          return (
+                            <button
+                              key={cat._id}
+                              type="button"
+                              className={`cat-mega-item ${isHovered ? "active" : ""}`}
+                              onMouseEnter={() => setHoveredCategory(cat.name)}
+                              onFocus={() => setHoveredCategory(cat.name)}
+                              onClick={() => { navigate(`/products?category=${encodeURIComponent(cat.name)}`); closeAll(); }}
+                            >
+                              <div className="cat-mega-item-left">
+                                {img ? (
+                                  <img src={img} alt="" className="cat-mega-thumb" />
+                                ) : (
+                                  <span className="cat-mega-icon">{catIcon(cat.name)}</span>
+                                )}
+                                <span className="cat-mega-label">{cat.name}</span>
+                              </div>
+                              <span className="cat-mega-item-chevron">›</span>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
+
+                  {/* Right Column: Dynamic Category Products Preview */}
+                  <div className="cat-mega-preview">
+                    <div className="cat-mega-preview-header">
+                      <div>
+                        <span className="cat-mega-preview-badge">
+                          {catIcon(hoveredCategory)} {hoveredCategory || "Category"}
+                        </span>
+                        <h4 className="cat-mega-preview-title">
+                          {t("cat." + hoveredCategory, hoveredCategory || "Products")}
+                        </h4>
+                      </div>
+                      <Link
+                        to={`/products?category=${encodeURIComponent(hoveredCategory || "")}`}
+                        className="cat-mega-preview-viewall"
+                        onClick={closeAll}
+                      >
+                        {t("nav.viewAll", "View All")} →
+                      </Link>
+                    </div>
+
+                    <div className="cat-mega-preview-body">
+                      {(() => {
+                        const catProds = navProducts
+                          .filter(p => {
+                            if (!hoveredCategory) return false;
+                            const pCat = String(p.category || "").trim().toLowerCase();
+                            const hCat = String(hoveredCategory).trim().toLowerCase();
+                            return pCat === hCat || pCat.includes(hCat) || hCat.includes(pCat);
+                          })
+                          .slice(0, 4);
+
+                        if (catProds.length === 0) {
+                          return (
+                            <div className="cat-mega-no-products">
+                              <span className="cat-mega-no-prod-icon">{catIcon(hoveredCategory)}</span>
+                              <p className="cat-mega-no-prod-text">
+                                {t("cat.explorePrompt", "Explore our latest {{category}} deals & inventory", { category: hoveredCategory })}
+                              </p>
+                              <button
+                                type="button"
+                                className="cat-mega-browse-btn"
+                                onClick={() => {
+                                  navigate(`/products?category=${encodeURIComponent(hoveredCategory || "")}`);
+                                  closeAll();
+                                }}
+                              >
+                                {t("cat.browseCategory", "Browse {{category}}", { category: hoveredCategory })} →
+                              </button>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div className="cat-mega-prod-grid">
+                            {catProds.map(prod => {
+                              const pImg = prod.image ? getImageUrl(prod.image) : (CAT_IMAGE_MAP[hoveredCategory] || null);
+                              const currentPrice = prod.discountPrice || prod.price || 0;
+                              const origPrice = prod.originalPrice || (prod.discountPrice ? prod.price : null);
+                              return (
+                                <Link
+                                  key={prod._id}
+                                  to={`/product/${prod._id}`}
+                                  className="cat-mega-prod-card"
+                                  onClick={closeAll}
+                                >
+                                  <div className="cat-mega-prod-img-box">
+                                    {pImg ? (
+                                      <img src={pImg} alt={prod.name} className="cat-mega-prod-img" />
+                                    ) : (
+                                      <span className="cat-mega-prod-placeholder">{catIcon(prod.category)}</span>
+                                    )}
+                                    {origPrice && origPrice > currentPrice && (
+                                      <span className="cat-mega-prod-sale-badge">SALE</span>
+                                    )}
+                                  </div>
+                                  <div className="cat-mega-prod-meta">
+                                    <span className="cat-mega-prod-name">{prod.name}</span>
+                                    <div className="cat-mega-prod-prices">
+                                      <span className="cat-mega-prod-price">
+                                        {currentPrice.toLocaleString()} ETB
+                                      </span>
+                                      {origPrice && origPrice > currentPrice && (
+                                        <span className="cat-mega-prod-orig">
+                                          {Math.round(origPrice).toLocaleString()} ETB
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -448,6 +571,17 @@ const Navbar = () => {
                   {t("nav.allProducts")}
                 </Link>
                 <HoverPanel>
+                  <div className="nhp-quick-tabs">
+                    <Link to="/products?tab=deals" className="nhp-quick-pill nhp-pill-hot" onClick={closeAll}>
+                      🔥 {t("product.dealsHot", "Hot Deals")}
+                    </Link>
+                    <Link to="/products?tab=new" className="nhp-quick-pill" onClick={closeAll}>
+                      ✨ {t("product.newArrivals", "New Arrivals")}
+                    </Link>
+                    <Link to="/products?tab=brands" className="nhp-quick-pill" onClick={closeAll}>
+                      🏷️ {t("product.brands", "Brands")}
+                    </Link>
+                  </div>
                   <div className="nhp-title">{t("nav.browseByCategory", "Browse by Category")}</div>
                   <div className="nhp-grid nhp-grid-2">
                     {[
@@ -472,22 +606,18 @@ const Navbar = () => {
                 </HoverPanel>
               </li>
 
-              {/* About — hover shows About Us + Team */}
-              <li className="nav-link-item nav-has-panel">
-                <span className="nav-link nav-cat-trigger-text">
-                  {t("nav.about")}
-                </span>
-                <div className="nav-hover-panel nhp-narrow">
-                  {ABOUT_LINKS.map(item => (
-                    <Link key={item.href} to={item.href} className="nhp-menu-item" onClick={closeAll}>
-                      <span className="nhp-menu-icon">{item.icon}</span>
-                      <div>
-                        <div className="nhp-menu-label">{item.label}</div>
-                        <div className="nhp-menu-sub">{item.sub}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+              {/* About — direct link */}
+              <li className="nav-link-item">
+                <Link to="/about" className="nav-link" onClick={closeAll}>
+                  {t("nav.about", "About Us")}
+                </Link>
+              </li>
+
+              {/* Job — between About Us and Contact */}
+              <li className="nav-link-item">
+                <Link to="/jobs" className="nav-link" onClick={closeAll}>
+                  {t("nav.jobs", "Job")}
+                </Link>
               </li>
 
               {/* Contact */}
@@ -513,13 +643,6 @@ const Navbar = () => {
                 </div>
               </li>
             </ul>
-
-            {/* Right: Seller link */}
-            <div className="nav-right-promo">
-              <Link to="/become-seller" className="nav-seller-link">
-                ✨ {t("nav.becomeSeller", "Become a Seller")}
-              </Link>
-            </div>
 
           </div>
 
@@ -585,6 +708,17 @@ const Navbar = () => {
                 <span className="nav-drawer-item-icon">🛍️</span>
                 <span>{t("nav.allProducts")}</span>
               </Link>
+              <div style={{ display: "flex", gap: "6px", padding: "0 16px 10px 48px", flexWrap: "wrap" }}>
+                <Link to="/products?tab=deals" className="nhp-quick-pill nhp-pill-hot" onClick={closeAll}>
+                  🔥 {t("product.dealsHot", "Hot Deals")}
+                </Link>
+                <Link to="/products?tab=new" className="nhp-quick-pill" onClick={closeAll}>
+                  ✨ {t("product.newArrivals", "New Arrivals")}
+                </Link>
+                <Link to="/products?tab=brands" className="nhp-quick-pill" onClick={closeAll}>
+                  🏷️ {t("product.brands", "Brands")}
+                </Link>
+              </div>
             </li>
 
             {/* Categories Accordion */}
@@ -628,28 +762,20 @@ const Navbar = () => {
               )}
             </li>
 
-            {/* About Accordion */}
-            <li className="nav-drawer-accordion-wrap">
-              <button
-                className="nav-drawer-accordion-btn"
-                onClick={() => setMobileAboutOpen(o => !o)}
-                aria-expanded={mobileAboutOpen}
-              >
-                <div className="nav-drawer-accordion-title">
-                  <span className="nav-drawer-item-icon">ℹ️</span>
-                  <span>{t("nav.about")}</span>
-                </div>
-              </button>
-              {mobileAboutOpen && (
-                <div className="nav-drawer-sub-menu">
-                  {ABOUT_LINKS.map(item => (
-                    <Link key={item.href} to={item.href} className="nav-drawer-sub-item" onClick={closeAll}>
-                      <span>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+            {/* About */}
+            <li>
+              <Link to="/about" className="nav-drawer-item" onClick={closeAll}>
+                <span className="nav-drawer-item-icon">ℹ️</span>
+                <span>{t("nav.about", "About Us")}</span>
+              </Link>
+            </li>
+
+            {/* Job */}
+            <li>
+              <Link to="/jobs" className="nav-drawer-item" onClick={closeAll}>
+                <span className="nav-drawer-item-icon">💼</span>
+                <span>{t("nav.jobs", "Job")}</span>
+              </Link>
             </li>
 
             {/* Contact */}
@@ -682,14 +808,6 @@ const Navbar = () => {
                   ))}
                 </div>
               )}
-            </li>
-
-            {/* Become a Seller */}
-            <li>
-              <Link to="/become-seller" className="nav-drawer-item nav-drawer-highlight" onClick={closeAll}>
-                <span className="nav-drawer-item-icon">✨</span>
-                <span>{t("nav.becomeSeller", "Become a Seller")}</span>
-              </Link>
             </li>
           </ul>
 

@@ -20,16 +20,37 @@ const userSchema = new mongoose.Schema(
       enum: [
         "customer", "Customer", "admin", "Admin", "super_admin", "SuperAdmin",
         "seller", "Seller", "cashier", "finance", "cashier_finance", "CashierFinance",
-        "inventory_manager", "InventoryManager", "delivery", "Delivery", "owner"
+        "inventory_manager", "InventoryManager", "delivery", "Delivery", "owner",
+        "web_app_manager"
       ],
       default: "customer",
     },
 
     // ── Seller / Staff info ──────────────────────
     staffInfo: {
-      businessName:   { type: String, default: "" },
-      nationalIdImage:{ type: String, default: "" },   // Cloudinary URL
-      nationalIdNumber:{ type: String, default: "" },
+      businessName:        { type: String, default: "" },
+      legalRepresentative: { type: String, default: "" },
+      businessType:        { type: String, default: "Individual" },
+      tinNumber:           { type: String, default: "" },
+      tradeLicenseNumber:  { type: String, default: "" },
+      tradeLicenseImage:   { type: String, default: "" },
+      idType:              { type: String, default: "National ID" },
+      nationalIdNumber:    { type: String, default: "" },
+      nationalIdImage:     { type: String, default: "" },
+      businessPhone:       { type: String, default: "" },
+      altPhone:            { type: String, default: "" },
+      businessEmail:       { type: String, default: "" },
+      city:                { type: String, default: "Addis Ababa" },
+      subcity:             { type: String, default: "" },
+      woredaKebele:        { type: String, default: "" },
+      physicalAddress:     { type: String, default: "" },
+      payoutBank:          { type: String, default: "Commercial Bank of Ethiopia" },
+      bankAccountHolder:   { type: String, default: "" },
+      bankAccountNumber:   { type: String, default: "" },
+      plannedCategories:   [{ type: String }],
+      termsAccepted:       { type: Boolean, default: false },
+      antiFraudAccepted:   { type: Boolean, default: false },
+      appliedIp:           { type: String, default: "" },
       verificationStatus: {
         type: String,
         enum: ["pending", "verified", "rejected"],
@@ -37,6 +58,11 @@ const userSchema = new mongoose.Schema(
       },
       verificationNote: { type: String, default: "" },
       appliedAt: { type: Date },
+
+      // ── External Web Applications / Integrations (Staff role handling) ──
+      assignedWebApps:   [{ type: String }],
+      webAppAccessLevel: { type: String, default: "Operator" },
+      webAppNotes:       { type: String, default: "" },
 
       // ── Seller subscription plan ─────────────────────────
       plan:            { type: mongoose.Schema.Types.ObjectId, ref: "SellerPlan", default: null },
@@ -63,7 +89,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // ── Indexes ───────────────────────────────────────────────────
-userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 
